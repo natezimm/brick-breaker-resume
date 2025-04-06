@@ -32,7 +32,7 @@ async function create() {
 
     bricksGroup = scene.physics.add.staticGroup();
 
-    const paddleGraphics = scene.add.graphics({ fillStyle: { color: 0x2196f3 } });
+    const paddleGraphics = scene.add.graphics({ fillStyle: { color: 0xA9A9A9 } });
     paddleGraphics.fillRect(0, 0, 100, 20);
     const paddleTextureKey = 'paddleTexture';
     paddleGraphics.generateTexture(paddleTextureKey, 100, 20);
@@ -42,7 +42,7 @@ async function create() {
         .setImmovable(true)
         .setCollideWorldBounds(true);
 
-    const ballGraphics = scene.add.graphics({ fillStyle: { color: 0x2196f3 } });
+    const ballGraphics = scene.add.graphics({ fillStyle: { color: 0xA9A9A9 } });
     ballGraphics.fillCircle(10, 10, 10);
     const ballTextureKey = 'ballTexture';
     ballGraphics.generateTexture(ballTextureKey, 20, 20);
