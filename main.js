@@ -3,6 +3,8 @@ import { extractTextFromFile } from './parser.js';
 let bricksGroup;
 let paddle;
 let ball;
+let lives = 3;
+let livesBalls = [];
 
 const config = {
     type: Phaser.AUTO,
@@ -35,12 +37,13 @@ function createBrick(scene, x, y, text, type, brickWidth, color) {
     scene.physics.add.existing(brick, true);
     bricksGroup.add(brick);
 
-    const textElement = scene.add.text(x + brickWidth / 2, y + height / 2, text, { color: '#000000', fontSize: '12px' })
-        .setOrigin(0.5, 0.5)
-        .setDepth(1);
-    textElement.setScrollFactor(0);
-
-    brick.setData('textElement', textElement);
+    if (text) {
+        const textElement = scene.add.text(x + brickWidth / 2, y + height / 2, text, { color: '#000000', fontSize: '12px' })
+            .setOrigin(0.5, 0.5)
+            .setDepth(1);
+        textElement.setScrollFactor(0);
+        brick.setData('textElement', textElement);
+    }
 }
 
 async function create() {
@@ -79,10 +82,25 @@ async function create() {
         brick.destroy();
     });
 
+    scene.physics.world.on('worldbounds', (body, up, down) => {
+        if (down) {
+            loseLife(scene);
+        }
+    });
+
+    ball.body.setCollideWorldBounds(true, 1, 1, true);
+
     scene.input.on('pointermove', pointer => {
         const paddleWidth = paddle.width;
         paddle.x = Phaser.Math.Clamp(pointer.x, paddleWidth / 2, window.innerWidth - paddleWidth / 2);
     });
+
+    // Display lives as balls at the bottom left of the screen
+    for (let i = 0; i < lives; i++) {
+        const lifeBall = scene.add.image(30 + i * 30, window.innerHeight - 20, ballTextureKey)
+            .setDisplaySize(20, 20);
+        livesBalls.push(lifeBall);
+    }
 
     await (async () => {
         const response = await fetch('Nathan Zimmerman Resume.docx');
@@ -114,6 +132,21 @@ async function create() {
             });
         });
     })();
+}
+
+function loseLife(scene) {
+    lives--;
+    if (livesBalls.length > 0) {
+        const lifeBall = livesBalls.pop();
+        lifeBall.destroy();
+    }
+    if (lives > 0) {
+        ball.setPosition(window.innerWidth / 2, window.innerHeight - 70);
+        ball.setVelocity(200, -200);
+    } else {
+        scene.add.text(window.innerWidth / 2, window.innerHeight - 100, 'Game Over', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5);
+        ball.destroy();
+    }
 }
 
 function update() {}
