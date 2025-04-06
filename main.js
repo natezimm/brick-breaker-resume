@@ -8,8 +8,9 @@ let livesBalls = [];
 let score = 0;
 let scoreText;
 let totalRows = 0;
-let paused = true; // Game starts paused
+let paused = true;
 let countdownText;
+let winText;
 
 const config = {
     type: Phaser.AUTO,
@@ -76,7 +77,7 @@ async function create() {
 
     ball = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 70, ballTextureKey)
         .setDisplaySize(20, 20)
-        .setVelocity(0, 0) // Ball is initially stationary
+        .setVelocity(0, 0)
         .setBounce(1)
         .setCollideWorldBounds(true);
 
@@ -147,12 +148,10 @@ async function create() {
         });
     })();
 
-    // Add event listener for pause
     scene.input.keyboard.on('keydown-P', () => {
         togglePause(scene);
     });
 
-    // Add countdown before starting the game
     countdownText = scene.add.text(window.innerWidth / 2, window.innerHeight - 150, '3', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
     startCountdown(scene);
 }
@@ -196,9 +195,15 @@ function togglePause(scene) {
     pauseButton.textContent = paused ? 'Play' : 'Pause';
 }
 
-function update() {}
+function update() {
+    const scene = this;
+    if (bricksGroup.countActive() === 0 && lives > 0 && !winText) {
+        winText = scene.add.text(window.innerWidth / 2, window.innerHeight / 2, 'YOU BROKE IT! YOU WIN!', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
+        ball.setVelocity(0, 0);
+        paused = true;
+    }
+}
 
-// Add event listener for the options button
 document.getElementById('pauseButton').addEventListener('click', () => {
     togglePause(game.scene.scenes[0]);
 });
