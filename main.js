@@ -83,17 +83,18 @@ async function create() {
         let x = 10;
         let y = marginTop;
 
+        const colors = [0xf44336, 0xffc107, 0x4caf50, 0x2196f3]; // red, yellow, green, blue
+
         elements.forEach((el) => {
             const words = el.text.split(/\s+/);
-            const rowIndex = Math.floor((y - marginTop) / (brickHeight + brickPadding));
-            const colors = [0xf44336, 0xffc107, 0x4caf50, 0x2196f3]; // red, yellow, green, blue
-            const rowColor = colors[rowIndex % colors.length];
             words.forEach((word) => {
                 const brickWidth = word.length * baseBrickWidth + 10;
                 if (x + brickWidth > window.innerWidth) {
                     x = 10;
                     y += brickHeight + brickPadding;
                 }
+                const rowIndex = Math.floor((y - marginTop) / (brickHeight + brickPadding));
+                const rowColor = colors[rowIndex % colors.length];
                 createBrick(scene, x, y, word, 'word', brickWidth, rowColor);
                 x += brickWidth + brickPadding;
             });

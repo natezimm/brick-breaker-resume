@@ -2,7 +2,7 @@ export async function extractTextFromFile(file) {
     const fileType = file.name.split('.').pop().toLowerCase();
 
     if (fileType !== 'docx') {
-        alert("Please upload a .docx file only.");
+        console.error("Please upload a .docx file only.");
         return [];
     }
 
@@ -21,9 +21,9 @@ export async function extractTextFromFile(file) {
                     const tag = node.tagName.toLowerCase();
                     const text = node.textContent.trim();
 
-                    const words = text.split(/\s+/);
-                    words.forEach(word => {
-                        elements.push({ tag, text: word });
+                    const blocks = text.split(/[\n•]/).map(block => block.trim()).filter(block => block.length > 0);
+                    blocks.forEach(block => {
+                        elements.push({ tag, text: block });
                     });
                 }
             });
