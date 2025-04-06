@@ -34,7 +34,13 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-function preload() {}
+function preload() {
+    this.load.audio('ballHit', 'assets/sounds/ball-hit.wav');
+    this.load.audio('brickHit', 'assets/sounds/brick-hit.wav');
+    this.load.audio('loseLife', 'assets/sounds/lose-life.wav');
+    this.load.audio('winGame', 'assets/sounds/win-game.wav');
+    this.load.audio('gameOver', 'assets/sounds/game-over.wav');
+}
 
 function createBrick(scene, x, y, text, type, brickWidth, color) {
     const height = 24;
@@ -91,8 +97,12 @@ async function create() {
         .setBounce(1)
         .setCollideWorldBounds(true);
 
-    scene.physics.add.collider(ball, paddle);
+    scene.physics.add.collider(ball, paddle, () => {
+        scene.sound.play('ballHit');
+    });
+
     scene.physics.add.collider(ball, bricksGroup, (ball, brick) => {
+        scene.sound.play('brickHit');
         const textElement = brick.getData('textElement');
         if (textElement) {
             textElement.destroy();
@@ -105,6 +115,7 @@ async function create() {
 
     scene.physics.world.on('worldbounds', (body, up, down) => {
         if (down) {
+            scene.sound.play('loseLife');
             loseLife(scene);
         }
     });
@@ -127,7 +138,7 @@ async function create() {
     scoreText = scene.add.text(window.innerWidth - 150, window.innerHeight - 30, `Score: ${score}`, { fontSize: '20px', fill: '#000' });
 
     await (async () => {
-        const response = await fetch('Nathan Zimmerman Resume.docx');
+        const response = await fetch('assets/Nathan Zimmerman Resume.docx');
         const blob = await response.blob();
         const file = new File([blob], 'Nathan Zimmerman Resume.docx');
         const elements = await extractTextFromFile(file);
@@ -212,6 +223,7 @@ function update() {
     if (bricksCreated && bricksGroup.countActive() === 0 && lives > 0 && !winText) {
         winText = scene.add.text(window.innerWidth / 2, window.innerHeight / 2, 'YOU BROKE IT! YOU WIN!', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5).setDepth(2);
         ball.setVelocity(0, 0);
+        scene.sound.play('winGame');
         paused = true;
     }
 }
