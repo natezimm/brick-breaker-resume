@@ -8,7 +8,8 @@ let livesBalls = [];
 let score = 0;
 let scoreText;
 let totalRows = 0;
-let paused = false;
+let paused = true; // Game starts paused
+let countdownText;
 
 const config = {
     type: Phaser.AUTO,
@@ -75,7 +76,7 @@ async function create() {
 
     ball = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 70, ballTextureKey)
         .setDisplaySize(20, 20)
-        .setVelocity(200, -200)
+        .setVelocity(0, 0) // Ball is initially stationary
         .setBounce(1)
         .setCollideWorldBounds(true);
 
@@ -150,6 +151,25 @@ async function create() {
     scene.input.keyboard.on('keydown-P', () => {
         togglePause(scene);
     });
+
+    // Add countdown before starting the game
+    countdownText = scene.add.text(window.innerWidth / 2, window.innerHeight - 150, '3', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
+    startCountdown(scene);
+}
+
+function startCountdown(scene) {
+    let countdown = 3;
+    const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+            countdownText.setText(countdown.toString());
+        } else {
+            countdownText.destroy();
+            ball.setVelocity(200, -200);
+            paused = false; // Unpause the game
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
 }
 
 function loseLife(scene) {
@@ -160,7 +180,9 @@ function loseLife(scene) {
     }
     if (lives > 0) {
         ball.setPosition(window.innerWidth / 2, window.innerHeight - 70);
-        ball.setVelocity(200, -200);
+        ball.setVelocity(0, 0);
+        paused = true; // Pause the game
+        startCountdown(scene);
     } else {
         scene.add.text(window.innerWidth / 2, window.innerHeight - 100, 'Game Over', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5);
         ball.destroy();
