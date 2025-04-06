@@ -11,6 +11,7 @@ let totalRows = 0;
 let paused = true;
 let countdownText;
 let winText;
+let bricksCreated = false;
 
 const config = {
     type: Phaser.AUTO,
@@ -56,6 +57,15 @@ function createBrick(scene, x, y, text, type, brickWidth, color) {
 
 async function create() {
     const scene = this;
+
+    if (winText) {
+        winText.destroy();
+        winText = null;
+    }
+
+    score = 0;
+    lives = 3;
+    bricksCreated = false;
 
     bricksGroup = scene.physics.add.staticGroup();
 
@@ -146,6 +156,8 @@ async function create() {
                 x += brickWidth + brickPadding;
             });
         });
+
+        bricksCreated = true;
     })();
 
     scene.input.keyboard.on('keydown-P', () => {
@@ -165,7 +177,7 @@ function startCountdown(scene) {
         } else {
             countdownText.destroy();
             ball.setVelocity(200, -200);
-            paused = false; // Unpause the game
+            paused = false;
             clearInterval(countdownInterval);
         }
     }, 1000);
@@ -180,10 +192,10 @@ function loseLife(scene) {
     if (lives > 0) {
         ball.setPosition(window.innerWidth / 2, window.innerHeight - 70);
         ball.setVelocity(0, 0);
-        paused = true; // Pause the game
+        paused = true;
         startCountdown(scene);
     } else {
-        scene.add.text(window.innerWidth / 2, window.innerHeight - 100, 'Game Over', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5);
+        scene.add.text(window.innerWidth / 2, window.innerHeight - 100, 'Game Over', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5).setDepth(2);
         ball.destroy();
     }
 }
@@ -197,13 +209,14 @@ function togglePause(scene) {
 
 function update() {
     const scene = this;
-    if (bricksGroup.countActive() === 0 && lives > 0 && !winText) {
-        winText = scene.add.text(window.innerWidth / 2, window.innerHeight / 2, 'YOU BROKE IT! YOU WIN!', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
+    if (bricksCreated && bricksGroup.countActive() === 0 && lives > 0 && !winText) {
+        winText = scene.add.text(window.innerWidth / 2, window.innerHeight / 2, 'YOU BROKE IT! YOU WIN!', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5).setDepth(2);
         ball.setVelocity(0, 0);
         paused = true;
     }
 }
 
+// Add event listener for the options button
 document.getElementById('pauseButton').addEventListener('click', () => {
     togglePause(game.scene.scenes[0]);
 });
