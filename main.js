@@ -216,7 +216,6 @@ function update() {
     }
 }
 
-// Add event listener for the options button
 document.getElementById('pauseButton').addEventListener('click', () => {
     togglePause(game.scene.scenes[0]);
 });
