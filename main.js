@@ -27,6 +27,22 @@ const game = new Phaser.Game(config);
 
 function preload() {}
 
+function createBrick(scene, x, y, text, type, brickWidth, color) {
+    const height = 24;
+
+    const brick = scene.add.rectangle(x, y, brickWidth, height, color)
+        .setOrigin(0, 0);
+    scene.physics.add.existing(brick, true);
+    bricksGroup.add(brick);
+
+    const textElement = scene.add.text(x + brickWidth / 2, y + height / 2, text, { color: '#000000', fontSize: '12px' })
+        .setOrigin(0.5, 0.5)
+        .setDepth(1);
+    textElement.setScrollFactor(0);
+
+    brick.setData('textElement', textElement);
+}
+
 async function create() {
     const scene = this;
 
@@ -48,7 +64,7 @@ async function create() {
     ballGraphics.generateTexture(ballTextureKey, 20, 20);
     ballGraphics.destroy();
 
-    ball = scene.physics.add.image(400, 550, ballTextureKey)
+    ball = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 70, ballTextureKey)
         .setDisplaySize(20, 20)
         .setVelocity(200, -200)
         .setBounce(1)
@@ -56,12 +72,10 @@ async function create() {
 
     scene.physics.add.collider(ball, paddle);
     scene.physics.add.collider(ball, bricksGroup, (ball, brick) => {
-        const children = scene.children.getChildren();
-        children.forEach(child => {
-            if (child.type === 'Text' && Math.abs(child.x - brick.x) <= 5 && Math.abs(child.y - brick.y) <= 5) {
-                child.destroy();
-            }
-        });
+        const textElement = brick.getData('textElement');
+        if (textElement) {
+            textElement.destroy();
+        }
         brick.destroy();
     });
 
@@ -83,13 +97,13 @@ async function create() {
         let x = 10;
         let y = marginTop;
 
-        const colors = [0xf44336, 0xffc107, 0x4caf50, 0x2196f3]; // red, yellow, green, blue
+        const colors = [0xf44336, 0xffc107, 0x4caf50, 0x2196f3];
 
         elements.forEach((el) => {
             const words = el.text.split(/\s+/);
             words.forEach((word) => {
                 const brickWidth = word.length * baseBrickWidth + 10;
-                if (x + brickWidth > window.innerWidth) {
+                if (x + brickWidth > window.innerWidth - 10) {
                     x = 10;
                     y += brickHeight + brickPadding;
                 }
@@ -101,20 +115,8 @@ async function create() {
         });
     })();
 }
+
 function update() {}
-
-function createBrick(scene, x, y, text, type, brickWidth, color) {
-    const height = 24;
-
-    const brick = scene.add.rectangle(x, y, brickWidth, height, color)
-        .setOrigin(0, 0);
-    scene.physics.add.existing(brick, true);
-    bricksGroup.add(brick);
-
-    const textElement = scene.add.text(x + 5, y + 4, text, { color: '#000000', fontSize: '12px' })
-        .setDepth(1);
-    textElement.setScrollFactor(0);
-}
 
 window.addEventListener('resize', () => {
     game.scale.resize(window.innerWidth, window.innerHeight);
