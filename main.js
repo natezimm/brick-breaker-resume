@@ -5,6 +5,9 @@ let paddle;
 let ball;
 let lives = 3;
 let livesBalls = [];
+let score = 0;
+let scoreText;
+let totalRows = 0;
 
 const config = {
     type: Phaser.AUTO,
@@ -44,6 +47,8 @@ function createBrick(scene, x, y, text, type, brickWidth, color) {
         textElement.setScrollFactor(0);
         brick.setData('textElement', textElement);
     }
+
+    brick.setData('row', Math.floor((y - 10) / (height + 4)));
 }
 
 async function create() {
@@ -79,6 +84,9 @@ async function create() {
         if (textElement) {
             textElement.destroy();
         }
+        const row = brick.getData('row');
+        score += (totalRows - row) * 10;
+        scoreText.setText(`Score: ${score}`);
         brick.destroy();
     });
 
@@ -95,12 +103,13 @@ async function create() {
         paddle.x = Phaser.Math.Clamp(pointer.x, paddleWidth / 2, window.innerWidth - paddleWidth / 2);
     });
 
-    // Display lives as balls at the bottom left of the screen
     for (let i = 0; i < lives; i++) {
         const lifeBall = scene.add.image(30 + i * 30, window.innerHeight - 20, ballTextureKey)
             .setDisplaySize(20, 20);
         livesBalls.push(lifeBall);
     }
+
+    scoreText = scene.add.text(window.innerWidth - 150, window.innerHeight - 30, `Score: ${score}`, { fontSize: '20px', fill: '#000' });
 
     await (async () => {
         const response = await fetch('Nathan Zimmerman Resume.docx');
@@ -126,6 +135,7 @@ async function create() {
                     y += brickHeight + brickPadding;
                 }
                 const rowIndex = Math.floor((y - marginTop) / (brickHeight + brickPadding));
+                totalRows = Math.max(totalRows, rowIndex + 1);
                 const rowColor = colors[rowIndex % colors.length];
                 createBrick(scene, x, y, word, 'word', brickWidth, rowColor);
                 x += brickWidth + brickPadding;
