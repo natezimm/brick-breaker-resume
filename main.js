@@ -8,6 +8,7 @@ let livesBalls = [];
 let score = 0;
 let scoreText;
 let totalRows = 0;
+let paused = false;
 
 const config = {
     type: Phaser.AUTO,
@@ -99,8 +100,10 @@ async function create() {
     ball.body.setCollideWorldBounds(true, 1, 1, true);
 
     scene.input.on('pointermove', pointer => {
-        const paddleWidth = paddle.width;
-        paddle.x = Phaser.Math.Clamp(pointer.x, paddleWidth / 2, window.innerWidth - paddleWidth / 2);
+        if (!paused) {
+            const paddleWidth = paddle.width;
+            paddle.x = Phaser.Math.Clamp(pointer.x, paddleWidth / 2, window.innerWidth - paddleWidth / 2);
+        }
     });
 
     for (let i = 0; i < lives; i++) {
@@ -142,6 +145,11 @@ async function create() {
             });
         });
     })();
+
+    // Add event listener for pause
+    scene.input.keyboard.on('keydown-P', () => {
+        togglePause(scene);
+    });
 }
 
 function loseLife(scene) {
@@ -159,7 +167,19 @@ function loseLife(scene) {
     }
 }
 
+function togglePause(scene) {
+    paused = !paused;
+    scene.physics.world.isPaused = paused;
+    const pauseButton = document.getElementById('pauseButton');
+    pauseButton.textContent = paused ? 'Play' : 'Pause';
+}
+
 function update() {}
+
+// Add event listener for the options button
+document.getElementById('pauseButton').addEventListener('click', () => {
+    togglePause(game.scene.scenes[0]);
+});
 
 window.addEventListener('resize', () => {
     game.scale.resize(window.innerWidth, window.innerHeight);
