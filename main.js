@@ -160,6 +160,7 @@ async function create() {
                     x = 10;
                     y += brickHeight + brickPadding;
                 }
+                if (y + brickHeight > window.innerHeight * 0.75) return;
                 const rowIndex = Math.floor((y - marginTop) / (brickHeight + brickPadding));
                 totalRows = Math.max(totalRows, rowIndex + 1);
                 const rowColor = colors[rowIndex % colors.length];
