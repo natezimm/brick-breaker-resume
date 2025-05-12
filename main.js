@@ -96,6 +96,8 @@ async function create() {
         .setVelocity(0, 0)
         .setBounce(1)
         .setCollideWorldBounds(true);
+    // Enable world bounds event for ball
+    ball.body.onWorldBounds = true;
 
     scene.physics.add.collider(ball, paddle, () => {
         scene.sound.play('ballHit');
@@ -114,7 +116,7 @@ async function create() {
     });
 
     scene.physics.world.on('worldbounds', (body, up, down) => {
-        if (down) {
+        if (down && body.gameObject === ball) {
             scene.sound.play('loseLife');
             loseLife(scene);
         }
@@ -135,7 +137,7 @@ async function create() {
         livesBalls.push(lifeBall);
     }
 
-    scoreText = scene.add.text(window.innerWidth - 140, window.innerHeight - 30, `Score: ${score}`, { fontSize: '24px', fill: '#000' });
+    scoreText = scene.add.text(window.innerWidth - 150, window.innerHeight - 30, `Score: ${score}`, { fontSize: '20px', fill: '#000' });
 
     await (async () => {
         const response = await fetch('assets/Nathan Zimmerman Resume.docx');
