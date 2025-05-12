@@ -3,7 +3,7 @@ import { extractTextFromFile } from './parser.js';
 let bricksGroup;
 let paddle;
 let ball;
-let lives = 3;
+let lives = 5;
 let livesBalls = [];
 let score = 0;
 let scoreText;
@@ -70,7 +70,7 @@ async function create() {
     }
 
     score = 0;
-    lives = 3;
+    lives = 5;
     bricksCreated = false;
 
     bricksGroup = scene.physics.add.staticGroup();
@@ -132,7 +132,7 @@ async function create() {
     });
 
     for (let i = 0; i < lives; i++) {
-        const lifeBall = scene.add.image(30 + i * 30, window.innerHeight - 20, ballTextureKey)
+        const lifeBall = scene.add.image(20 + i * 30, window.innerHeight - 20, ballTextureKey)
             .setDisplaySize(20, 20);
         livesBalls.push(lifeBall);
     }
