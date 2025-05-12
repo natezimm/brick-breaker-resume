@@ -81,7 +81,7 @@ async function create() {
     paddleGraphics.generateTexture(paddleTextureKey, 100, 20);
     paddleGraphics.destroy();
 
-    paddle = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 50, paddleTextureKey)
+    paddle = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 55, paddleTextureKey)
         .setImmovable(true)
         .setCollideWorldBounds(true);
 
@@ -91,7 +91,7 @@ async function create() {
     ballGraphics.generateTexture(ballTextureKey, 20, 20);
     ballGraphics.destroy();
 
-    ball = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 70, ballTextureKey)
+    ball = scene.physics.add.image(window.innerWidth / 2, window.innerHeight - 75, ballTextureKey)
         .setDisplaySize(20, 20)
         .setVelocity(0, 0)
         .setBounce(1)
@@ -135,7 +135,7 @@ async function create() {
         livesBalls.push(lifeBall);
     }
 
-    scoreText = scene.add.text(window.innerWidth - 150, window.innerHeight - 30, `Score: ${score}`, { fontSize: '20px', fill: '#000' });
+    scoreText = scene.add.text(window.innerWidth - 140, window.innerHeight - 30, `Score: ${score}`, { fontSize: '24px', fill: '#000' });
 
     await (async () => {
         const response = await fetch('assets/Nathan Zimmerman Resume.docx');
@@ -202,7 +202,7 @@ function loseLife(scene) {
         lifeBall.destroy();
     }
     if (lives > 0) {
-        ball.setPosition(window.innerWidth / 2, window.innerHeight - 70);
+        ball.setPosition(window.innerWidth / 2, window.innerHeight - 75);
         ball.setVelocity(0, 0);
         paused = true;
         startCountdown(scene);
