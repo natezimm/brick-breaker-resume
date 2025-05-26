@@ -178,7 +178,7 @@ async function create() {
         togglePause(scene);
     });
 
-    countdownText = scene.add.text(window.innerWidth / 2, window.innerHeight - 150, '3', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
+    countdownText = scene.add.text(window.innerWidth / 2, window.innerHeight - 140, '3', { fontSize: '64px', fill: '#A9A9A9' }).setOrigin(0.5);
     startCountdown(scene);
 }
 
