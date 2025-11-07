@@ -14,7 +14,6 @@ Brick Breaker Resume is a browser-based game built with Phaser.js. The game dyna
 
 - **Phaser.js**: Game framework for rendering and physics.
 - **Mammoth.js**: Library for extracting text from `.docx` files.
-- **PDF.js**: (Optional) Library for handling PDF files.
 - **HTML/CSS/JavaScript**: Core web technologies for the game interface.
 
 ## Installation
