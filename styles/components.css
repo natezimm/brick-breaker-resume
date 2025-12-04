@@ -1,0 +1,27 @@
+#pauseButton {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    background-color: #b22222;
+    border: 2px solid #8b0000;
+    border-radius: 3px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    color: white;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+#pauseButton:hover {
+    background-color: #d32f2f;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
+    transform: translateX(-50%) translateY(-2px);
+}
+
+#pauseButton:active {
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
