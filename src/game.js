@@ -129,8 +129,8 @@ function loseLife(scene) {
         setTimeout(() => {
             if (gameState.ball && gameState.lives > 0) {
                 gameState.ball.setVelocity(
-                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x,
-                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y
+                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
+                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
                 );
             }
         }, 1000);

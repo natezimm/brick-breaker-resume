@@ -5,6 +5,7 @@ export const settings = {
     ballColor: 0xA9A9A9,
     paddleColor: 0xA9A9A9,
     paddleWidth: 100,
+    ballSpeed: 1.0,
 };
 
 export function setupSettings(game) {
@@ -16,6 +17,8 @@ export function setupSettings(game) {
     const paddleColorPicker = document.getElementById('paddleColorPicker');
     const paddleWidthSlider = document.getElementById('paddleWidthSlider');
     const paddleWidthValue = document.getElementById('paddleWidthValue');
+    const ballSpeedSlider = document.getElementById('ballSpeedSlider');
+    const ballSpeedValue = document.getElementById('ballSpeedValue');
     const pauseButton = document.getElementById('pauseButton');
 
     settingsButton.addEventListener('click', () => {
@@ -86,6 +89,13 @@ export function setupSettings(game) {
         updatePaddleTexture(game.scene.scenes[0]);
     });
 
+    ballSpeedSlider.addEventListener('input', (e) => {
+        const newSpeed = parseFloat(e.target.value);
+        settings.ballSpeed = newSpeed;
+        ballSpeedValue.textContent = newSpeed.toFixed(1);
+        updateBallSpeed(game.scene.scenes[0]);
+    });
+
     const screenWidth = window.innerWidth;
     const maxPaddleWidth = Math.floor(screenWidth / 3);
     paddleWidthSlider.max = maxPaddleWidth;
@@ -150,4 +160,22 @@ function updatePaddleTexture(scene) {
     gameState.paddle.setDisplaySize(pW, pH);
     gameState.paddle.setPosition(currentX, currentY);
     gameState.paddle.body.setSize(pW, pH);
+}
+
+function updateBallSpeed(scene) {
+    if (!scene || !gameState.ball || !gameState.ball.body) return;
+
+    // Only update speed if the ball is currently moving
+    const currentVelocity = gameState.ball.body.velocity;
+    if (currentVelocity.x !== 0 || currentVelocity.y !== 0) {
+        // Get the current direction (normalized)
+        const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + currentVelocity.y * currentVelocity.y);
+        const dirX = currentVelocity.x / speed;
+        const dirY = currentVelocity.y / speed;
+
+        // Apply new speed with the same direction
+        const baseSpeed = 200; // Base speed from GAME_CONSTANTS.BALL_INITIAL_VELOCITY
+        const newSpeed = baseSpeed * settings.ballSpeed;
+        gameState.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
+    }
 }

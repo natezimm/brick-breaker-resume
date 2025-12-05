@@ -1,5 +1,6 @@
 import { GAME_CONSTANTS, COLORS, TEXTURE_KEYS } from './constants.js';
 import { gameState } from './state.js';
+import { settings } from './settings.js';
 
 export function createLivesDisplay(scene) {
     gameState.livesBalls = [];
@@ -34,8 +35,8 @@ export function startCountdown(scene) {
         } else {
             gameState.countdownText.destroy();
             gameState.ball.setVelocity(
-                GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x,
-                GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y
+                GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
+                GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
             );
             gameState.setPaused(false);
             clearInterval(gameState.countdownInterval);
