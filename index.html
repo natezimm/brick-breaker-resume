@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Resume Brick Breaker</title>
   <link rel="stylesheet" href="style.css">
 
@@ -10,11 +11,43 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
+
 <body>
-<button id="pauseButton">Pause</button>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script type="module" src="./main.js"></script>
+  <div id="controls">
+    <button id="pauseButton">Pause</button>
+    <button id="settingsButton">⚙</button>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="closeModal" class="close-button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label for="soundToggle">Sound Effects</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="soundToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label for="ballColorPicker">Ball Color</label>
+          <input type="color" id="ballColorPicker" value="#a9a9a9">
+        </div>
+        <div class="setting-item">
+          <label for="paddleColorPicker">Paddle Color</label>
+          <input type="color" id="paddleColorPicker" value="#a9a9a9">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
+
 </html>

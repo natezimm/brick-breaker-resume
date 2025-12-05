@@ -16,6 +16,9 @@ class GameState {
         this.totalRows = 0;
         this.paused = true;
         this.countdownText = null;
+        this.countdownInterval = null;
+        this.wasInCountdown = false;
+        this.currentCountdown = GAME_CONSTANTS.COUNTDOWN_START;
         this.winText = null;
         this.bricksCreated = false;
     }

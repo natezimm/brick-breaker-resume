@@ -10,6 +10,14 @@ import {
     showWinMessage,
     togglePause
 } from './ui.js';
+import { settings } from './settings.js';
+
+function playSound(scene, key) {
+    if (settings.soundEnabled && scene.sound) {
+        scene.sound.play(key);
+    }
+}
+
 
 export function preload() {
     this.load.audio(AUDIO_KEYS.BALL_HIT, 'assets/sounds/ball-hit.wav');
@@ -20,14 +28,35 @@ export function preload() {
 }
 
 function createTextures(scene) {
-    const paddleGraphics = scene.add.graphics({ fillStyle: { color: COLORS.PADDLE } });
-    paddleGraphics.fillRect(0, 0, GAME_CONSTANTS.PADDLE_WIDTH, GAME_CONSTANTS.PADDLE_HEIGHT);
-    paddleGraphics.generateTexture(TEXTURE_KEYS.PADDLE, GAME_CONSTANTS.PADDLE_WIDTH, GAME_CONSTANTS.PADDLE_HEIGHT);
-    paddleGraphics.destroy();
-    const ballGraphics = scene.add.graphics({ fillStyle: { color: COLORS.BALL } });
-    ballGraphics.fillCircle(GAME_CONSTANTS.BALL_RADIUS, GAME_CONSTANTS.BALL_RADIUS, GAME_CONSTANTS.BALL_RADIUS);
-    ballGraphics.generateTexture(TEXTURE_KEYS.BALL, GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE);
-    ballGraphics.destroy();
+    const pW = GAME_CONSTANTS.PADDLE_WIDTH;
+    const pH = GAME_CONSTANTS.PADDLE_HEIGHT;
+
+    const paddleCanvas = document.createElement('canvas');
+    paddleCanvas.width = pW;
+    paddleCanvas.height = pH;
+    const paddleCtx = paddleCanvas.getContext('2d');
+
+    const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
+    paddleCtx.fillStyle = paddleColorHex;
+    paddleCtx.fillRect(0, 0, pW, pH);
+
+    scene.textures.addCanvas(TEXTURE_KEYS.PADDLE, paddleCanvas);
+
+    const bSize = GAME_CONSTANTS.BALL_SIZE;
+    const bRadius = GAME_CONSTANTS.BALL_RADIUS;
+
+    const ballCanvas = document.createElement('canvas');
+    ballCanvas.width = bSize;
+    ballCanvas.height = bSize;
+    const ballCtx = ballCanvas.getContext('2d');
+
+    const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
+    ballCtx.fillStyle = ballColorHex;
+    ballCtx.beginPath();
+    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
+    ballCtx.fill();
+
+    scene.textures.addCanvas(TEXTURE_KEYS.BALL, ballCanvas);
 }
 
 function createPaddle(scene) {
@@ -43,7 +72,7 @@ function createPaddle(scene) {
 function createBall(scene) {
     gameState.ball = scene.physics.add.image(
         window.innerWidth / 2,
-        window.innerHeight - 75,
+        window.innerHeight - 80,
         TEXTURE_KEYS.BALL
     )
         .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
@@ -57,17 +86,17 @@ function createBall(scene) {
 
 function setupCollisions(scene) {
     scene.physics.add.collider(gameState.ball, gameState.paddle, () => {
-        scene.sound.play(AUDIO_KEYS.BALL_HIT);
+        playSound(scene, AUDIO_KEYS.BALL_HIT);
     });
 
     scene.physics.add.collider(gameState.ball, gameState.bricksGroup, (ball, brick) => {
-        scene.sound.play(AUDIO_KEYS.BRICK_HIT);
+        playSound(scene, AUDIO_KEYS.BRICK_HIT);
         handleBrickCollision(scene, ball, brick);
     });
 
     scene.physics.world.on('worldbounds', (body, up, down) => {
         if (down && body.gameObject === gameState.ball) {
-            scene.sound.play(AUDIO_KEYS.LOSE_LIFE);
+            playSound(scene, AUDIO_KEYS.LOSE_LIFE);
             loseLife(scene);
         }
     });
@@ -94,14 +123,21 @@ function loseLife(scene) {
     gameState.decrementLives();
 
     if (gameState.lives > 0) {
-        gameState.ball.setPosition(window.innerWidth / 2, window.innerHeight - 75);
+        gameState.ball.setPosition(window.innerWidth / 2, window.innerHeight - 80);
         gameState.ball.setVelocity(0, 0);
-        gameState.setPaused(true);
-        startCountdown(scene);
+
+        setTimeout(() => {
+            if (gameState.ball && gameState.lives > 0) {
+                gameState.ball.setVelocity(
+                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x,
+                    GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y
+                );
+            }
+        }, 1000);
     } else {
         showGameOver(scene);
         gameState.ball.destroy();
-        scene.sound.play(AUDIO_KEYS.GAME_OVER);
+        playSound(scene, AUDIO_KEYS.GAME_OVER);
     }
 }
 
@@ -144,7 +180,7 @@ export function update() {
 
         showWinMessage(scene);
         gameState.ball.setVelocity(0, 0);
-        scene.sound.play(AUDIO_KEYS.WIN_GAME);
+        playSound(scene, AUDIO_KEYS.WIN_GAME);
         gameState.setPaused(true);
     }
 }

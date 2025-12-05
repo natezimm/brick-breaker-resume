@@ -23,10 +23,12 @@ export function createScoreText(scene) {
 }
 
 export function startCountdown(scene) {
-    let countdown = GAME_CONSTANTS.COUNTDOWN_START;
+    let countdown = gameState.currentCountdown;
 
-    const countdownInterval = setInterval(() => {
+    gameState.countdownInterval = setInterval(() => {
         countdown--;
+        gameState.currentCountdown = countdown;
+
         if (countdown > 0) {
             gameState.countdownText.setText(countdown.toString());
         } else {
@@ -36,7 +38,9 @@ export function startCountdown(scene) {
                 GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y
             );
             gameState.setPaused(false);
-            clearInterval(countdownInterval);
+            clearInterval(gameState.countdownInterval);
+            gameState.countdownInterval = null;
+            gameState.currentCountdown = GAME_CONSTANTS.COUNTDOWN_START;
         }
     }, GAME_CONSTANTS.COUNTDOWN_INTERVAL);
 }
@@ -45,7 +49,7 @@ export function createCountdownText(scene) {
     gameState.countdownText = scene.add.text(
         window.innerWidth / 2,
         window.innerHeight - 140,
-        GAME_CONSTANTS.COUNTDOWN_START.toString(),
+        gameState.currentCountdown.toString(),
         { fontSize: '64px', fill: COLORS.TEXT_LIGHT }
     ).setOrigin(0.5);
 }
@@ -75,6 +79,14 @@ export function togglePause(scene) {
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
         pauseButton.textContent = paused ? 'Play' : 'Pause';
+    }
+
+    if (!paused && gameState.wasInCountdown) {
+        gameState.wasInCountdown = false;
+        if (!gameState.countdownText || !gameState.countdownText.active) {
+            createCountdownText(scene);
+        }
+        startCountdown(scene);
     }
 }
 

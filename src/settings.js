@@ -1,0 +1,135 @@
+import { gameState } from './state.js';
+
+export const settings = {
+    soundEnabled: true,
+    ballColor: 0xA9A9A9,
+    paddleColor: 0xA9A9A9,
+};
+
+export function setupSettings(game) {
+    const modal = document.getElementById('settingsModal');
+    const settingsButton = document.getElementById('settingsButton');
+    const closeButton = document.getElementById('closeModal');
+    const soundToggle = document.getElementById('soundToggle');
+    const ballColorPicker = document.getElementById('ballColorPicker');
+    const paddleColorPicker = document.getElementById('paddleColorPicker');
+    const pauseButton = document.getElementById('pauseButton');
+
+    settingsButton.addEventListener('click', () => {
+        modal.classList.add('active');
+
+        console.log('Settings clicked, gameState.paused:', gameState.paused);
+
+        const scene = game.scene.scenes[0];
+
+        if (scene && scene.physics) {
+            if (gameState.countdownInterval) {
+                console.log('Stopping countdown...');
+                clearInterval(gameState.countdownInterval);
+                gameState.countdownInterval = null;
+                gameState.wasInCountdown = true;
+            }
+
+            gameState.setPaused(true);
+            scene.physics.world.isPaused = true;
+
+            console.log('After pause - gameState.paused:', gameState.paused);
+            console.log('After pause - physics.isPaused:', scene.physics.world.isPaused);
+
+            if (pauseButton) {
+                pauseButton.textContent = 'Play';
+            }
+        } else {
+            console.error('Scene or physics not available');
+        }
+    });
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+    };
+
+    closeButton.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    soundToggle.addEventListener('change', (e) => {
+        settings.soundEnabled = e.target.checked;
+        const scene = game.scene.scenes[0];
+        if (scene && scene.sound) {
+            scene.sound.mute = !settings.soundEnabled;
+        }
+    });
+
+    ballColorPicker.addEventListener('input', (e) => {
+        const color = e.target.value;
+        settings.ballColor = parseInt(color.replace('#', '0x'));
+        updateBallTexture(game.scene.scenes[0]);
+    });
+
+    paddleColorPicker.addEventListener('input', (e) => {
+        const color = e.target.value;
+        settings.paddleColor = parseInt(color.replace('#', '0x'));
+        updatePaddleTexture(game.scene.scenes[0]);
+    });
+}
+
+function updateBallTexture(scene) {
+    if (!scene || !gameState.ball) return;
+
+    const bSize = 20;
+    const bRadius = 10;
+
+    const ballCanvas = document.createElement('canvas');
+    ballCanvas.width = bSize;
+    ballCanvas.height = bSize;
+    const ballCtx = ballCanvas.getContext('2d');
+
+    const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
+    ballCtx.fillStyle = ballColorHex;
+    ballCtx.beginPath();
+    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
+    ballCtx.fill();
+
+    if (scene.textures.exists('ballTexture')) {
+        scene.textures.remove('ballTexture');
+    }
+    scene.textures.addCanvas('ballTexture', ballCanvas);
+
+    gameState.ball.setTexture('ballTexture');
+
+    if (gameState.livesBalls) {
+        gameState.livesBalls.forEach(ball => {
+            ball.setTexture('ballTexture');
+        });
+    }
+}
+
+function updatePaddleTexture(scene) {
+    if (!scene || !gameState.paddle) return;
+
+    const pW = 100;
+    const pH = 20;
+
+    const paddleCanvas = document.createElement('canvas');
+    paddleCanvas.width = pW;
+    paddleCanvas.height = pH;
+    const paddleCtx = paddleCanvas.getContext('2d');
+
+    const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
+    paddleCtx.fillStyle = paddleColorHex;
+    paddleCtx.fillRect(0, 0, pW, pH);
+
+    if (scene.textures.exists('paddleTexture')) {
+        scene.textures.remove('paddleTexture');
+    }
+    scene.textures.addCanvas('paddleTexture', paddleCanvas);
+
+    const currentX = gameState.paddle.x;
+    const currentY = gameState.paddle.y;
+    gameState.paddle.setTexture('paddleTexture');
+    gameState.paddle.setPosition(currentX, currentY);
+}
