@@ -4,6 +4,7 @@ export const settings = {
     soundEnabled: true,
     ballColor: 0xA9A9A9,
     paddleColor: 0xA9A9A9,
+    paddleWidth: 100,
 };
 
 export function setupSettings(game) {
@@ -13,6 +14,8 @@ export function setupSettings(game) {
     const soundToggle = document.getElementById('soundToggle');
     const ballColorPicker = document.getElementById('ballColorPicker');
     const paddleColorPicker = document.getElementById('paddleColorPicker');
+    const paddleWidthSlider = document.getElementById('paddleWidthSlider');
+    const paddleWidthValue = document.getElementById('paddleWidthValue');
     const pauseButton = document.getElementById('pauseButton');
 
     settingsButton.addEventListener('click', () => {
@@ -75,6 +78,17 @@ export function setupSettings(game) {
         settings.paddleColor = parseInt(color.replace('#', '0x'));
         updatePaddleTexture(game.scene.scenes[0]);
     });
+
+    paddleWidthSlider.addEventListener('input', (e) => {
+        const newWidth = parseInt(e.target.value);
+        settings.paddleWidth = newWidth;
+        paddleWidthValue.textContent = newWidth;
+        updatePaddleTexture(game.scene.scenes[0]);
+    });
+
+    const screenWidth = window.innerWidth;
+    const maxPaddleWidth = Math.floor(screenWidth / 3);
+    paddleWidthSlider.max = maxPaddleWidth;
 }
 
 function updateBallTexture(scene) {
@@ -100,10 +114,12 @@ function updateBallTexture(scene) {
     scene.textures.addCanvas('ballTexture', ballCanvas);
 
     gameState.ball.setTexture('ballTexture');
+    gameState.ball.setDisplaySize(bSize, bSize);
 
     if (gameState.livesBalls) {
         gameState.livesBalls.forEach(ball => {
             ball.setTexture('ballTexture');
+            ball.setDisplaySize(bSize, bSize);
         });
     }
 }
@@ -111,7 +127,7 @@ function updateBallTexture(scene) {
 function updatePaddleTexture(scene) {
     if (!scene || !gameState.paddle) return;
 
-    const pW = 100;
+    const pW = settings.paddleWidth;
     const pH = 20;
 
     const paddleCanvas = document.createElement('canvas');
@@ -131,5 +147,7 @@ function updatePaddleTexture(scene) {
     const currentX = gameState.paddle.x;
     const currentY = gameState.paddle.y;
     gameState.paddle.setTexture('paddleTexture');
+    gameState.paddle.setDisplaySize(pW, pH);
     gameState.paddle.setPosition(currentX, currentY);
+    gameState.paddle.body.setSize(pW, pH);
 }
