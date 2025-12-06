@@ -50,7 +50,7 @@ export async function createBricksFromResume(scene) {
     const bricksByRow = new Map();
 
     elements.forEach((el) => {
-        const words = el.text.split(/\s+/);
+        const words = el.text.split(/\s+/).filter(w => w.length > 0);
         words.forEach((word, wordIndex) => {
             const brickWidth = word.length * BASE_BRICK_WIDTH + 10;
 
@@ -82,7 +82,7 @@ export async function createBricksFromResume(scene) {
             const currentRightEdge = x + brickWidth;
             const spaceRemaining = rightEdge - currentRightEdge;
 
-            if (spaceRemaining > 10) {
+            if (spaceRemaining > 0) {
                 const newWidth = brickWidth + spaceRemaining;
 
                 const oldText = brick.getData('textElement');
