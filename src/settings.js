@@ -113,7 +113,24 @@ function updateBallTexture(scene) {
     const ballCtx = ballCanvas.getContext('2d');
 
     const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
+
+    // Base color
     ballCtx.fillStyle = ballColorHex;
+    ballCtx.beginPath();
+    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
+    ballCtx.fill();
+
+    // 3D effect: radial gradient highlight
+    const ballGrad = ballCtx.createRadialGradient(
+        bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, 0,
+        bRadius, bRadius, bRadius
+    );
+    ballGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    ballGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.3)');
+    ballGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0)');
+    ballGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)'); // Shadow at edges
+
+    ballCtx.fillStyle = ballGrad;
     ballCtx.beginPath();
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
@@ -146,8 +163,24 @@ function updatePaddleTexture(scene) {
     const paddleCtx = paddleCanvas.getContext('2d');
 
     const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
+
+    // Base color
     paddleCtx.fillStyle = paddleColorHex;
     paddleCtx.fillRect(0, 0, pW, pH);
+
+    // 3D effect: vertical gradient
+    const paddleGrad = paddleCtx.createLinearGradient(0, 0, 0, pH);
+    paddleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+    paddleGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.2)');
+    paddleGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
+    paddleGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+    paddleCtx.fillStyle = paddleGrad;
+    paddleCtx.fillRect(0, 0, pW, pH);
+
+    // Slight border for definition
+    paddleCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    paddleCtx.lineWidth = 1;
+    paddleCtx.strokeRect(0, 0, pW, pH);
 
     if (scene.textures.exists('paddleTexture')) {
         scene.textures.remove('paddleTexture');
