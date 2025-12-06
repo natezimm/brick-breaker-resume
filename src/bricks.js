@@ -4,13 +4,67 @@ import { gameState } from './state.js';
 
 export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = false) {
     const height = GAME_CONSTANTS.BRICK_HEIGHT;
+    const bevel = 3;
 
-    const brick = scene.add.rectangle(x, y, brickWidth, height, color)
-        .setOrigin(0, 0)
-        .setStrokeStyle(1, 0xFFFFFF, 0.3);
+    // 1. Visuals (Graphics)
+    const graphics = scene.add.graphics({ x, y });
+
+    // Base Fill
+    graphics.fillStyle(color);
+    graphics.fillRect(0, 0, brickWidth, height);
+
+    // Bottom Shadow
+    graphics.fillStyle(0x000000, 0.4);
+    graphics.beginPath();
+    graphics.moveTo(0, height);
+    graphics.lineTo(brickWidth, height);
+    graphics.lineTo(brickWidth - bevel, height - bevel);
+    graphics.lineTo(bevel, height - bevel);
+    graphics.closePath();
+    graphics.fillPath();
+
+    // Right Shadow
+    graphics.beginPath();
+    graphics.moveTo(brickWidth, 0);
+    graphics.lineTo(brickWidth, height);
+    graphics.lineTo(brickWidth - bevel, height - bevel);
+    graphics.lineTo(brickWidth - bevel, bevel);
+    graphics.closePath();
+    graphics.fillPath();
+
+    // Top Highlight
+    graphics.fillStyle(0xFFFFFF, 0.4);
+    graphics.beginPath();
+    graphics.moveTo(0, 0);
+    graphics.lineTo(brickWidth, 0);
+    graphics.lineTo(brickWidth - bevel, bevel);
+    graphics.lineTo(bevel, bevel);
+    graphics.closePath();
+    graphics.fillPath();
+
+    // Left Highlight
+    graphics.beginPath();
+    graphics.moveTo(0, 0);
+    graphics.lineTo(0, height);
+    graphics.lineTo(bevel, height - bevel);
+    graphics.lineTo(bevel, bevel);
+    graphics.closePath();
+    graphics.fillPath();
+
+    // Inner Shine
+    graphics.fillStyle(0xFFFFFF, 0.08);
+    graphics.fillRect(bevel, bevel, brickWidth - 2 * bevel, (height - 2 * bevel) / 2);
+
+    // 2. Physics Hitbox (Invisible Rectangle)
+    // Using alpha 0 instead of transparent color to ensure it's invisible but active
+    const brick = scene.add.rectangle(x, y, brickWidth, height, 0x000000, 0);
+    brick.setOrigin(0, 0);
 
     scene.physics.add.existing(brick, true);
     gameState.bricksGroup.add(brick);
+
+    // Link visuals to physics object
+    brick.setData('graphics', graphics);
 
     if (text) {
         const textElement = scene.add.text(
@@ -87,6 +141,10 @@ export async function createBricksFromResume(scene) {
 
                 const oldText = brick.getData('textElement');
                 if (oldText) oldText.destroy();
+
+                const oldGraphics = brick.getData('graphics');
+                if (oldGraphics) oldGraphics.destroy();
+
                 brick.destroy();
                 createBrick(scene, x, y, word, newWidth, rowColor, true);
             }
@@ -100,6 +158,11 @@ export function handleBrickCollision(scene, ball, brick) {
     const textElement = brick.getData('textElement');
     if (textElement) {
         textElement.destroy();
+    }
+
+    const graphics = brick.getData('graphics');
+    if (graphics) {
+        graphics.destroy();
     }
 
     const row = brick.getData('row');
