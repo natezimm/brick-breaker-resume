@@ -2,6 +2,7 @@ import { GAME_CONSTANTS } from './constants.js';
 
 class GameState {
     constructor() {
+        this.highScore = parseInt(localStorage.getItem('brickBreakerHighScore')) || 0;
         this.reset();
     }
 
@@ -28,6 +29,7 @@ class GameState {
         if (this.scoreText) {
             this.scoreText.setText(`Score: ${this.score}`);
         }
+        this.updateHighScore();
     }
 
     decrementLives() {
@@ -40,6 +42,13 @@ class GameState {
 
     setPaused(paused) {
         this.paused = paused;
+    }
+
+    updateHighScore() {
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('brickBreakerHighScore', this.highScore);
+        }
     }
 
     togglePause() {

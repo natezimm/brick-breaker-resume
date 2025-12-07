@@ -38,6 +38,7 @@ export function createScoreText(scene) {
     ).setOrigin(1, 0.5);
 }
 
+
 export function startCountdown(scene) {
     let countdown = gameState.currentCountdown;
 
@@ -133,6 +134,8 @@ export function setupWindowResize(game) {
                 gameState.scoreText.setStyle({ fontSize: fontSize });
                 gameState.scoreText.setPosition(width - margin, height - 20);
             }
+
+
 
             // Update Lives Position
             if (gameState.livesBalls) {
