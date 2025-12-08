@@ -20,13 +20,10 @@ export function setupSettings(game) {
     const ballSpeedSlider = document.getElementById('ballSpeedSlider');
     const ballSpeedValue = document.getElementById('ballSpeedValue');
     const pauseButton = document.getElementById('pauseButton');
-    const highScoreValue = document.getElementById('highScoreValue');
+
 
     settingsButton.addEventListener('click', () => {
         modal.classList.add('active');
-        if (highScoreValue) {
-            highScoreValue.textContent = gameState.highScore;
-        }
 
         console.log('Settings clicked, gameState.paused:', gameState.paused);
 
@@ -47,7 +44,7 @@ export function setupSettings(game) {
             console.log('After pause - physics.isPaused:', scene.physics.world.isPaused);
 
             if (pauseButton) {
-                pauseButton.textContent = 'Play';
+                pauseButton.innerHTML = '<i class="fas fa-play"></i>';
             }
         } else {
             console.error('Scene or physics not available');

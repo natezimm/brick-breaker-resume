@@ -9,7 +9,8 @@
 }
 
 #pauseButton,
-#settingsButton {
+#settingsButton,
+#highScoreButton {
     padding: 6px 16px;
     font-size: 16px;
     font-weight: 600;
@@ -39,6 +40,14 @@
     padding: 6px 10px;
 }
 
+#highScoreButton {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+    box-shadow:
+        0 2px 8px rgba(243, 156, 18, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    padding: 6px 10px;
+}
+
 #settingsButton i {
     font-size: 16px;
 }
@@ -59,8 +68,17 @@
     transform: translateY(-1px);
 }
 
+#highScoreButton:hover {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    box-shadow:
+        0 3px 10px rgba(243, 156, 18, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
 #pauseButton:active,
-#settingsButton:active {
+#settingsButton:active,
+#highScoreButton:active {
     transform: translateY(0);
     box-shadow:
         0 1px 4px rgba(0, 0, 0, 0.3),

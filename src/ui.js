@@ -95,7 +95,7 @@ export function togglePause(scene) {
 
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
-        pauseButton.textContent = paused ? 'Play' : 'Pause';
+        pauseButton.innerHTML = paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
     }
 
     if (!paused && gameState.wasInCountdown) {
@@ -107,11 +107,45 @@ export function togglePause(scene) {
     }
 }
 
-export function setupPauseButton(game) {
+export function setupUIButtons(game) {
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
         pauseButton.addEventListener('click', () => {
             togglePause(game.scene.scenes[0]);
+        });
+    }
+
+    const highScoreButton = document.getElementById('highScoreButton');
+    const highScoreModal = document.getElementById('highScoreModal');
+    const closeHighScoreButton = document.getElementById('closeHighScoreModal');
+    const highScoreValue = document.getElementById('highScoreValue');
+
+    if (highScoreButton && highScoreModal) {
+        highScoreButton.addEventListener('click', () => {
+            highScoreModal.classList.add('active');
+            if (highScoreValue) {
+                highScoreValue.textContent = gameState.highScore;
+            }
+
+            // Pause game if running
+            const scene = game.scene.scenes[0];
+            if (scene && !gameState.paused) {
+                togglePause(scene);
+            }
+        });
+    }
+
+    if (closeHighScoreButton && highScoreModal) {
+        closeHighScoreButton.addEventListener('click', () => {
+            highScoreModal.classList.remove('active');
+        });
+    }
+
+    if (highScoreModal) {
+        highScoreModal.addEventListener('click', (e) => {
+            if (e.target === highScoreModal) {
+                highScoreModal.classList.remove('active');
+            }
         });
     }
 }
