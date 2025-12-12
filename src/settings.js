@@ -213,3 +213,9 @@ function updateBallSpeed(scene) {
         gameState.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
     }
 }
+
+export {
+    updateBallTexture,
+    updatePaddleTexture,
+    updateBallSpeed,
+};
