@@ -25,6 +25,15 @@ describe('gameState', () => {
     expect(localStorage.getItem('brickBreakerHighScore')).toBe('15');
   });
 
+  test('incrementScore works when scoreText is missing', () => {
+    gameState.scoreText = null;
+    gameState.score = 0;
+
+    gameState.incrementScore(10);
+
+    expect(gameState.score).toBe(10);
+  });
+
   test('updateHighScore skips update when score is lower', () => {
     gameState.highScore = 20;
     gameState.score = 10;

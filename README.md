@@ -1,54 +1,48 @@
 # Brick Breaker Resume
 
-Brick Breaker Resume is a browser-based game built with Phaser.js. The game dynamically generates bricks from the content of a `.docx` resume file, allowing players to break bricks while interacting with the text of the resume.
+Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and high-score streaks.
 
 ## Features
 
-- **Dynamic Brick Generation**: Bricks are created from the text content of a `.docx` file.
-- **Interactive Gameplay**: Use a paddle to bounce the ball and break bricks.
-- **Pause/Play Functionality**: Pause and resume the game with a button or the `P` key.
-- **Responsive Design**: The game adjusts to the browser window size.
-- **Sound Effects**: Includes sound effects for ball hits, brick destruction, and game events.
+- **Resume-driven bricks**: The app parses a `.docx` resume (defaults to `assets/Nathan Zimmerman Resume.docx`) and stacks responsive bricks for each word.
+- **Rich UI feedback**: Lives render as animated ball icons, a score overlay updates in real time, and win/game-over overlays trigger with matching sounds.
+- **Settings modal**: The cog button opens a modal that auto-pauses the game and lets you toggle sound, choose ball/paddle colors, resize the paddle, and adjust ball speed on the fly.
+- **High-score tracking**: Tap the trophy button to open a modal that displays the current high score stored in `localStorage`, so you can chase your personal best across sessions.
+- **Responsive layout**: Window resize handlers keep the physics bounds, paddle position, HUD, and countdown aligned with whatever viewport you’re using.
+- **Countdown + pause controls**: Every serve starts with a countdown, the `P` key or pause button toggles physics, and pausing implicitly queues a countdown before resuming play.
 
-## Technologies Used
+## Controls & Settings
 
-- **Phaser.js**: Game framework for rendering and physics.
-- **Mammoth.js**: Library for extracting text from `.docx` files.
-- **HTML/CSS/JavaScript**: Core web technologies for the game interface.
+1. **Mouse**: Move the paddle horizontally to keep the ball in play.
+2. **Pause/Play**: Use the `Pause` button or press the `P` key; the button swaps icons depending on the state.
+3. **High score modal**: The trophy button pauses gameplay and displays your stored high score; close the modal to resume.
+4. **Settings modal**: Click the cog icon to adjust:
+   - Sound effects on/off (toggles Phaser audio).
+   - Ball/paddle colors via color pickers (textures update instantly).
+   - Paddle width slider (maxes out at roughly one-third of the screen width).
+   - Ball speed multiplier slider (0.5×–2.0×) which maintains direction when adjusted.
+   The modal automatically pauses the game while open and restores gameplay once dismissed.
 
-## Installation
+## Getting Started
 
-1. Clone the repository:
+1. Clone the repo and install:
    ```bash
    git clone https://github.com/natezimm/brick-breaker-resume.git
    cd brick-breaker-resume
-   ```
-
-2. Install dependencies (if any):
-   ```bash
    npm install
    ```
-
-3. Start a local server to serve the static files. For example, using `http-server`:
+2. Start a static server (the `start` script uses `http-server` and serves on `:8080`):
    ```bash
-   npx http-server
+   npm start
    ```
+3. Visit `http://localhost:8080` in your browser. The default resume kicks off automatically, but you can replace the file under `assets/` if you want different content.
 
-4. Open the game in your browser:
-   ```
-   http://localhost:8080
-   ```
+## Testing
 
-## How to Play
-
-1. Upload a `.docx` file (e.g., a resume) to generate bricks.
-2. Use your mouse to move the paddle and bounce the ball.
-3. Break all the bricks to win the game.
-4. Use the `Pause` button or press the `P` key to pause/resume the game.
+- `npm test` runs the Jest suite for game, UI, and parser units.
+- `npm run test:coverage` generates coverage reports under `coverage/`.
 
 ## Deployment on Render
-
-To deploy this project as a static site on Render:
 
 - **Root Directory**: `/`
 - **Build Command**: None
@@ -56,8 +50,7 @@ To deploy this project as a static site on Render:
 
 ## File Structure
 
-- `index.html`: Main HTML file for the game.
-- `style.css`: Styles for the game interface.
-- `main.js`: Game logic and Phaser.js configuration.
-- `parser.js`: Handles text extraction from `.docx` files.
-- `assets/`: Contains game assets like sounds and the sample resume file.
+- `index.html`: Entry point that wires up the Phaser bundle, Mammoth, PDF.js shim, and UI controls.
+- `src/`: Modular source split into `game.js` (Phaser lifecycle), `bricks.js` (resume parsing + rendering), `ui.js` (hud, modals, resize helpers), `settings.js` (modal logic and live texture updates), `state.js` (lives/score/high-score tracking), and `config.js`.
+- `parser.js`: Browser helper that relies on `mammoth` + DOMParser to produce clean text blocks from `.docx`.
+- `assets/`: Contains audio cues, icons, and the sample resume used to seed the level.

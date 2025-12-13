@@ -128,6 +128,40 @@ describe('settings modal interactions', () => {
     consoleError.mockRestore();
   });
 
+  test('setupSettings tolerates a missing pause button', () => {
+    document.getElementById('pauseButton').remove();
+
+    setupSettings(game);
+    document.getElementById('settingsButton').click();
+
+    expect(scene.physics.world.isPaused).toBe(true);
+    expect(document.getElementById('pauseButton')).toBeNull();
+  });
+
+  test('modal click from a child element does not close the settings', () => {
+    setupSettings(game);
+    document.getElementById('settingsButton').click();
+
+    const modal = document.getElementById('settingsModal');
+    const child = document.createElement('div');
+    modal.appendChild(child);
+
+    child.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(modal.classList.contains('active')).toBe(true);
+  });
+
+  test('sound toggle ignores missing scene sound', () => {
+    scene.sound = null;
+
+    setupSettings(game);
+    const soundToggle = document.getElementById('soundToggle');
+    soundToggle.checked = false;
+    soundToggle.dispatchEvent(new Event('change', { bubbles: true }));
+
+    expect(settings.soundEnabled).toBe(false);
+    expect(scene.sound).toBeNull();
+  });
+
   test('updateBallTexture refreshes ball texture and life icons', () => {
     const scene = createMockScene();
     scene.textures.exists = jest.fn(() => true);
@@ -189,6 +223,15 @@ describe('settings modal interactions', () => {
     expect(() => updateBallTexture(scene)).not.toThrow();
   });
 
+  test('updateBallTexture handles missing life balls list', () => {
+    const sceneWithoutBM = createMockScene();
+    sceneWithoutBM.textures.exists = jest.fn(() => false);
+    gameState.ball = new MockPhysicsImage(0, 0);
+    gameState.livesBalls = null;
+
+    expect(() => updateBallTexture(sceneWithoutBM)).not.toThrow();
+  });
+
   test('updatePaddleTexture short-circuits when paddle is unavailable', () => {
     gameState.paddle = null;
     expect(() => updatePaddleTexture(scene)).not.toThrow();
@@ -197,5 +240,15 @@ describe('settings modal interactions', () => {
   test('updateBallSpeed short-circuits when there is no ball body', () => {
     gameState.ball = null;
     expect(() => updateBallSpeed(scene)).not.toThrow();
+  });
+
+  test('updateBallSpeed ignores zero velocity', () => {
+    gameState.ball = {
+      body: { velocity: { x: 0, y: 0 } },
+      setVelocity: jest.fn(),
+    };
+
+    updateBallSpeed(scene);
+    expect(gameState.ball.setVelocity).not.toHaveBeenCalled();
   });
 });

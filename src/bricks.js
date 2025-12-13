@@ -130,24 +130,19 @@ export async function createBricksFromResume(scene) {
     });
 
     bricksByRow.forEach((bricks, rowIndex) => {
-        if (bricks.length > 0) {
-            const lastBrickData = bricks[bricks.length - 1];
-            const { brick, x, y, word, brickWidth, rowColor } = lastBrickData;
-            const currentRightEdge = x + brickWidth;
-            const spaceRemaining = rightEdge - currentRightEdge;
+        const lastBrickData = bricks[bricks.length - 1];
+        const { brick, x, y, word, brickWidth, rowColor } = lastBrickData;
+        const currentRightEdge = x + brickWidth;
+        const spaceRemaining = rightEdge - currentRightEdge;
 
-            if (spaceRemaining > 0) {
-                const newWidth = brickWidth + spaceRemaining;
+        if (spaceRemaining > 0) {
+            const newWidth = brickWidth + spaceRemaining;
 
-                const oldText = brick.getData('textElement');
-                if (oldText) oldText.destroy();
+            brick.getData('textElement')?.destroy();
+            brick.getData('graphics')?.destroy();
 
-                const oldGraphics = brick.getData('graphics');
-                if (oldGraphics) oldGraphics.destroy();
-
-                brick.destroy();
-                createBrick(scene, x, y, word, newWidth, rowColor, true);
-            }
+            brick.destroy();
+            createBrick(scene, x, y, word, newWidth, rowColor, true);
         }
     });
 
@@ -155,15 +150,8 @@ export async function createBricksFromResume(scene) {
 }
 
 export function handleBrickCollision(scene, ball, brick) {
-    const textElement = brick.getData('textElement');
-    if (textElement) {
-        textElement.destroy();
-    }
-
-    const graphics = brick.getData('graphics');
-    if (graphics) {
-        graphics.destroy();
-    }
+    brick.getData('textElement')?.destroy();
+    brick.getData('graphics')?.destroy();
 
     const row = brick.getData('row');
     const points = (gameState.totalRows - row) * 10;

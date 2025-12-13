@@ -79,4 +79,35 @@ describe('bricks', () => {
     expect(gameState.score).toBe(20);
     expect(gameState.scoreText.setText).toHaveBeenCalledWith('Score: 20');
   });
+
+  test('createBrick skips text when none is provided', () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+
+    const brick = createBrick(scene, 5, 5, null, 50, 0xff0000);
+
+    expect(brick.getData('textElement')).toBeUndefined();
+    expect(brick.getData('graphics')).toBeDefined();
+  });
+
+  test('createBricksFromResume leaves bricks alone when row already touches edge', async () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 300 });
+    Object.defineProperty(window, 'innerHeight', { writable: true, value: 100 });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      blob: jest.fn().mockResolvedValue(new Blob(['dummy'])),
+    });
+
+    const oversizedWord = 'a'.repeat(27);
+    extractTextFromFile.mockResolvedValue([{ text: oversizedWord }]);
+
+    await createBricksFromResume(scene);
+
+    const lastBrick = gameState.bricksGroup.items[0];
+    expect(gameState.bricksGroup.items).toHaveLength(1);
+    expect(lastBrick.getData('isLastInRow')).toBeFalsy();
+  });
 });

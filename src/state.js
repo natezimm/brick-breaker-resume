@@ -34,10 +34,8 @@ class GameState {
 
     decrementLives() {
         this.lives--;
-        if (this.livesBalls.length > 0) {
-            const lifeBall = this.livesBalls.pop();
-            lifeBall.destroy();
-        }
+        const lifeBall = this.livesBalls.pop();
+        lifeBall?.destroy();
     }
 
     setPaused(paused) {
