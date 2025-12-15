@@ -27,16 +27,3 @@ jobs:
       # 4. Run tests & coverage
       - name: Run tests & coverage
         run: npm run test:coverage
-
-      # 5. Build production bundle
-      - name: Build
-        run: npm run build
-
-      # 6. Upload build artifact
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: brick-breaker-build
-          path: |
-            dist
-            build
