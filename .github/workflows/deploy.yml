@@ -13,7 +13,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Setup SSH into Lightsail
+      # 2. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 3. Run tests with coverage
+      - name: Run tests & coverage
+        run: npm run test:coverage
+
+      # 4. Setup SSH into Lightsail
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
@@ -22,7 +30,6 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-keyscan ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts
 
-          # Create SSH config entry called "lightsail"
           cat <<EOF > ~/.ssh/config
           Host lightsail
             HostName ${{ secrets.LIGHTSAIL_HOST }}
@@ -31,7 +38,7 @@ jobs:
             StrictHostKeyChecking=no
           EOF
 
-      # 3. Trigger the appropriate deploy script on Lightsail
+      # 5. Deploy
       - name: Run remote deploy script
         run: |
           ssh lightsail "bash ~/deploy-scripts/deploy-${{ github.event.repository.name }}.sh"

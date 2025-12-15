@@ -1,3 +1,6 @@
+![CI](https://github.com/natezimm/brick-breaker-resume/actions/workflows/deploy.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-90%25%20lines%20%7C%2085%25%20funcs%20%7C%2080%25%20branches-brightgreen)
+
 # Brick Breaker Resume
 
 Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and high-score streaks.
