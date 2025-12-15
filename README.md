@@ -45,6 +45,17 @@ Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` re
 - `npm test` runs the Jest suite for game, UI, and parser units.
 - `npm run test:coverage` generates coverage reports under `coverage/`.
 
+## Testing & Quality
+
+- Continuous Integration runs the full test suite and enforces coverage thresholds before deployment.
+- Deployments are blocked automatically if coverage requirements are not met.
+
+**Coverage thresholds:**
+- Lines ≥ 90%
+- Statements ≥ 85%
+- Functions ≥ 85%
+- Branches ≥ 80%
+
 ## Deployment on Render
 
 - **Root Directory**: `/`
