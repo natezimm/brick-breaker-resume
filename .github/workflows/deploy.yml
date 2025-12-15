@@ -9,19 +9,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Install dependencies
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 3. Run tests with coverage
+      # 4. Run tests & coverage
       - name: Run tests & coverage
         run: npm run test:coverage
 
-      # 4. Setup SSH into Lightsail
+      # 5. Setup SSH into Lightsail
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
@@ -38,7 +45,7 @@ jobs:
             StrictHostKeyChecking=no
           EOF
 
-      # 5. Deploy
+      # 6. Deploy
       - name: Run remote deploy script
         run: |
           ssh lightsail "bash ~/deploy-scripts/deploy-${{ github.event.repository.name }}.sh"

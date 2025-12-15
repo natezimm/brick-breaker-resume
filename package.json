@@ -9,6 +9,9 @@
     "test:coverage": "jest --coverage"
   },
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
