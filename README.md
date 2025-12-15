@@ -1,5 +1,5 @@
 ![CI](https://github.com/natezimm/brick-breaker-resume/actions/workflows/deploy.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-enforced-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-checked-brightgreen)
 
 # Brick Breaker Resume
 
