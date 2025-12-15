@@ -24,14 +24,11 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:coverage
 
-      - name: Build production bundle
-        run: npm run build
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: brick-breaker-build
+          path: .
           if-no-files-found: error
 
   deploy:
@@ -42,8 +39,8 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: brick-breaker-build
+          path: site
 
       - name: Setup SSH
         run: |
@@ -54,5 +51,5 @@ jobs:
 
       - name: Deploy to Lightsail
         run: |
-          rsync -avz --delete dist/ \
+          rsync -avz --delete site/ \
             ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/var/www/brick-breaker/
