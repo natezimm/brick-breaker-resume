@@ -18,6 +18,7 @@ describe('settings modal interactions', () => {
       <button id="settingsButton"></button>
       <button id="closeModal"></button>
       <input id="soundToggle" type="checkbox" checked />
+      <input id="themeToggle" type="checkbox" />
       <input id="ballColorPicker" type="color" value="#a9a9a9" />
       <input id="paddleColorPicker" type="color" value="#a9a9a9" />
       <input id="paddleWidthSlider" type="range" value="100" />
@@ -29,6 +30,10 @@ describe('settings modal interactions', () => {
 
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 900 });
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 700 });
+
+    localStorage.removeItem('brickBreakerTheme');
+    document.documentElement.removeAttribute('data-theme');
+    settings.theme = 'light';
 
     scene = createMockScene();
     game = { scene: { scenes: [scene] } };
@@ -115,6 +120,26 @@ describe('settings modal interactions', () => {
     gameState.ball.setVelocity = jest.fn();
     document.getElementById('ballSpeedSlider').dispatchEvent(new Event('input'));
     expect(gameState.ball.setVelocity).toHaveBeenCalled();
+  });
+
+  test('theme toggle updates dataset and persists preference', () => {
+    setupSettings(game);
+
+    const themeToggle = document.getElementById('themeToggle');
+    expect(themeToggle.checked).toBe(false);
+    expect(settings.theme).toBe('light');
+
+    themeToggle.checked = true;
+    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(settings.theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('brickBreakerTheme')).toBe('dark');
+
+    themeToggle.checked = false;
+    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(settings.theme).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(localStorage.getItem('brickBreakerTheme')).toBe('light');
   });
 
   test('setupSettings logs when physics scene is missing', () => {

@@ -10,7 +10,7 @@ import {
     showWinMessage,
     togglePause
 } from './ui.js';
-import { settings } from './settings.js';
+import { applyThemeToScene, settings } from './settings.js';
 
 function playSound(scene, key) {
     if (settings.soundEnabled && scene.sound) {
@@ -176,6 +176,7 @@ function loseLife(scene) {
 
 export function create() {
     const scene = this;
+    applyThemeToScene(scene);
 
     if (gameState.winText) {
         gameState.winText.destroy();

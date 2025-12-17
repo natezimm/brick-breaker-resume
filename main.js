@@ -1,7 +1,8 @@
 import { config } from './src/config.js';
 import { setupUIButtons, setupWindowResize } from './src/ui.js';
-import { setupSettings } from './src/settings.js';
+import { initializeTheme, setupSettings } from './src/settings.js';
 
+initializeTheme();
 const game = new Phaser.Game(config);
 
 setupUIButtons(game);

@@ -1,18 +1,117 @@
 import { gameState } from './state.js';
 
+const THEME_STORAGE_KEY = 'brickBreakerTheme';
+const THEMES = Object.freeze({
+    LIGHT: 'light',
+    DARK: 'dark',
+});
+
 export const settings = {
     soundEnabled: true,
     ballColor: 0xA9A9A9,
     paddleColor: 0xA9A9A9,
     paddleWidth: 100,
     ballSpeed: 1.0,
+    theme: THEMES.LIGHT,
 };
+
+function sanitizeTheme(theme) {
+    return theme === THEMES.DARK ? THEMES.DARK : THEMES.LIGHT;
+}
+
+function readStoredTheme() {
+    try {
+        return sanitizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
+    } catch {
+        return THEMES.LIGHT;
+    }
+}
+
+function writeStoredTheme(theme) {
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+        // Ignore storage failures (private mode, blocked storage, etc).
+    }
+}
+
+export function getThemeColors(theme = settings.theme) {
+    const normalizedTheme = sanitizeTheme(theme);
+    return normalizedTheme === THEMES.DARK
+        ? {
+            theme: THEMES.DARK,
+            background: '#111111',
+            hudText: '#ffffff',
+            hudTextMuted: '#a9a9a9',
+        }
+        : {
+            theme: THEMES.LIGHT,
+            background: '#ffffff',
+            hudText: '#000000',
+            hudTextMuted: '#4b5563',
+        };
+}
+
+function setTextFill(text, fill) {
+    if (!text) return;
+    if (typeof text.setStyle === 'function') {
+        text.setStyle({ fill });
+        return;
+    }
+    if (typeof text.setColor === 'function') {
+        text.setColor(fill);
+        return;
+    }
+    if (text.style) {
+        text.style.fill = fill;
+    }
+}
+
+export function applyThemeToScene(scene, theme = settings.theme) {
+    if (!scene) return;
+    const colors = getThemeColors(theme);
+
+    const camera = scene.cameras?.main;
+    if (camera && typeof camera.setBackgroundColor === 'function') {
+        camera.setBackgroundColor(colors.background);
+    }
+
+    setTextFill(gameState.scoreText, colors.hudText);
+    setTextFill(gameState.countdownText, colors.hudTextMuted);
+    setTextFill(gameState.winText, colors.hudTextMuted);
+}
+
+export function initializeTheme() {
+    const storedTheme = readStoredTheme();
+    settings.theme = storedTheme;
+
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.dataset.theme = storedTheme;
+    }
+
+    return storedTheme;
+}
+
+export function applyTheme(theme, game) {
+    const normalizedTheme = sanitizeTheme(theme);
+    settings.theme = normalizedTheme;
+
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.dataset.theme = normalizedTheme;
+    }
+
+    writeStoredTheme(normalizedTheme);
+
+    const scene = game?.scene?.scenes?.[0];
+    applyThemeToScene(scene, normalizedTheme);
+}
 
 export function setupSettings(game) {
     const modal = document.getElementById('settingsModal');
     const settingsButton = document.getElementById('settingsButton');
     const closeButton = document.getElementById('closeModal');
     const soundToggle = document.getElementById('soundToggle');
+    const themeToggle = document.getElementById('themeToggle');
     const ballColorPicker = document.getElementById('ballColorPicker');
     const paddleColorPicker = document.getElementById('paddleColorPicker');
     const paddleWidthSlider = document.getElementById('paddleWidthSlider');
@@ -21,17 +120,20 @@ export function setupSettings(game) {
     const ballSpeedValue = document.getElementById('ballSpeedValue');
     const pauseButton = document.getElementById('pauseButton');
 
+    if (themeToggle) {
+        themeToggle.checked = settings.theme === THEMES.DARK;
+        themeToggle.addEventListener('change', (e) => {
+            applyTheme(e.target.checked ? THEMES.DARK : THEMES.LIGHT, game);
+        });
+    }
 
     settingsButton.addEventListener('click', () => {
         modal.classList.add('active');
-
-        console.log('Settings clicked, gameState.paused:', gameState.paused);
 
         const scene = game.scene.scenes[0];
 
         if (scene && scene.physics) {
             if (gameState.countdownInterval) {
-                console.log('Stopping countdown...');
                 clearInterval(gameState.countdownInterval);
                 gameState.countdownInterval = null;
                 gameState.wasInCountdown = true;
@@ -39,9 +141,6 @@ export function setupSettings(game) {
 
             gameState.setPaused(true);
             scene.physics.world.isPaused = true;
-
-            console.log('After pause - gameState.paused:', gameState.paused);
-            console.log('After pause - physics.isPaused:', scene.physics.world.isPaused);
 
             if (pauseButton) {
                 pauseButton.innerHTML = '<i class="fas fa-play"></i>';

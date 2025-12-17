@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS, COLORS, TEXTURE_KEYS } from './constants.js';
 import { gameState } from './state.js';
-import { settings } from './settings.js';
+import { settings, getThemeColors } from './settings.js';
 
 export function createLivesDisplay(scene) {
     if (gameState.livesBalls && gameState.livesBalls.length > 0) {
@@ -27,6 +27,7 @@ export function createLivesDisplay(scene) {
 export function createScoreText(scene) {
     if (gameState.scoreText) gameState.scoreText.destroy();
 
+    const themeColors = getThemeColors();
     const fontSize = window.innerWidth < 400 ? '16px' : '20px';
     const margin = window.innerWidth < 400 ? 10 : 20;
 
@@ -34,7 +35,7 @@ export function createScoreText(scene) {
         window.innerWidth - margin,
         window.innerHeight - 20,
         `Score: ${gameState.score}`,
-        { fontSize: fontSize, fill: COLORS.TEXT }
+        { fontSize: fontSize, fill: themeColors.hudText }
     ).setOrigin(1, 0.5);
 }
 
@@ -63,11 +64,12 @@ export function startCountdown(scene) {
 }
 
 export function createCountdownText(scene) {
+    const themeColors = getThemeColors();
     gameState.countdownText = scene.add.text(
         window.innerWidth / 2,
         window.innerHeight - 140,
         gameState.currentCountdown.toString(),
-        { fontSize: '64px', fill: COLORS.TEXT_LIGHT }
+        { fontSize: '64px', fill: themeColors.hudTextMuted }
     ).setOrigin(0.5);
 }
 
@@ -81,11 +83,12 @@ export function showGameOver(scene) {
 }
 
 export function showWinMessage(scene) {
+    const themeColors = getThemeColors();
     gameState.winText = scene.add.text(
         window.innerWidth / 2,
         window.innerHeight / 2,
         'YOU BROKE IT! YOU WIN!',
-        { fontSize: '64px', fill: COLORS.TEXT_LIGHT }
+        { fontSize: '64px', fill: themeColors.hudTextMuted }
     ).setOrigin(0.5).setDepth(2);
 }
 

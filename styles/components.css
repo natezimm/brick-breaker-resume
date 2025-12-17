@@ -94,7 +94,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: var(--modal-overlay-bg);
     backdrop-filter: blur(5px);
     animation: fadeIn 0.3s ease;
 }
@@ -116,7 +116,7 @@
 }
 
 .modal-content {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    background: var(--modal-bg);
     border-radius: 20px;
     width: 90%;
     max-width: 450px;
@@ -124,7 +124,7 @@
         0 20px 60px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     animation: slideIn 0.3s ease;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--modal-border);
 }
 
 @keyframes slideIn {
@@ -144,7 +144,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 24px 28px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid var(--modal-divider);
 }
 
 .modal-header h2 {
@@ -152,7 +152,7 @@
     font-size: 28px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
-    color: #ffffff;
+    color: var(--modal-fg);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -160,7 +160,7 @@
     background: none;
     border: none;
     font-size: 36px;
-    color: #ffffff;
+    color: var(--modal-fg);
     cursor: pointer;
     width: 40px;
     height: 40px;
@@ -173,7 +173,7 @@
 }
 
 .close-button:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--modal-close-hover-bg);
     transform: rotate(90deg);
 }
 
@@ -186,7 +186,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--modal-divider);
 }
 
 .setting-item:last-child {
@@ -196,7 +196,7 @@
 .setting-item label:first-child {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--modal-fg);
     font-family: 'Inter', sans-serif;
 }
 
@@ -253,7 +253,7 @@
 input[type="color"] {
     width: 60px;
     height: 40px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid var(--input-border);
     border-radius: 8px;
     cursor: pointer;
     background: transparent;
@@ -262,7 +262,7 @@ input[type="color"] {
 }
 
 input[type="color"]:hover {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--input-border-hover);
     transform: scale(1.05);
 }
 
@@ -336,4 +336,8 @@ input[type="range"]::-moz-range-track {
     border-radius: 3px;
     background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+#highScoreValue {
+    color: var(--modal-fg);
 }

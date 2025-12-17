@@ -1,7 +1,35 @@
+:root {
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --page-fg: #111111;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.55);
+    --modal-bg: linear-gradient(135deg, #f6f7fb 0%, #e9edf5 100%);
+    --modal-fg: #111111;
+    --modal-divider: rgba(0, 0, 0, 0.1);
+    --modal-border: rgba(0, 0, 0, 0.1);
+    --modal-close-hover-bg: rgba(0, 0, 0, 0.06);
+    --input-border: rgba(0, 0, 0, 0.2);
+    --input-border-hover: rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #111111;
+    --page-fg: #ffffff;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.7);
+    --modal-bg: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    --modal-fg: #ffffff;
+    --modal-divider: rgba(255, 255, 255, 0.1);
+    --modal-border: rgba(255, 255, 255, 0.1);
+    --modal-close-hover-bg: rgba(255, 255, 255, 0.1);
+    --input-border: rgba(255, 255, 255, 0.2);
+    --input-border-hover: rgba(255, 255, 255, 0.4);
+}
+
 body {
     margin: 0;
-    background: #111;
-    color: white;
+    background: var(--page-bg);
+    color: var(--page-fg);
     font-family: sans-serif;
     text-align: center;
 }
