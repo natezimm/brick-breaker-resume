@@ -4,6 +4,7 @@ import {
   updateBallTexture,
   updatePaddleTexture,
   updateBallSpeed,
+  initializeTheme,
 } from '../src/settings.js';
 import { gameState } from '../src/state.js';
 import { createMockScene, MockPhysicsImage, MockImage } from './mockScene.js';
@@ -140,6 +141,18 @@ describe('settings modal interactions', () => {
     expect(settings.theme).toBe('light');
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem('brickBreakerTheme')).toBe('light');
+  });
+
+  test('initializeTheme defaults to light theme when no preference stored', () => {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.removeItem('brickBreakerTheme');
+    settings.theme = 'dark';
+
+    const resultingTheme = initializeTheme();
+
+    expect(resultingTheme).toBe('light');
+    expect(settings.theme).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
   });
 
   test('setupSettings logs when physics scene is missing', () => {

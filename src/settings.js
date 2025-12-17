@@ -5,6 +5,19 @@ const THEMES = Object.freeze({
     LIGHT: 'light',
     DARK: 'dark',
 });
+const DEFAULT_THEME = THEMES.LIGHT;
+
+function updateDocumentTheme(theme) {
+    if (typeof document === 'undefined' || !document.documentElement) {
+        return;
+    }
+
+    document.documentElement.dataset.theme = theme;
+}
+
+if (typeof document !== 'undefined') {
+    updateDocumentTheme(DEFAULT_THEME);
+}
 
 export const settings = {
     soundEnabled: true,
@@ -12,18 +25,24 @@ export const settings = {
     paddleColor: 0xA9A9A9,
     paddleWidth: 100,
     ballSpeed: 1.0,
-    theme: THEMES.LIGHT,
+    theme: DEFAULT_THEME,
 };
 
 function sanitizeTheme(theme) {
-    return theme === THEMES.DARK ? THEMES.DARK : THEMES.LIGHT;
+    if (theme === THEMES.DARK) {
+        return THEMES.DARK;
+    }
+    if (theme === THEMES.LIGHT) {
+        return THEMES.LIGHT;
+    }
+    return DEFAULT_THEME;
 }
 
 function readStoredTheme() {
     try {
         return sanitizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
     } catch {
-        return THEMES.LIGHT;
+        return DEFAULT_THEME;
     }
 }
 
@@ -85,9 +104,7 @@ export function initializeTheme() {
     const storedTheme = readStoredTheme();
     settings.theme = storedTheme;
 
-    if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.dataset.theme = storedTheme;
-    }
+    updateDocumentTheme(storedTheme);
 
     return storedTheme;
 }
@@ -96,9 +113,7 @@ export function applyTheme(theme, game) {
     const normalizedTheme = sanitizeTheme(theme);
     settings.theme = normalizedTheme;
 
-    if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.dataset.theme = normalizedTheme;
-    }
+    updateDocumentTheme(normalizedTheme);
 
     writeStoredTheme(normalizedTheme);
 
