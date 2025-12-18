@@ -3,42 +3,48 @@
 
 # Brick Breaker Resume
 
-Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and high-score streaks.
+Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and a persistent high score.
 
 ## Features
 
-- **Resume-driven bricks**: The app parses a `.docx` resume (defaults to `assets/Nathan Zimmerman Resume.docx`) and stacks responsive bricks for each word.
-- **Rich UI feedback**: Lives render as animated ball icons, a score overlay updates in real time, and win/game-over overlays trigger with matching sounds.
-- **Settings modal**: The cog button opens a modal that auto-pauses the game and lets you toggle sound, choose ball/paddle colors, resize the paddle, and adjust ball speed on the fly.
-- **High-score tracking**: Tap the trophy button to open a modal that displays the current high score stored in `localStorage`, so you can chase your personal best across sessions.
-- **Responsive layout**: Window resize handlers keep the physics bounds, paddle position, HUD, and countdown aligned with whatever viewport you’re using.
-- **Countdown + pause controls**: Every serve starts with a countdown, the `P` key or pause button toggles physics, and pausing implicitly queues a countdown before resuming play.
+- **Resume-driven bricks**: Parses a `.docx` resume (default: `assets/Nathan Zimmerman Resume.docx`) and creates a brick per word, sized to the word length.
+- **Scoring by row**: Higher rows are worth more points when broken.
+- **Lives + game states**: Lives render as ball icons; win and game-over states include matching sound effects.
+- **Settings modal (auto-pauses)**: Toggle sound, toggle dark mode, adjust ball/paddle colors, change paddle width, and tweak ball speed mid-game.
+- **High score modal**: High score persists via `localStorage` (`brickBreakerHighScore`).
+- **Responsive + pausable**: Physics bounds, HUD, and paddle positioning adapt to resize; pause via the on-screen button or the `P` key; resumes with a countdown.
 
 ## Controls & Settings
 
-1. **Mouse**: Move the paddle horizontally to keep the ball in play.
-2. **Pause/Play**: Use the `Pause` button or press the `P` key; the button swaps icons depending on the state.
-3. **High score modal**: The trophy button pauses gameplay and displays your stored high score; close the modal to resume.
-4. **Settings modal**: Click the cog icon to adjust:
-   - Sound effects on/off (toggles Phaser audio).
-   - Ball/paddle colors via color pickers (textures update instantly).
-   - Paddle width slider (maxes out at roughly one-third of the screen width).
-   - Ball speed multiplier slider (0.5×–2.0×) which maintains direction when adjusted.
-   The modal automatically pauses the game while open and restores gameplay once dismissed.
+- **Mouse / touch**: Move the paddle horizontally.
+- **Pause/Play**: Click the pause button or press `P`.
+- **High score**: Click the trophy button to view your saved high score.
+- **Settings**: Click the cog button to toggle sound/dark mode and adjust colors/speeds/sizing.
 
 ## Getting Started
 
-1. Clone the repo and install:
+### Prerequisites
+
+- Node.js `22.x` (see `.nvmrc`)
+
+### Local dev
+
+1. Install dependencies:
    ```bash
    git clone https://github.com/natezimm/brick-breaker-resume.git
    cd brick-breaker-resume
    npm install
    ```
-2. Start a static server (the `start` script uses `http-server` and serves on `:8080`):
+2. Start a static server (serves on `:8080`):
    ```bash
    npm start
    ```
-3. Visit `http://localhost:8080` in your browser. The default resume kicks off automatically, but you can replace the file under `assets/` if you want different content.
+3. Visit `http://localhost:8080`.
+   - Note: Phaser and Mammoth are loaded via CDN in `index.html`, so local dev requires an internet connection.
+
+### Using your own resume
+
+- Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename), or update the fetch path in `src/bricks.js`.
 
 ## Testing
 
@@ -47,8 +53,7 @@ Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` re
 
 ## Testing & Quality
 
-- Continuous Integration runs the full test suite and enforces coverage thresholds before deployment.
-- Deployments are blocked automatically if coverage requirements are not met.
+- GitHub Actions runs tests + coverage on every push to `main` and blocks deployment if thresholds are not met.
 
 **Coverage thresholds:**
 - Lines ≥ 90%
@@ -56,15 +61,19 @@ Brick Breaker Resume is a Phaser.js-powered browser game that turns a `.docx` re
 - Functions ≥ 85%
 - Branches ≥ 80%
 
-## Deployment on Render
+## Deployment (GitHub Actions → Lightsail)
 
-- **Root Directory**: `/`
-- **Build Command**: None
-- **Publish Directory**: `/`
+- The `deploy` job downloads the repo as an artifact and `rsync`s it to `/var/www/brick-breaker/` on the target host, then runs a simple health check.
+- Required GitHub secrets: `LIGHTSAIL_SSH_KEY`, `LIGHTSAIL_HOST`, `LIGHTSAIL_USER`, `APP_DOMAIN`.
 
 ## File Structure
 
-- `index.html`: Entry point that wires up the Phaser bundle, Mammoth, PDF.js shim, and UI controls.
-- `src/`: Modular source split into `game.js` (Phaser lifecycle), `bricks.js` (resume parsing + rendering), `ui.js` (hud, modals, resize helpers), `settings.js` (modal logic and live texture updates), `state.js` (lives/score/high-score tracking), and `config.js`.
-- `parser.js`: Browser helper that relies on `mammoth` + DOMParser to produce clean text blocks from `.docx`.
+- `index.html`: Loads the game UI plus Phaser 3 + Mammoth via CDN, then boots `main.js`.
+- `main.js`: Initializes theme + Phaser game and wires up UI handlers.
+- `src/`: Game modules (`game.js`, `bricks.js`, `ui.js`, `settings.js`, `state.js`, `config.js`, `constants.js`).
+- `parser.js`: `.docx` text extraction helper using `mammoth` + `DOMParser`.
 - `assets/`: Contains audio cues, icons, and the sample resume used to seed the level.
+
+## License
+
+MIT (see `LICENSE`).
