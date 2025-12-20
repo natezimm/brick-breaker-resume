@@ -20,7 +20,7 @@ describe('gameState', () => {
     gameState.incrementScore(15);
 
     expect(gameState.score).toBe(15);
-    expect(setText).toHaveBeenCalledWith('Score: 15');
+    expect(setText).toHaveBeenCalledWith(15);
     expect(gameState.highScore).toBe(15);
     expect(localStorage.getItem('brickBreakerHighScore')).toBe('15');
   });

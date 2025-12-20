@@ -77,7 +77,7 @@ describe('bricks', () => {
     expect(destroyGraphics).toHaveBeenCalled();
     expect(brick.destroy).toHaveBeenCalled();
     expect(gameState.score).toBe(20);
-    expect(gameState.scoreText.setText).toHaveBeenCalledWith('Score: 20');
+    expect(gameState.scoreText.setText).toHaveBeenCalledWith(20);
   });
 
   test('createBrick skips text when none is provided', () => {

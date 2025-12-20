@@ -34,7 +34,7 @@ export function createScoreText(scene) {
     gameState.scoreText = scene.add.text(
         window.innerWidth - margin,
         window.innerHeight - 20,
-        `Score: ${gameState.score}`,
+        gameState.score,
         { fontSize: fontSize, fill: themeColors.hudText }
     ).setOrigin(1, 0.5);
 }

@@ -27,7 +27,7 @@ class GameState {
     incrementScore(points) {
         this.score += points;
         if (this.scoreText) {
-            this.scoreText.setText(`Score: ${this.score}`);
+            this.scoreText.setText(this.score);
         }
         this.updateHighScore();
     }

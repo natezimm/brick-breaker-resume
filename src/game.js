@@ -105,7 +105,7 @@ function createPaddle(scene) {
 function createBall(scene) {
     gameState.ball = scene.physics.add.image(
         window.innerWidth / 2,
-        window.innerHeight - 77,
+        window.innerHeight - 80,
         TEXTURE_KEYS.BALL
     )
         .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
@@ -156,7 +156,7 @@ function loseLife(scene) {
     gameState.decrementLives();
 
     if (gameState.lives > 0) {
-        gameState.ball.setPosition(window.innerWidth / 2, window.innerHeight - 77);
+        gameState.ball.setPosition(window.innerWidth / 2, window.innerHeight - 80);
         gameState.ball.setVelocity(0, 0);
 
         setTimeout(() => {
