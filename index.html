@@ -6,12 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="An interactive resume presented as a brick-breaker game—play to explore projects, skills, and experience." />
   <title>Resume Brick Breaker</title>
+
+  <!-- Preconnect to CDNs for faster resource fetching -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
   <link rel="stylesheet" href="style.css">
 
   <link rel="icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
 </head>
 
 <body>
@@ -85,9 +93,9 @@
     </div>
   </main>
 
+  <!-- Phaser game engine - loaded async to not block parsing -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <!-- Mammoth loaded on-demand in parser.js for better initial load -->
   <script type="module" src="./main.js"></script>
 </body>
 

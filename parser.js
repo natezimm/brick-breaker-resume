@@ -1,3 +1,27 @@
+// Lazy-load Mammoth library on first use
+let mammothPromise = null;
+
+async function loadMammoth() {
+    if (mammothPromise) return mammothPromise;
+
+    mammothPromise = new Promise((resolve, reject) => {
+        // Return existing if already loaded
+        if (window.mammoth) {
+            resolve(window.mammoth);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js';
+        script.async = true;
+        script.onload = () => resolve(window.mammoth);
+        script.onerror = () => reject(new Error('Failed to load Mammoth library'));
+        document.head.appendChild(script);
+    });
+
+    return mammothPromise;
+}
+
 export async function extractTextFromFile(file) {
     const fileType = file.name.split('.').pop().toLowerCase();
 
@@ -6,10 +30,13 @@ export async function extractTextFromFile(file) {
         return [];
     }
 
+    // Lazy-load Mammoth when needed
+    const mammoth = await loadMammoth();
+
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = async () => {
-            const result = await window.mammoth.convertToHtml({ arrayBuffer: reader.result });
+            const result = await mammoth.convertToHtml({ arrayBuffer: reader.result });
             const html = result.value;
 
             const parser = new DOMParser();
