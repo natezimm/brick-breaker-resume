@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { GAME_CONSTANTS, COLORS, TEXTURE_KEYS } from './constants.js';
 import { gameState } from './state.js';
 import { settings, getThemeColors } from './settings.js';
@@ -156,6 +155,7 @@ export function setupUIButtons(game) {
     }
 }
 
+// Update to remove Phaser dependency
 export function setupWindowResize(game) {
     window.addEventListener('resize', () => {
         const width = window.innerWidth;
@@ -196,10 +196,9 @@ export function setupWindowResize(game) {
             if (gameState.paddle) {
                 gameState.paddle.y = height - 55;
                 // Keep paddle within bounds if screen shrank
-                gameState.paddle.x = Phaser.Math.Clamp(
-                    gameState.paddle.x,
+                gameState.paddle.x = Math.max(
                     gameState.paddle.width / 2,
-                    width - gameState.paddle.width / 2
+                    Math.min(gameState.paddle.x, width - gameState.paddle.width / 2)
                 );
             }
         }

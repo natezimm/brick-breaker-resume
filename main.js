@@ -1,5 +1,4 @@
-import Phaser from 'phaser';
-import { config } from './src/config.js';
+import { createConfig } from './src/config.js';
 import { setupUIButtons, setupWindowResize } from './src/ui.js';
 import { initializeTheme, setupSettings } from './src/settings.js';
 
@@ -7,7 +6,9 @@ import { initializeTheme, setupSettings } from './src/settings.js';
 initializeTheme();
 
 // Defer heavy Phaser initialization to reduce main-thread blocking
-function initGame() {
+async function initGame() {
+    const { default: Phaser } = await import('phaser');
+    const config = createConfig(Phaser);
     const game = new Phaser.Game(config);
     setupUIButtons(game);
     setupWindowResize(game);
@@ -16,7 +17,7 @@ function initGame() {
 
 // Use requestIdleCallback to defer game init to idle time, fallback to setTimeout
 if ('requestIdleCallback' in window) {
-    requestIdleCallback(initGame, { timeout: 100 });
+    requestIdleCallback(() => initGame(), { timeout: 1000 });
 } else {
-    setTimeout(initGame, 0);
+    setTimeout(initGame, 100);
 }

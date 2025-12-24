@@ -7,6 +7,13 @@ export default defineConfig({
         outDir: 'dist',
         assetsDir: 'assets',
         sourcemap: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    phaser: ['phaser']
+                }
+            }
+        }
     },
     server: {
         port: 8080,

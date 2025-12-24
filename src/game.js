@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { AUDIO_KEYS, TEXTURE_KEYS, COLORS, GAME_CONSTANTS } from './constants.js';
 import { gameState } from './state.js';
 import { createBricksFromResume, handleBrickCollision } from './bricks.js';
@@ -177,10 +176,9 @@ function setupControls(scene) {
         triggerAudioLoad();
         if (!gameState.paused) {
             const paddleWidth = gameState.paddle.width;
-            gameState.paddle.x = Phaser.Math.Clamp(
-                pointer.x,
+            gameState.paddle.x = Math.max(
                 paddleWidth / 2,
-                window.innerWidth - paddleWidth / 2
+                Math.min(pointer.x, window.innerWidth - paddleWidth / 2)
             );
         }
     });

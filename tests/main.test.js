@@ -24,10 +24,28 @@ describe('main entrypoint', () => {
   });
 
   test('initializes Phaser game and wiring', async () => {
+    // Mock Phaser to be available for dynamic import
+    jest.mock('phaser', () => ({
+      Game: jest.fn(() => ({})),
+      AUTO: 'AUTO',
+    }), { virtual: true });
+
     const { setupUIButtons, setupWindowResize } = await import('../src/ui.js');
     const { setupSettings, initializeTheme } = await import('../src/settings.js');
 
+    // We need to capture the promise returned by requestIdleCallback's callback
+    let initPromise;
+    window.requestIdleCallback = (cb) => {
+      initPromise = cb();
+    };
+
     await import('../main.js');
+
+    // Wait for the async initGame to complete
+    if (initPromise) await initPromise;
+
+    // Importing the mocked module to check expectations
+    const { default: Phaser } = await import('phaser');
 
     expect(initializeTheme).toHaveBeenCalled();
     expect(Phaser.Game).toHaveBeenCalled();

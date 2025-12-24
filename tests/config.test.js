@@ -5,9 +5,11 @@ describe('config', () => {
   });
 
   test('builds Phaser configuration from window dimensions', async () => {
-    const { config } = await import('../src/config.js');
+    const { createConfig } = await import('../src/config.js');
+    const MockPhaser = { AUTO: 'AUTO' };
+    const config = createConfig(MockPhaser);
 
-    expect(config.type).toBe(Phaser.AUTO);
+    expect(config.type).toBe('AUTO');
     expect(config.width).toBe(1024);
     expect(config.height).toBe(768);
     expect(config.scene).toHaveProperty('preload');
