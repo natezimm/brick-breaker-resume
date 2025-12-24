@@ -24,11 +24,14 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:coverage
 
+      - name: Build application
+        run: npm run build
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: brick-breaker-build
-          path: .
+          path: dist
           if-no-files-found: error
 
   deploy:

@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { COLORS } from './constants.js';
 import { preload, create, update } from './game.js';
 

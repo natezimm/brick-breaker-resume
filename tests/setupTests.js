@@ -35,6 +35,8 @@ global.Phaser = {
   }),
 };
 
+jest.mock('phaser', () => global.Phaser);
+
 if (typeof File === 'undefined') {
   global.File = class File extends Blob {
     constructor(parts, name, options) {

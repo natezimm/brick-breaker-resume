@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { GAME_CONSTANTS, COLORS, TEXTURE_KEYS } from './constants.js';
 import { gameState } from './state.js';
 import { settings, getThemeColors } from './settings.js';

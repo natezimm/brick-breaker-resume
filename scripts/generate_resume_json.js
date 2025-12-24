@@ -4,8 +4,8 @@ const mammoth = require('mammoth');
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 
-const resumePath = path.join(__dirname, '../assets/Nathan Zimmerman Resume.docx');
-const outputPath = path.join(__dirname, '../assets/resume.json');
+const resumePath = path.join(__dirname, '../public/assets/Nathan Zimmerman Resume.docx');
+const outputPath = path.join(__dirname, '../public/assets/resume.json');
 
 async function convert() {
     console.log(`Reading ${resumePath}...`);
