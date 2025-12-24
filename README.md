@@ -43,12 +43,15 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
    - Note: Phaser and Mammoth are loaded via CDN in `index.html`, so local dev requires an internet connection.
 
 ### Using your own resume
-
-- Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename), or update the fetch path in `src/bricks.js`.
+- Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename).
+- Run the update script to regenerate the game data:
+   ```bash
+   node scripts/generate_resume_json.js
+   ```
 
 ## Testing
 
-- `npm test` runs the Jest suite for game, UI, and parser units.
+- `npm test` runs the Jest suite for game and UI units.
 - `npm run test:coverage` generates coverage reports under `coverage/`.
 
 ## Testing & Quality
@@ -68,10 +71,10 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 
 ## File Structure
 
-- `index.html`: Loads the game UI plus Phaser 3 + Mammoth via CDN, then boots `main.js`.
+- `index.html`: Loads the game UI plus Phaser 3 via CDN, then boots `main.js`.
 - `main.js`: Initializes theme + Phaser game and wires up UI handlers.
 - `src/`: Game modules (`game.js`, `bricks.js`, `ui.js`, `settings.js`, `state.js`, `config.js`, `constants.js`).
-- `parser.js`: `.docx` text extraction helper using `mammoth` + `DOMParser`.
+- `scripts/`: Build/utility scripts.
 - `assets/`: Contains audio cues, icons, and the sample resume used to seed the level.
 
 ## License

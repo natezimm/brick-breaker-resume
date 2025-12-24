@@ -1,11 +1,7 @@
 import { createBrick, createBricksFromResume, handleBrickCollision } from '../src/bricks.js';
 import { gameState } from '../src/state.js';
 import { createMockScene } from './mockScene.js';
-import { extractTextFromFile } from '../parser.js';
 
-jest.mock('../parser.js', () => ({
-  extractTextFromFile: jest.fn(),
-}));
 
 describe('bricks', () => {
   beforeEach(() => {
@@ -36,18 +32,15 @@ describe('bricks', () => {
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 100 });
 
     global.fetch = jest.fn().mockResolvedValue({
-      blob: jest.fn().mockResolvedValue(new Blob(['dummy'])),
+      json: jest.fn().mockResolvedValue([
+        { text: 'firstword secondword thirdword' },
+        { text: 'extra words to overflow rows anotherlongword hugeword largeword' },
+      ]),
     });
-
-    extractTextFromFile.mockResolvedValue([
-      { text: 'firstword secondword thirdword' },
-      { text: 'extra words to overflow rows anotherlongword hugeword largeword' },
-    ]);
 
     await createBricksFromResume(scene);
 
-    expect(global.fetch).toHaveBeenCalled();
-    expect(extractTextFromFile).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith('assets/resume.json');
     expect(gameState.bricksGroup.items.length).toBeGreaterThan(0);
     expect(gameState.bricksCreated).toBe(true);
     expect(gameState.totalRows).toBeGreaterThan(0);
@@ -97,12 +90,10 @@ describe('bricks', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 300 });
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 100 });
 
-    global.fetch = jest.fn().mockResolvedValue({
-      blob: jest.fn().mockResolvedValue(new Blob(['dummy'])),
-    });
-
     const oversizedWord = 'a'.repeat(27);
-    extractTextFromFile.mockResolvedValue([{ text: oversizedWord }]);
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue([{ text: oversizedWord }]),
+    });
 
     await createBricksFromResume(scene);
 

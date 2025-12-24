@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="An interactive resume presented as a brick-breaker game—play to explore projects, skills, and experience." />
+  <meta name="description"
+    content="An interactive resume presented as a brick-breaker game—play to explore projects, skills, and experience." />
   <title>Resume Brick Breaker</title>
 
   <!-- Preconnect to CDNs for faster resource fetching -->
@@ -26,13 +27,16 @@
   <link rel="modulepreload" href="./src/ui.js">
   <link rel="modulepreload" href="./src/settings.js">
   <link rel="modulepreload" href="./src/state.js">
-  <link rel="modulepreload" href="./parser.js">
+
 
   <link rel="icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print"
+    onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  </noscript>
 </head>
 
 <body>
@@ -94,11 +98,13 @@
       <div class="modal-content" style="max-width: 300px; text-align: center;">
         <div class="modal-header" style="justify-content: center; position: relative;">
           <h2>High Score</h2>
-          <button id="closeHighScoreModal" class="close-button" type="button" aria-label="Close high score" style="position: absolute; right: 20px;">&times;</button>
+          <button id="closeHighScoreModal" class="close-button" type="button" aria-label="Close high score"
+            style="position: absolute; right: 20px;">&times;</button>
         </div>
         <div class="modal-body">
           <div style="padding: 20px;">
-            <i class="fas fa-trophy" aria-hidden="true" style="font-size: 48px; color: gold; margin-bottom: 20px; display: block;"></i>
+            <i class="fas fa-trophy" aria-hidden="true"
+              style="font-size: 48px; color: gold; margin-bottom: 20px; display: block;"></i>
             <span id="highScoreValue" style="font-weight: bold; font-size: 3em;">0</span>
           </div>
         </div>

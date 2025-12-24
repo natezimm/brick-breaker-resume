@@ -1,4 +1,4 @@
-import { extractTextFromFile } from '../parser.js';
+
 import { GAME_CONSTANTS, COLORS } from './constants.js';
 import { gameState } from './state.js';
 
@@ -91,10 +91,8 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
 }
 
 export async function createBricksFromResume(scene) {
-    const response = await fetch('assets/Nathan Zimmerman Resume.docx');
-    const blob = await response.blob();
-    const file = new File([blob], 'Nathan Zimmerman Resume.docx');
-    const elements = await extractTextFromFile(file);
+    const response = await fetch('assets/resume.json');
+    const elements = await response.json();
 
     const { MARGIN_TOP, BRICK_HEIGHT, BRICK_PADDING, BASE_BRICK_WIDTH, MAX_BRICK_HEIGHT_RATIO } = GAME_CONSTANTS;
     const rightEdge = window.innerWidth - 10;
