@@ -5,6 +5,7 @@ export const config = {
     type: Phaser.AUTO,
     width: window.innerWidth,
     height: window.innerHeight,
+    parent: 'app',
     backgroundColor: COLORS.BACKGROUND,
     physics: {
         default: 'arcade',

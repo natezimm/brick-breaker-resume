@@ -99,6 +99,8 @@ export function togglePause(scene) {
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
         pauseButton.innerHTML = paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+        pauseButton.setAttribute('aria-label', paused ? 'Resume game' : 'Pause game');
+        pauseButton.title = paused ? 'Resume' : 'Pause';
     }
 
     if (!paused && gameState.wasInCountdown) {

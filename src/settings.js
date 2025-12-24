@@ -159,6 +159,8 @@ export function setupSettings(game) {
 
             if (pauseButton) {
                 pauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                pauseButton.setAttribute('aria-label', 'Resume game');
+                pauseButton.title = 'Resume';
             }
         } else {
             console.error('Scene or physics not available');
