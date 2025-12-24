@@ -194,8 +194,23 @@ export function createMockScene() {
 
   const sound = { play: jest.fn(), mute: false };
 
+  const loadEvents = {};
+  const load = {
+    audio: jest.fn(),
+    once: jest.fn((event, cb) => {
+      loadEvents[event] = cb;
+    }),
+    start: jest.fn(() => {
+      // Simulate async load completion
+      if (loadEvents['complete']) {
+        setTimeout(() => loadEvents['complete'](), 0);
+      }
+    }),
+  };
+
   const scene = {
     add,
+    load,
     physics: { add: physicsAdd, world },
     input,
     sound,

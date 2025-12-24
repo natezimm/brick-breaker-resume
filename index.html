@@ -13,7 +13,20 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-  <link rel="stylesheet" href="style.css">
+  <!-- CSS loaded directly to avoid @import chaining -->
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+
+  <!-- Preload critical JS modules to flatten dependency chain -->
+  <link rel="modulepreload" href="./main.js">
+  <link rel="modulepreload" href="./src/config.js">
+  <link rel="modulepreload" href="./src/constants.js">
+  <link rel="modulepreload" href="./src/game.js">
+  <link rel="modulepreload" href="./src/bricks.js">
+  <link rel="modulepreload" href="./src/ui.js">
+  <link rel="modulepreload" href="./src/settings.js">
+  <link rel="modulepreload" href="./src/state.js">
+  <link rel="modulepreload" href="./parser.js">
 
   <link rel="icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -93,8 +106,8 @@
     </div>
   </main>
 
-  <!-- Phaser game engine - loaded async to not block parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <!-- Phaser game engine - defer maintains order with module scripts -->
+  <script defer src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <!-- Mammoth loaded on-demand in parser.js for better initial load -->
   <script type="module" src="./main.js"></script>
 </body>

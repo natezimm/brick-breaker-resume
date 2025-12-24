@@ -12,19 +12,46 @@ import {
 } from './ui.js';
 import { applyThemeToScene, settings } from './settings.js';
 
+// Track audio loading state
+let audioLoaded = false;
+let audioLoadPromise = null;
+
+// Test helper to set audio loaded state (exported for testing)
+export function _setAudioLoaded(loaded) {
+    audioLoaded = loaded;
+    if (!loaded) audioLoadPromise = null;
+}
+
+// Lazy-load audio on first user interaction to reduce initial main-thread work
+function loadAudioLazy(scene) {
+    if (audioLoaded || audioLoadPromise) return audioLoadPromise;
+    
+    audioLoadPromise = new Promise((resolve) => {
+        scene.load.audio(AUDIO_KEYS.BALL_HIT, 'assets/sounds/ball-hit.wav');
+        scene.load.audio(AUDIO_KEYS.BRICK_HIT, 'assets/sounds/brick-hit.wav');
+        scene.load.audio(AUDIO_KEYS.LOSE_LIFE, 'assets/sounds/lose-life.wav');
+        scene.load.audio(AUDIO_KEYS.WIN_GAME, 'assets/sounds/win-game.wav');
+        scene.load.audio(AUDIO_KEYS.GAME_OVER, 'assets/sounds/game-over.wav');
+        
+        scene.load.once('complete', () => {
+            audioLoaded = true;
+            resolve();
+        });
+        scene.load.start();
+    });
+    
+    return audioLoadPromise;
+}
+
 function playSound(scene, key) {
-    if (settings.soundEnabled && scene.sound) {
+    if (settings.soundEnabled && scene.sound && audioLoaded) {
         scene.sound.play(key);
     }
 }
 
-
+// Preload is now minimal - audio loads lazily on first interaction
 export function preload() {
-    this.load.audio(AUDIO_KEYS.BALL_HIT, 'assets/sounds/ball-hit.wav');
-    this.load.audio(AUDIO_KEYS.BRICK_HIT, 'assets/sounds/brick-hit.wav');
-    this.load.audio(AUDIO_KEYS.LOSE_LIFE, 'assets/sounds/lose-life.wav');
-    this.load.audio(AUDIO_KEYS.WIN_GAME, 'assets/sounds/win-game.wav');
-    this.load.audio(AUDIO_KEYS.GAME_OVER, 'assets/sounds/game-over.wav');
+    // Audio loading deferred to first user interaction
 }
 
 function createTextures(scene) {
@@ -136,7 +163,17 @@ function setupCollisions(scene) {
 }
 
 function setupControls(scene) {
+    // Load audio lazily on first user interaction
+    let audioTriggered = false;
+    const triggerAudioLoad = () => {
+        if (!audioTriggered) {
+            audioTriggered = true;
+            loadAudioLazy(scene);
+        }
+    };
+
     scene.input.on('pointermove', pointer => {
+        triggerAudioLoad();
         if (!gameState.paused) {
             const paddleWidth = gameState.paddle.width;
             gameState.paddle.x = Phaser.Math.Clamp(
@@ -148,6 +185,7 @@ function setupControls(scene) {
     });
 
     scene.input.keyboard.on('keydown-P', () => {
+        triggerAudioLoad();
         togglePause(scene);
     });
 }

@@ -1,4 +1,4 @@
-import { preload, create, update } from '../src/game.js';
+import { preload, create, update, _setAudioLoaded } from '../src/game.js';
 import { AUDIO_KEYS, GAME_CONSTANTS } from '../src/constants.js';
 import { gameState } from '../src/state.js';
 import { settings } from '../src/settings.js';
@@ -36,16 +36,21 @@ describe('game scene', () => {
     jest.clearAllMocks();
     gameState.reset();
     settings.soundEnabled = true;
+    _setAudioLoaded(true); // Simulate audio being loaded for tests
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 800 });
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 600 });
   });
 
-  test('preload queues audio assets', () => {
+  afterEach(() => {
+    _setAudioLoaded(false); // Reset audio state after each test
+  });
+
+  test('preload is a no-op (audio loads lazily on user interaction)', () => {
     const load = { audio: jest.fn() };
     preload.call({ load });
 
-    expect(load.audio).toHaveBeenCalledTimes(5);
-    expect(load.audio).toHaveBeenCalledWith(AUDIO_KEYS.BALL_HIT, 'assets/sounds/ball-hit.wav');
+    // Audio loading is now deferred to first user interaction
+    expect(load.audio).not.toHaveBeenCalled();
   });
 
   test('create configures scene, physics, and controls', async () => {

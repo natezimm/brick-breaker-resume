@@ -9,9 +9,18 @@ jest.mock('../src/settings.js', () => ({
 }));
 
 describe('main entrypoint', () => {
+  let originalRequestIdleCallback;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
+    // Store original and mock requestIdleCallback to execute immediately
+    originalRequestIdleCallback = window.requestIdleCallback;
+    window.requestIdleCallback = (cb) => cb();
+  });
+
+  afterEach(() => {
+    window.requestIdleCallback = originalRequestIdleCallback;
   });
 
   test('initializes Phaser game and wiring', async () => {
