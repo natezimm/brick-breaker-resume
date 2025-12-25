@@ -38,3 +38,99 @@ canvas {
     display: block;
     margin: 0 auto;
 }
+
+#startOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--page-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+    overflow: hidden;
+    /* Ensure bricks don't overflow */
+}
+
+#brickContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    /* Behind text */
+    pointer-events: none;
+    /* Let clicks pass through */
+}
+
+.overlay-brick {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    /* Simulate the game's graphics shadows/highlights roughly with borders/shadows */
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+    border-right: 2px solid rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure content sits on top */
+#startOverlay h1,
+#startOverlay p,
+#startOverlay button {
+    z-index: 2;
+    position: relative;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    /* readable against bricks */
+    color: white;
+    /* Force white text for readability */
+}
+
+#startOverlay h1 {
+    background: rgba(0, 0, 0, 0.60);
+    /* Semi-transparent background for readability */
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+#startOverlay p {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 5px 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+#startOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#startButton {
+    padding: 15px 40px;
+    font-size: 24px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background 0.2s;
+}
+
+#startButton:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}

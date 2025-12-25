@@ -103,6 +103,11 @@ class MockText extends MockGameObject {
     this.text = text;
     return this;
   }
+
+  setResolution(resolution) {
+    this.resolution = resolution;
+    return this;
+  }
 }
 
 class MockImage extends MockGameObject {
