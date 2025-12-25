@@ -35,12 +35,22 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
    cd brick-breaker-resume
    npm install
    ```
-2. Start a static server (serves on `:8080`):
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Visit the URL shown in the terminal (typically `http://localhost:5173`).
+
+### Building for Production
+
+1. Build the project:
+   ```bash
+   npm run build
+   ```
+2. Preview the production build:
    ```bash
    npm start
    ```
-3. Visit `http://localhost:8080`.
-   - Note: Phaser and Mammoth are loaded via CDN in `index.html`, so local dev requires an internet connection.
 
 ### Using your own resume
 - Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename).
@@ -71,7 +81,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 
 ## File Structure
 
-- `index.html`: Loads the game UI plus Phaser 3 via CDN, then boots `main.js`.
+- `index.html`: Entry point; loads the game module (`main.js`).
 - `main.js`: Initializes theme + Phaser game and wires up UI handlers.
 - `src/`: Game modules (`game.js`, `bricks.js`, `ui.js`, `settings.js`, `state.js`, `config.js`, `constants.js`).
 - `scripts/`: Build/utility scripts.

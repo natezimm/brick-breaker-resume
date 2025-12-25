@@ -94,21 +94,24 @@ describe('ui helpers', () => {
   });
 
   test('createCountdownText renders countdown indicator', () => {
+    document.body.innerHTML = '<div id="gameMessageOverlay" class="hidden"></div>';
+    gameState.currentCountdown = 3;
     ui.createCountdownText(scene);
-    expect(gameState.countdownText.text).toBe(gameState.currentCountdown.toString());
+
+    // Check if DOM was updated
+    const overlay = document.getElementById('gameMessageOverlay');
+    expect(overlay.innerHTML).toContain('3');
+    expect(overlay.classList.contains('hidden')).toBe(false);
   });
 
   test('showGameOver and showWinMessage render messages', () => {
+    document.body.innerHTML = '<div id="gameMessageOverlay" class="hidden"></div>';
+
     ui.showGameOver(scene);
-    expect(scene.add.text).toHaveBeenCalledWith(
-      window.innerWidth / 2,
-      window.innerHeight - 100,
-      'Game Over',
-      expect.any(Object)
-    );
+    expect(document.getElementById('gameMessageOverlay').innerHTML).toContain('GAME OVER');
 
     ui.showWinMessage(scene);
-    expect(gameState.winText.text).toBe('YOU BROKE IT! YOU WIN!');
+    expect(document.getElementById('gameMessageOverlay').innerHTML).toContain('VICTORY!');
   });
 
   test('togglePause toggles physics pause and restarts countdown when resuming', () => {
@@ -225,7 +228,7 @@ describe('ui helpers', () => {
 
   test('setupWindowResize updates UI elements on resize', () => {
     const game = { scale: { resize: jest.fn() }, scene: { scenes: [scene] } };
-    gameState.scoreText = { setStyle: jest.fn(), setPosition: jest.fn() };
+    gameState.scoreText = { setStyle: jest.fn(), setPosition: jest.fn(), setText: jest.fn() };
     gameState.livesBalls = [new MockImage(0, 0), new MockImage(0, 0)];
     gameState.countdownText = { setPosition: jest.fn() };
     gameState.paddle = { width: 200, x: 500, y: 0 };
@@ -243,17 +246,20 @@ describe('ui helpers', () => {
 
     expect(game.scale.resize).toHaveBeenCalledWith(300, 400);
     expect(scene.physics.world.setBounds).toHaveBeenCalledWith(0, 0, 300, 400);
-    expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '16px' });
+    // expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '16px' }); // Removed
+    expect(gameState.scoreText.setText).toHaveBeenCalledWith(`0`); // No prefix for < 405
     expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(300 - 10, 400 - 20);
     expect(gameState.livesBalls[0].x).toBe(15);
-    expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(150, 260);
+    expect(gameState.livesBalls[0].x).toBe(15);
+    // expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(150, 260); // Removed as it is now DOM based
+    expect(gameState.paddle.y).toBe(345);
     expect(gameState.paddle.y).toBe(345);
     expect(gameState.paddle.x).toBeLessThanOrEqual(200);
   });
 
   test('setupWindowResize widens spacing on larger screens', () => {
     const game = { scale: { resize: jest.fn() }, scene: { scenes: [scene] } };
-    gameState.scoreText = { setStyle: jest.fn(), setPosition: jest.fn() };
+    gameState.scoreText = { setStyle: jest.fn(), setPosition: jest.fn(), setText: jest.fn() };
     gameState.livesBalls = [new MockImage(0, 0)];
     gameState.countdownText = { setPosition: jest.fn() };
     gameState.paddle = { width: 200, x: 400, y: 0 };
@@ -270,10 +276,13 @@ describe('ui helpers', () => {
     resizeHandler();
 
     expect(game.scale.resize).toHaveBeenCalledWith(800, 600);
-    expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '20px' });
+    // expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '20px' }); // Removed
+    expect(gameState.scoreText.setText).toHaveBeenCalledWith(`SCORE: 0`); // Prefix for >= 405
     expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(800 - 20, 600 - 20);
     expect(gameState.livesBalls[0].x).toBe(30);
-    expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(400, 460);
+    expect(gameState.livesBalls[0].x).toBe(30);
+    // expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(400, 460); // Removed
+    expect(gameState.paddle.y).toBe(545);
     expect(gameState.paddle.y).toBe(545);
   });
 

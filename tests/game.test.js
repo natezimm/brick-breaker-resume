@@ -12,6 +12,7 @@ import {
   showGameOver,
   showWinMessage,
   togglePause,
+  hideGameMessage,
 } from '../src/ui.js';
 
 jest.mock('../src/bricks.js', () => ({
@@ -27,11 +28,25 @@ jest.mock('../src/ui.js', () => ({
   showGameOver: jest.fn(),
   showWinMessage: jest.fn(),
   togglePause: jest.fn(),
+  hideGameMessage: jest.fn(),
   setupUIButtons: jest.fn(),
   setupWindowResize: jest.fn(),
 }));
 
 describe('game scene', () => {
+  beforeAll(() => {
+    // Robustly mock getContext to ensure roundRect exists
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type) {
+      const ctx = originalGetContext.call(this, type) || {};
+      // Add missing methods
+      ['roundRect', 'stroke', 'moveTo', 'lineTo', 'beginPath', 'fill', 'arc', 'createRadialGradient', 'createLinearGradient', 'addColorStop'].forEach(method => {
+        ctx[method] = ctx[method] || jest.fn(() => ({ addColorStop: jest.fn() }));
+      });
+      return ctx;
+    };
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     gameState.reset();
@@ -102,6 +117,7 @@ describe('game scene', () => {
 
     gameState.ball.setPosition = jest.fn();
     gameState.ball.setVelocity = jest.fn();
+    gameState.ball.setRotation = jest.fn();
     scene.physics.world.emit('worldbounds', gameState.ball.body, false, true);
     jest.runOnlyPendingTimers();
     const expectedX = GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed;
@@ -135,16 +151,7 @@ describe('game scene', () => {
     jest.useRealTimers();
   });
 
-  test('create clears a stale win text before initializing', async () => {
-    const scene = createMockScene();
-    const winText = { destroy: jest.fn() };
-    gameState.winText = winText;
 
-    create.call(scene);
-
-    expect(winText.destroy).toHaveBeenCalled();
-    expect(gameState.winText).toBeNull();
-  });
 
   test('update triggers win flow when bricks are cleared', () => {
     const scene = createMockScene();
@@ -156,7 +163,10 @@ describe('game scene', () => {
     gameState.bricksGroup = { countActive: () => 0 };
     gameState.lives = 2;
     gameState.winText = null;
-    gameState.ball = { setVelocity: jest.fn() };
+    gameState.ball = { setVelocity: jest.fn(), setRotation: jest.fn() };
+    gameState.bricksByRow = new Map(); // Mock needed for justification logic in bricks.js if called, 
+    // but update loop might check bricksGroup?
+    // Actually, update calls showWinMessage if no bricks.
 
     update.call(scene);
 

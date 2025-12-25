@@ -13,6 +13,19 @@ describe('settings modal interactions', () => {
   let scene;
   let game;
 
+  beforeAll(() => {
+    // Robustly mock getContext to ensure roundRect exists
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type) {
+      const ctx = originalGetContext.call(this, type) || {};
+      // Add missing methods
+      ['roundRect', 'stroke', 'moveTo', 'lineTo', 'beginPath', 'fill', 'arc', 'createRadialGradient', 'createLinearGradient', 'addColorStop'].forEach(method => {
+        ctx[method] = ctx[method] || jest.fn(() => ({ addColorStop: jest.fn() })); // Return generic object for gradients
+      });
+      return ctx;
+    };
+  });
+
   beforeEach(() => {
     document.body.innerHTML = `
       <div id="settingsModal" class="modal"></div>
@@ -55,7 +68,7 @@ describe('settings modal interactions', () => {
 
   test('opening modal pauses game and stops countdown', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 300 });
-    gameState.countdownInterval = setInterval(() => {}, 1000);
+    gameState.countdownInterval = setInterval(() => { }, 1000);
     gameState.paused = false;
 
     setupSettings(game);
@@ -156,7 +169,7 @@ describe('settings modal interactions', () => {
   });
 
   test('setupSettings logs when physics scene is missing', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
     const gameWithoutScene = { scene: { scenes: [null] } };
 
     setupSettings(gameWithoutScene);

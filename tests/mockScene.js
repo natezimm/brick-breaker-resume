@@ -134,6 +134,10 @@ class MockPhysicsImage extends MockImage {
     this.body.velocity = { x, y };
     return this;
   }
+
+  setRotation(angle) {
+    return this;
+  }
 }
 
 export function createMockScene() {

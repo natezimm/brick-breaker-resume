@@ -30,12 +30,27 @@ export function createScoreText(scene) {
     const themeColors = getThemeColors();
     const fontSize = window.innerWidth < 400 ? '16px' : '20px';
     const margin = window.innerWidth < 400 ? 10 : 20;
+    const prefix = window.innerWidth >= 405 ? 'SCORE: ' : '';
 
     gameState.scoreText = scene.add.text(
         window.innerWidth - margin,
         window.innerHeight - 20,
-        gameState.score,
-        { fontSize: fontSize, fill: themeColors.hudText }
+        `${prefix}${gameState.score}`,
+        {
+            fontSize: '24px',
+            fontFamily: '"Arial Black", Gadget, sans-serif',
+            fill: '#FFD700', // Gold color to start
+            stroke: '#000000',
+            strokeThickness: 4,
+            shadow: {
+                offsetX: 2,
+                offsetY: 2,
+                color: '#000',
+                blur: 2,
+                stroke: true,
+                fill: true
+            }
+        }
     ).setOrigin(1, 0.5);
 }
 
@@ -207,8 +222,12 @@ export function setupWindowResize(game) {
             // Update Score Position & Style
             if (gameState.scoreText) {
                 const margin = width < 400 ? 10 : 20;
-                const fontSize = width < 400 ? '16px' : '20px';
-                gameState.scoreText.setStyle({ fontSize: fontSize });
+                // const fontSize = width < 400 ? '16px' : '20px'; // Overridden by new style
+
+                // Update text content based on width
+                const prefix = width >= 405 ? 'SCORE: ' : '';
+                gameState.scoreText.setText(`${prefix}${gameState.score}`);
+
                 gameState.scoreText.setPosition(width - margin, height - 20);
             }
 
