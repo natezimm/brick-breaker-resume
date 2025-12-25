@@ -40,6 +40,14 @@ export function createScoreText(scene) {
 }
 
 
+export function hideGameMessage() {
+    const overlay = document.getElementById('gameMessageOverlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.innerHTML = '';
+    }
+}
+
 export function startCountdown(scene) {
     let countdown = gameState.currentCountdown;
 
@@ -48,9 +56,9 @@ export function startCountdown(scene) {
         gameState.currentCountdown = countdown;
 
         if (countdown > 0) {
-            gameState.countdownText.setText(countdown.toString());
+            updateCountdownDisplay(countdown);
         } else {
-            gameState.countdownText.destroy();
+            hideGameMessage();
             gameState.ball.setVelocity(
                 GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
                 GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
@@ -63,33 +71,64 @@ export function startCountdown(scene) {
     }, GAME_CONSTANTS.COUNTDOWN_INTERVAL);
 }
 
+function updateCountdownDisplay(value) {
+    const overlay = document.getElementById('gameMessageOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.innerHTML = `<div class="game-message gm-countdown">${value}</div>`;
+    }
+}
+
 export function createCountdownText(scene) {
-    const themeColors = getThemeColors();
-    gameState.countdownText = scene.add.text(
-        window.innerWidth / 2,
-        window.innerHeight - 140,
-        gameState.currentCountdown.toString(),
-        { fontSize: '64px', fill: themeColors.hudTextMuted }
-    ).setOrigin(0.5);
+    updateCountdownDisplay(gameState.currentCountdown);
 }
 
 export function showGameOver(scene) {
-    scene.add.text(
-        window.innerWidth / 2,
-        window.innerHeight - 100,
-        'Game Over',
-        { fontSize: '64px', fill: COLORS.GAME_OVER }
-    ).setOrigin(0.5).setDepth(2);
+    const overlay = document.getElementById('gameMessageOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.innerHTML = `
+            <div class="game-message gm-gameover">
+                <div>GAME OVER</div>
+                <div class="sub-text">Refresh to Try Again</div>
+            </div>`;
+    }
 }
 
 export function showWinMessage(scene) {
-    const themeColors = getThemeColors();
-    gameState.winText = scene.add.text(
-        window.innerWidth / 2,
-        window.innerHeight / 2,
-        'YOU BROKE IT! YOU WIN!',
-        { fontSize: '64px', fill: themeColors.hudTextMuted }
-    ).setOrigin(0.5).setDepth(2);
+    gameState.gameEnded = true;
+    const overlay = document.getElementById('gameMessageOverlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+
+        // Structure for the message
+        overlay.innerHTML = `
+            <div class="gm-win-container">
+                <div class="game-message gm-win">VICTORY!</div>
+                <div class="game-message gm-win-sub">ALL BRICKS DESTROYED</div>
+            </div>
+        `;
+
+        // Generate visual confetti
+        const colors = ['#ff0055', '#00ddff', '#00ffaa', '#ff9900', '#ffd300', '#ff00cc'];
+
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti-piece');
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear infinite`;
+            confetti.style.animationDelay = Math.random() * 5 + 's';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Random size/shape variations
+            const size = Math.random() * 10 + 5;
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            if (Math.random() > 0.5) confetti.style.borderRadius = '50%';
+
+            overlay.appendChild(confetti);
+        }
+    }
 }
 
 export function togglePause(scene) {
@@ -105,9 +144,7 @@ export function togglePause(scene) {
 
     if (!paused && gameState.wasInCountdown) {
         gameState.wasInCountdown = false;
-        if (!gameState.countdownText || !gameState.countdownText.active) {
-            createCountdownText(scene);
-        }
+        createCountdownText(scene);
         startCountdown(scene);
     }
 }
@@ -185,11 +222,6 @@ export function setupWindowResize(game) {
                 gameState.livesBalls.forEach((ball, i) => {
                     ball.setPosition(startX + i * spacing, height - 20);
                 });
-            }
-
-            // Update Countdown Position
-            if (gameState.countdownText) {
-                gameState.countdownText.setPosition(width / 2, height - 140);
             }
 
             // Update Paddle Y Position to stay at bottom

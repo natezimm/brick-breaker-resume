@@ -8,7 +8,8 @@ import {
     createCountdownText,
     showGameOver,
     showWinMessage,
-    togglePause
+    togglePause,
+    hideGameMessage
 } from './ui.js';
 import { applyThemeToScene, settings } from './settings.js';
 
@@ -215,10 +216,8 @@ export function create() {
     const scene = this;
     applyThemeToScene(scene);
 
-    if (gameState.winText) {
-        gameState.winText.destroy();
-        gameState.winText = null;
-    }
+    hideGameMessage();
+    gameState.gameEnded = false;
 
     gameState.score = GAME_CONSTANTS.INITIAL_SCORE;
     gameState.lives = GAME_CONSTANTS.INITIAL_LIVES;
@@ -247,7 +246,7 @@ export function update() {
     if (gameState.bricksCreated &&
         gameState.bricksGroup.countActive() === 0 &&
         gameState.lives > 0 &&
-        !gameState.winText) {
+        !gameState.gameEnded) {
 
         showWinMessage(scene);
         gameState.ball.setVelocity(0, 0);
