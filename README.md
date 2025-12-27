@@ -64,6 +64,15 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - `npm test` runs the Jest suite for game and UI units.
 - `npm run test:coverage` generates coverage reports under `coverage/`.
 
+## Security
+
+The codebase follows security best practices to prevent common web vulnerabilities:
+
+- **XSS Prevention**: All DOM manipulation uses safe methods (`textContent`, `createElement`, `appendChild`) instead of `innerHTML` to prevent cross-site scripting attacks.
+- **Input Sanitization**: High scores from `localStorage` are validated as non-negative integers within safe bounds before use.
+- **Asset Path Validation**: Only allowlisted local asset paths can be fetched, preventing unauthorized resource loading.
+- **Safe Countdown Display**: Countdown values are strictly validated (integers 1-9 only) before rendering.
+
 ## Testing & Quality
 
 - GitHub Actions runs tests + coverage on every push to `main` and blocks deployment if thresholds are not met.
