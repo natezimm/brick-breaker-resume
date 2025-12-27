@@ -104,12 +104,13 @@ canvas {
     font-weight: bold;
     font-family: Arial, sans-serif;
     box-sizing: border-box;
-    /* Simulate the game's graphics shadows/highlights roughly with borders/shadows */
+    /* Match game brick borders exactly */
     border-top: 1px solid rgba(255, 255, 255, 0.4);
     border-left: 1px solid rgba(255, 255, 255, 0.2);
     border-bottom: 2px solid rgba(0, 0, 0, 0.4);
     border-right: 2px solid rgba(0, 0, 0, 0.4);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    /* Compensate for asymmetric borders (2px bottom - 1px top = 1px offset) */
+    padding-top: 1px;
 }
 
 /* Ensure content sits on top */

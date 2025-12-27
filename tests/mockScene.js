@@ -61,6 +61,8 @@ class MockGraphics {
     this.lineTo = jest.fn();
     this.closePath = jest.fn();
     this.fillPath = jest.fn();
+    this.lineStyle = jest.fn();
+    this.strokePath = jest.fn();
   }
 
   destroy() {

@@ -32,6 +32,7 @@ describe('bricks', () => {
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 100 });
 
     global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
       json: jest.fn().mockResolvedValue([
         { text: 'firstword secondword thirdword' },
         { text: 'extra words to overflow rows anotherlongword hugeword largeword' },
@@ -92,6 +93,7 @@ describe('bricks', () => {
 
     const oversizedWord = 'a'.repeat(27);
     global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
       json: jest.fn().mockResolvedValue([{ text: oversizedWord }]),
     });
 
@@ -99,6 +101,7 @@ describe('bricks', () => {
 
     const lastBrick = gameState.bricksGroup.items[0];
     expect(gameState.bricksGroup.items).toHaveLength(1);
-    expect(lastBrick.getData('isLastInRow')).toBeFalsy();
+    // A single brick is correctly the last in its row
+    expect(lastBrick.getData('isLastInRow')).toBe(true);
   });
 });

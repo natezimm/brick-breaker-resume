@@ -158,7 +158,13 @@ export function setupSettings(game) {
             scene.physics.world.isPaused = true;
 
             if (pauseButton) {
-                pauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                // Update icon safely without innerHTML
+                pauseButton.textContent = '';
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-play';
+                icon.setAttribute('aria-hidden', 'true');
+                pauseButton.appendChild(icon);
+
                 pauseButton.setAttribute('aria-label', 'Resume game');
                 pauseButton.title = 'Resume';
             }
@@ -187,20 +193,39 @@ export function setupSettings(game) {
         }
     });
 
+    // Security: Validate hex color format
+    function isValidHexColor(color) {
+        return /^#[0-9A-Fa-f]{6}$/.test(color);
+    }
+
     ballColorPicker.addEventListener('input', (e) => {
         const color = e.target.value;
+        // Security: Validate hex color format
+        if (!isValidHexColor(color)) {
+            return;
+        }
         settings.ballColor = parseInt(color.replace('#', '0x'));
         updateBallTexture(game.scene.scenes[0]);
     });
 
     paddleColorPicker.addEventListener('input', (e) => {
         const color = e.target.value;
+        // Security: Validate hex color format
+        if (!isValidHexColor(color)) {
+            return;
+        }
         settings.paddleColor = parseInt(color.replace('#', '0x'));
         updatePaddleTexture(game.scene.scenes[0]);
     });
 
     paddleWidthSlider.addEventListener('input', (e) => {
-        const newWidth = parseInt(e.target.value);
+        const newWidth = parseInt(e.target.value, 10);
+        // Security: Validate input is within allowed range
+        const minWidth = parseInt(paddleWidthSlider.min, 10) || 20;
+        const maxWidth = parseInt(paddleWidthSlider.max, 10) || 200;
+        if (Number.isNaN(newWidth) || newWidth < minWidth || newWidth > maxWidth) {
+            return;
+        }
         settings.paddleWidth = newWidth;
         paddleWidthValue.textContent = newWidth;
         updatePaddleTexture(game.scene.scenes[0]);
@@ -208,14 +233,18 @@ export function setupSettings(game) {
 
     ballSpeedSlider.addEventListener('input', (e) => {
         const newSpeed = parseFloat(e.target.value);
+        // Security: Validate input is within allowed range
+        const minSpeed = parseFloat(ballSpeedSlider.min) || 0.5;
+        const maxSpeed = parseFloat(ballSpeedSlider.max) || 2.0;
+        if (Number.isNaN(newSpeed) || newSpeed < minSpeed || newSpeed > maxSpeed) {
+            return;
+        }
         settings.ballSpeed = newSpeed;
         ballSpeedValue.textContent = newSpeed.toFixed(1);
         updateBallSpeed(game.scene.scenes[0]);
     });
 
-    const screenWidth = window.innerWidth;
-    const maxPaddleWidth = Math.floor(screenWidth / 3);
-    paddleWidthSlider.max = maxPaddleWidth;
+    paddleWidthSlider.max = Math.floor(window.innerWidth / 3);
 }
 
 function updateBallTexture(scene) {
@@ -229,11 +258,9 @@ function updateBallTexture(scene) {
     ballCanvas.height = bSize;
     const ballCtx = ballCanvas.getContext('2d');
 
-    const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
-
     // Smoother "Glossy" Look
     // Base Check
-    ballCtx.fillStyle = ballColorHex;
+    ballCtx.fillStyle = '#' + settings.ballColor.toString(16).padStart(6, '0');
     ballCtx.beginPath();
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
@@ -294,9 +321,8 @@ function updatePaddleTexture(scene) {
     paddleCanvas.height = pH;
     const paddleCtx = paddleCanvas.getContext('2d');
 
-    const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
-
-    // Rounded Rectangle (Capsule shape)
+    // Rounded Rectangle (Capsule shape) with paddle color
+    paddleCtx.fillStyle = '#' + settings.paddleColor.toString(16).padStart(6, '0');
     paddleCtx.beginPath();
     paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
     paddleCtx.fill();

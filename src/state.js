@@ -1,8 +1,22 @@
 import { GAME_CONSTANTS } from './constants.js';
 
+// Sanitize high score - must be a non-negative integer within safe bounds
+function sanitizeHighScore(value) {
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > Number.MAX_SAFE_INTEGER) {
+        return 0;
+    }
+    return parsed;
+}
+
 class GameState {
     constructor() {
-        this.highScore = parseInt(localStorage.getItem('brickBreakerHighScore')) || 0;
+        try {
+            this.highScore = sanitizeHighScore(localStorage.getItem('brickBreakerHighScore'));
+        } catch {
+            // localStorage may be unavailable (private browsing, etc.)
+            this.highScore = 0;
+        }
         this.reset();
     }
 
@@ -46,7 +60,11 @@ class GameState {
     updateHighScore() {
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('brickBreakerHighScore', this.highScore);
+            try {
+                localStorage.setItem('brickBreakerHighScore', String(this.highScore));
+            } catch {
+                // localStorage may be unavailable or full - fail silently
+            }
         }
     }
 

@@ -10,6 +10,9 @@ export function createConfig(Phaser) {
         backgroundColor: COLORS.BACKGROUND,
         // Match device pixel ratio for crisp text
         resolution: window.devicePixelRatio,
+        dom: {
+            createContainer: true
+        },
         physics: {
             default: 'arcade',
             arcade: {
