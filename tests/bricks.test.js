@@ -18,8 +18,10 @@ describe('bricks', () => {
 
     const brick = createBrick(scene, 10, 10, 'Hello', 50, 0xff0000, true);
 
-    expect(brick.getData('textElement').text).toBe('Hello');
-    expect(brick.getData('graphics')).toBeDefined();
+    const domBrick = brick.getData('domBrick');
+    expect(domBrick).toBeDefined();
+    expect(domBrick.className).toBe('overlay-brick');
+    expect(domBrick.textContent).toBe('Hello');
     expect(brick.getData('isLastInRow')).toBe(true);
     expect(gameState.bricksGroup.items).toContain(brick);
   });
@@ -50,11 +52,9 @@ describe('bricks', () => {
   });
 
   test('handleBrickCollision awards points and cleans up visuals', () => {
-    const destroyText = jest.fn();
-    const destroyGraphics = jest.fn();
+    const domBrickRemove = jest.fn();
     const brickData = new Map([
-      ['textElement', { destroy: destroyText }],
-      ['graphics', { destroy: destroyGraphics }],
+      ['domBrick', { remove: domBrickRemove }],
       ['row', 0],
     ]);
     const brick = {
@@ -67,21 +67,21 @@ describe('bricks', () => {
 
     handleBrickCollision(createMockScene(), {}, brick);
 
-    expect(destroyText).toHaveBeenCalled();
-    expect(destroyGraphics).toHaveBeenCalled();
+    expect(domBrickRemove).toHaveBeenCalled();
     expect(brick.destroy).toHaveBeenCalled();
     expect(gameState.score).toBe(20);
     expect(gameState.scoreText.setText).toHaveBeenCalledWith(20);
   });
 
-  test('createBrick skips text when none is provided', () => {
+  test('createBrick handles empty text', () => {
     const scene = createMockScene();
     gameState.bricksGroup = scene.physics.add.staticGroup();
 
-    const brick = createBrick(scene, 5, 5, null, 50, 0xff0000);
+    const brick = createBrick(scene, 5, 5, '', 50, 0xff0000);
 
-    expect(brick.getData('textElement')).toBeUndefined();
-    expect(brick.getData('graphics')).toBeDefined();
+    const domBrick = brick.getData('domBrick');
+    expect(domBrick).toBeDefined();
+    expect(domBrick.textContent).toBe('');
   });
 
   test('createBricksFromResume leaves bricks alone when row already touches edge', async () => {
