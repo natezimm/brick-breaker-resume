@@ -5,12 +5,10 @@ export async function renderOverlayBricks() {
     const overlay = document.getElementById('startOverlay');
     if (!overlay) return;
 
-    // Create a container for bricks if it doesn't exist
     let brickContainer = document.getElementById('brickContainer');
     if (!brickContainer) {
         brickContainer = document.createElement('div');
         brickContainer.id = 'brickContainer';
-        // Insert as first child so it stays behind text
         overlay.insertBefore(brickContainer, overlay.firstChild);
     }
 
@@ -21,7 +19,6 @@ export async function renderOverlayBricks() {
         bricks.forEach((brickData) => {
             const cssColor = hexToCss(brickData.color);
 
-            // Create DOM Brick - match game brick styling exactly
             const brickDiv = document.createElement('div');
             brickDiv.className = 'overlay-brick';
             brickDiv.textContent = brickData.text;

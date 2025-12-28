@@ -5,7 +5,6 @@ import { calculateBrickLayout, hexToCss } from './brickLayout.js';
 export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = false) {
     const height = GAME_CONSTANTS.BRICK_HEIGHT;
 
-    // 1. Get or Create Container (attached to #app or body, distinct from overlay)
     let container = document.getElementById('gameBrickContainer');
     if (!container) {
         container = document.createElement('div');
@@ -20,11 +19,10 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
         document.getElementById('app')?.appendChild(container) || document.body.appendChild(container);
     }
 
-    // 2. Create DOM Element for Visuals (Exact match to overlay)
     const brickDiv = document.createElement('div');
     brickDiv.className = 'overlay-brick'; // Reuse the class for identical styling
     brickDiv.textContent = text;
-    // Position clearly absolute
+    
     brickDiv.style.position = 'absolute';
     brickDiv.style.left = `${x}px`;
     brickDiv.style.top = `${y}px`;
@@ -38,17 +36,14 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
     brickDiv.style.lineHeight = '1';
     brickDiv.style.boxSizing = 'border-box';
 
-    // Add to container
     container.appendChild(brickDiv);
-
-    // 3. Physics Hitbox (Invisible Rectangle) - kept for game logic
+    
     const brick = scene.add.rectangle(x, y, brickWidth, height, 0x000000, 0);
     brick.setOrigin(0, 0);
 
     scene.physics.add.existing(brick, true);
     gameState.bricksGroup.add(brick);
 
-    // Store reference to DOM element for destruction later
     brick.setData('domBrick', brickDiv);
 
     brick.setData('row', Math.floor((y - GAME_CONSTANTS.MARGIN_TOP) / (height + GAME_CONSTANTS.BRICK_PADDING)));
@@ -58,7 +53,6 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
 }
 
 export async function createBricksFromResume(scene) {
-    // Clean up any existing game bricks container
     const existingContainer = document.getElementById('gameBrickContainer');
     if (existingContainer) {
         existingContainer.innerHTML = '';
@@ -84,7 +78,6 @@ export async function createBricksFromResume(scene) {
 }
 
 export function handleBrickCollision(scene, ball, brick) {
-    // Destroy the standard DOM element
     const domBrick = brick.getData('domBrick');
     if (domBrick) {
         domBrick.remove(); // Standard DOM removal

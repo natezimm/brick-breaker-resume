@@ -13,17 +13,14 @@ import {
 } from './ui.js';
 import { applyThemeToScene, settings } from './settings.js';
 
-// Track audio loading state
 let audioLoaded = false;
 let audioLoadPromise = null;
 
-// Test helper to set audio loaded state (exported for testing)
 export function _setAudioLoaded(loaded) {
     audioLoaded = loaded;
     if (!loaded) audioLoadPromise = null;
 }
 
-// Lazy-load audio on first user interaction to reduce initial main-thread work
 function loadAudioLazy(scene) {
     if (audioLoaded || audioLoadPromise) return audioLoadPromise;
 
@@ -50,9 +47,8 @@ function playSound(scene, key) {
     }
 }
 
-// Preload is now minimal - audio loads lazily on first interaction
 export function preload() {
-    // Audio loading deferred to first user interaction
+    
 }
 
 function createTextures(scene) {
@@ -64,16 +60,13 @@ function createTextures(scene) {
     paddleCanvas.height = pH;
     const paddleCtx = paddleCanvas.getContext('2d');
 
-    // Paddle with "Tech" look
     const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
     paddleCtx.fillStyle = paddleColorHex;
 
-    // Rounded Rectangle (Capsule shape)
     paddleCtx.beginPath();
     paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
     paddleCtx.fill();
 
-    // Metallic Gradient Overlay
     const paddleGrad = paddleCtx.createLinearGradient(0, 0, 0, pH);
     paddleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
     paddleGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.1)');
@@ -85,7 +78,6 @@ function createTextures(scene) {
     paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
     paddleCtx.fill();
 
-    // Neon Glow Strip
     paddleCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     paddleCtx.lineWidth = 2;
     paddleCtx.beginPath();
@@ -105,14 +97,11 @@ function createTextures(scene) {
 
     const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
 
-    // Smoother "Glossy" Look
-    // Base Check
     ballCtx.fillStyle = ballColorHex;
     ballCtx.beginPath();
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Soft Highlight (Top Left)
     const highlightGrad = ballCtx.createRadialGradient(
         bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, 2,
         bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, bRadius
@@ -125,7 +114,6 @@ function createTextures(scene) {
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Subtle Shadow (Bottom Right)
     const shadowGrad = ballCtx.createLinearGradient(0, 0, bSize, bSize);
     shadowGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
     shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
@@ -135,7 +123,6 @@ function createTextures(scene) {
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Small specular reflection
     ballCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ballCtx.beginPath();
     ballCtx.arc(bRadius - 3, bRadius - 3, 1.5, 0, Math.PI * 2);
@@ -165,7 +152,6 @@ function createBall(scene) {
         .setBounce(1)
         .setCollideWorldBounds(true);
 
-    // Prevent ball from rotating so the highlight stays fixed
     gameState.ball.body.allowRotation = false;
 
     gameState.ball.body.onWorldBounds = true;
@@ -191,7 +177,6 @@ function setupCollisions(scene) {
 }
 
 function setupControls(scene) {
-    // Load audio lazily on first user interaction
     let audioTriggered = false;
     const triggerAudioLoad = () => {
         if (!audioTriggered) {
@@ -282,7 +267,6 @@ export function update() {
     }
 
     if (gameState.ball) {
-        // Enforce fixed rotation just in case
         gameState.ball.setRotation(0);
     }
 }

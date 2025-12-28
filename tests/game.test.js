@@ -35,11 +35,9 @@ jest.mock('../src/ui.js', () => ({
 
 describe('game scene', () => {
   beforeAll(() => {
-    // Robustly mock getContext to ensure roundRect exists
     const originalGetContext = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type) {
       const ctx = originalGetContext.call(this, type) || {};
-      // Add missing methods
       ['roundRect', 'stroke', 'moveTo', 'lineTo', 'beginPath', 'fill', 'arc', 'createRadialGradient', 'createLinearGradient', 'addColorStop'].forEach(method => {
         ctx[method] = ctx[method] || jest.fn(() => ({ addColorStop: jest.fn() }));
       });
@@ -64,7 +62,6 @@ describe('game scene', () => {
     const load = { audio: jest.fn() };
     preload.call({ load });
 
-    // Audio loading is now deferred to first user interaction
     expect(load.audio).not.toHaveBeenCalled();
   });
 
@@ -164,9 +161,7 @@ describe('game scene', () => {
     gameState.lives = 2;
     gameState.winText = null;
     gameState.ball = { setVelocity: jest.fn(), setRotation: jest.fn() };
-    gameState.bricksByRow = new Map(); // Mock needed for justification logic in bricks.js if called, 
-    // but update loop might check bricksGroup?
-    // Actually, update calls showWinMessage if no bricks.
+    gameState.bricksByRow = new Map();
 
     update.call(scene);
 

@@ -8,7 +8,6 @@ export function createLivesDisplay(scene) {
     }
     gameState.livesBalls = [];
 
-    // Tighter spacing for small screens (covering mobile/tablets)
     const isSmall = window.innerWidth < 600;
     const spacing = isSmall ? 20 : 30;
     const startX = isSmall ? 15 : 30;
@@ -37,7 +36,7 @@ export function createScoreText(scene) {
         {
             fontSize: '24px',
             fontFamily: '"Arial Black", Gadget, sans-serif',
-            fill: '#FFD700', // Gold color to start
+            fill: '#FFD700',
             stroke: '#000000',
             strokeThickness: 4,
             shadow: {
@@ -86,18 +85,15 @@ export function startCountdown(_scene) {
 
 function updateCountdownDisplay(value) {
     const overlay = document.getElementById('gameMessageOverlay');
-    if (overlay) {
-        overlay.classList.remove('hidden');
-        // Clear existing content safely
-        overlay.textContent = '';
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            overlay.textContent = '';
 
-        // Create countdown element safely without innerHTML
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'game-message gm-countdown';
-        // Sanitize value - only allow numbers 1-9
-        messageDiv.textContent = Number.isInteger(value) && value > 0 && value <= 9 ? value : '';
-        overlay.appendChild(messageDiv);
-    }
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'game-message gm-countdown';
+            messageDiv.textContent = Number.isInteger(value) && value > 0 && value <= 9 ? value : '';
+            overlay.appendChild(messageDiv);
+        }
 }
 
 export function createCountdownText(_scene) {
@@ -108,10 +104,8 @@ export function showGameOver(_scene) {
     const overlay = document.getElementById('gameMessageOverlay');
     if (overlay) {
         overlay.classList.remove('hidden');
-        // Clear existing content safely
         overlay.textContent = '';
 
-        // Create game over message safely without innerHTML
         const messageDiv = document.createElement('div');
         messageDiv.className = 'game-message gm-gameover';
 
@@ -133,10 +127,8 @@ export function showWinMessage(_scene) {
     const overlay = document.getElementById('gameMessageOverlay');
     if (overlay) {
         overlay.classList.remove('hidden');
-        // Clear existing content safely
         overlay.textContent = '';
 
-        // Create win container safely without innerHTML
         const container = document.createElement('div');
         container.className = 'gm-win-container';
 
@@ -152,7 +144,6 @@ export function showWinMessage(_scene) {
         container.appendChild(subText);
         overlay.appendChild(container);
 
-        // Generate visual confetti
         const colors = ['#ff0055', '#00ddff', '#00ffaa', '#ff9900', '#ffd300', '#ff00cc'];
 
         for (let i = 0; i < 100; i++) {
@@ -163,7 +154,6 @@ export function showWinMessage(_scene) {
             confetti.style.animationDelay = Math.random() * 5 + 's';
             confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 
-            // Random size/shape variations
             const size = Math.random() * 10 + 5;
             confetti.style.width = size + 'px';
             confetti.style.height = size + 'px';
@@ -180,7 +170,6 @@ export function togglePause(scene) {
 
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
-        // Update icon safely without innerHTML
         pauseButton.textContent = '';
         const icon = document.createElement('i');
         icon.className = paused ? 'fas fa-play' : 'fas fa-pause';
@@ -218,7 +207,6 @@ export function setupUIButtons(game) {
                 highScoreValue.textContent = gameState.highScore;
             }
 
-            // Pause game if running
             const scene = game.scene.scenes[0];
             if (scene && !gameState.paused) {
                 togglePause(scene);
@@ -241,7 +229,6 @@ export function setupUIButtons(game) {
     }
 }
 
-// Update to remove Phaser dependency
 export function setupWindowResize(game) {
     window.addEventListener('resize', () => {
         const width = window.innerWidth;
@@ -253,21 +240,15 @@ export function setupWindowResize(game) {
         if (scene) {
             scene.physics.world.setBounds(0, 0, width, height);
 
-            // Update Score Position & Style
             if (gameState.scoreText) {
                 const margin = width < 400 ? 10 : 20;
-                // const fontSize = width < 400 ? '16px' : '20px'; // Overridden by new style
-
-                // Update text content based on width
                 const prefix = width >= 405 ? 'SCORE: ' : '';
                 gameState.scoreText.setText(`${prefix}${gameState.score}`);
-
                 gameState.scoreText.setPosition(width - margin, height - 20);
             }
 
 
 
-            // Update Lives Position
             if (gameState.livesBalls) {
                 const isSmall = width < 600;
                 const spacing = isSmall ? 20 : 30;
@@ -277,10 +258,9 @@ export function setupWindowResize(game) {
                 });
             }
 
-            // Update Paddle Y Position to stay at bottom
             if (gameState.paddle) {
                 gameState.paddle.y = height - 55;
-                // Keep paddle within bounds if screen shrank
+                
                 gameState.paddle.x = Math.max(
                     gameState.paddle.width / 2,
                     Math.min(gameState.paddle.x, width - gameState.paddle.width / 2)

@@ -8,7 +8,6 @@ export function createConfig(Phaser) {
         height: window.innerHeight,
         parent: 'app',
         backgroundColor: COLORS.BACKGROUND,
-        // Match device pixel ratio for crisp text
         resolution: window.devicePixelRatio,
         dom: {
             createContainer: true

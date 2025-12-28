@@ -212,7 +212,6 @@ export function createMockScene() {
       loadEvents[event] = cb;
     }),
     start: jest.fn(() => {
-      // Simulate async load completion
       if (loadEvents['complete']) {
         setTimeout(() => loadEvents['complete'](), 0);
       }

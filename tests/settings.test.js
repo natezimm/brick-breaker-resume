@@ -14,13 +14,11 @@ describe('settings modal interactions', () => {
   let game;
 
   beforeAll(() => {
-    // Robustly mock getContext to ensure roundRect exists
     const originalGetContext = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type) {
       const ctx = originalGetContext.call(this, type) || {};
-      // Add missing methods
       ['roundRect', 'stroke', 'moveTo', 'lineTo', 'beginPath', 'fill', 'arc', 'createRadialGradient', 'createLinearGradient', 'addColorStop'].forEach(method => {
-        ctx[method] = ctx[method] || jest.fn(() => ({ addColorStop: jest.fn() })); // Return generic object for gradients
+        ctx[method] = ctx[method] || jest.fn(() => ({ addColorStop: jest.fn() }));
       });
       return ctx;
     };

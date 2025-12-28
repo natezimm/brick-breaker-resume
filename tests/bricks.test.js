@@ -101,7 +101,6 @@ describe('bricks', () => {
 
     const lastBrick = gameState.bricksGroup.items[0];
     expect(gameState.bricksGroup.items).toHaveLength(1);
-    // A single brick is correctly the last in its row
     expect(lastBrick.getData('isLastInRow')).toBe(true);
   });
 });

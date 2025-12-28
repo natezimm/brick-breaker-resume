@@ -1,6 +1,5 @@
 import { GAME_CONSTANTS, COLORS } from './constants.js';
 
-// Allowed asset paths for security - only permit known local resources
 const ALLOWED_ASSET_PATHS = Object.freeze([
     'assets/resume.json',
     './assets/resume.json'
@@ -18,7 +17,6 @@ function isAllowedAssetPath(path) {
 export async function calculateBrickLayout() {
     const assetPath = 'assets/resume.json';
 
-    // Security: Validate the asset path before fetching
     if (!isAllowedAssetPath(assetPath)) {
         console.error('Security: Attempted to load unauthorized asset path');
         return { bricks: [], totalRows: 0 };
@@ -70,7 +68,6 @@ export async function calculateBrickLayout() {
         });
     });
 
-    // Apply Full Justification to ALL rows
     const justifiedBricks = [];
 
     bricksByRow.forEach((bricksInRow, rowIndex) => {
@@ -81,7 +78,6 @@ export async function calculateBrickLayout() {
         const spaceRemaining = rightEdge - currentRightEdge;
 
         if (spaceRemaining > 0) {
-            // Distribute space equally across all bricks in the row
             const extraPerBrick = spaceRemaining / bricksInRow.length;
             let accumulatedOffset = 0;
 
@@ -103,7 +99,6 @@ export async function calculateBrickLayout() {
                 accumulatedOffset += extraPerBrick;
             });
         } else {
-            // No justification needed, just mark last brick
             bricksInRow.forEach((data, index) => {
                 const isLastInRow = index === bricksInRow.length - 1;
                 justifiedBricks.push({

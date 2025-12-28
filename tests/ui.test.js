@@ -98,7 +98,7 @@ describe('ui helpers', () => {
     gameState.currentCountdown = 3;
     ui.createCountdownText(scene);
 
-    // Check if DOM was updated
+    
     const overlay = document.getElementById('gameMessageOverlay');
     expect(overlay.innerHTML).toContain('3');
     expect(overlay.classList.contains('hidden')).toBe(false);
@@ -246,12 +246,12 @@ describe('ui helpers', () => {
 
     expect(game.scale.resize).toHaveBeenCalledWith(300, 400);
     expect(scene.physics.world.setBounds).toHaveBeenCalledWith(0, 0, 300, 400);
-    // expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '16px' }); // Removed
+    
     expect(gameState.scoreText.setText).toHaveBeenCalledWith(`0`); // No prefix for < 405
     expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(300 - 10, 400 - 20);
     expect(gameState.livesBalls[0].x).toBe(15);
     expect(gameState.livesBalls[0].x).toBe(15);
-    // expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(150, 260); // Removed as it is now DOM based
+    
     expect(gameState.paddle.y).toBe(345);
     expect(gameState.paddle.y).toBe(345);
     expect(gameState.paddle.x).toBeLessThanOrEqual(200);
@@ -276,12 +276,12 @@ describe('ui helpers', () => {
     resizeHandler();
 
     expect(game.scale.resize).toHaveBeenCalledWith(800, 600);
-    // expect(gameState.scoreText.setStyle).toHaveBeenCalledWith({ fontSize: '20px' }); // Removed
+    
     expect(gameState.scoreText.setText).toHaveBeenCalledWith(`SCORE: 0`); // Prefix for >= 405
     expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(800 - 20, 600 - 20);
     expect(gameState.livesBalls[0].x).toBe(30);
     expect(gameState.livesBalls[0].x).toBe(30);
-    // expect(gameState.countdownText.setPosition).toHaveBeenCalledWith(400, 460); // Removed
+    
     expect(gameState.paddle.y).toBe(545);
     expect(gameState.paddle.y).toBe(545);
   });

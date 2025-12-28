@@ -50,7 +50,6 @@ function writeStoredTheme(theme) {
     try {
         localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
-        // Ignore storage failures (private mode, blocked storage, etc).
     }
 }
 
@@ -158,7 +157,6 @@ export function setupSettings(game) {
             scene.physics.world.isPaused = true;
 
             if (pauseButton) {
-                // Update icon safely without innerHTML
                 pauseButton.textContent = '';
                 const icon = document.createElement('i');
                 icon.className = 'fas fa-play';
@@ -193,14 +191,12 @@ export function setupSettings(game) {
         }
     });
 
-    // Security: Validate hex color format
     function isValidHexColor(color) {
         return /^#[0-9A-Fa-f]{6}$/.test(color);
     }
 
     ballColorPicker.addEventListener('input', (e) => {
         const color = e.target.value;
-        // Security: Validate hex color format
         if (!isValidHexColor(color)) {
             return;
         }
@@ -210,7 +206,6 @@ export function setupSettings(game) {
 
     paddleColorPicker.addEventListener('input', (e) => {
         const color = e.target.value;
-        // Security: Validate hex color format
         if (!isValidHexColor(color)) {
             return;
         }
@@ -220,7 +215,6 @@ export function setupSettings(game) {
 
     paddleWidthSlider.addEventListener('input', (e) => {
         const newWidth = parseInt(e.target.value, 10);
-        // Security: Validate input is within allowed range
         const minWidth = parseInt(paddleWidthSlider.min, 10) || 20;
         const maxWidth = parseInt(paddleWidthSlider.max, 10) || 200;
         if (Number.isNaN(newWidth) || newWidth < minWidth || newWidth > maxWidth) {
@@ -233,7 +227,6 @@ export function setupSettings(game) {
 
     ballSpeedSlider.addEventListener('input', (e) => {
         const newSpeed = parseFloat(e.target.value);
-        // Security: Validate input is within allowed range
         const minSpeed = parseFloat(ballSpeedSlider.min) || 0.5;
         const maxSpeed = parseFloat(ballSpeedSlider.max) || 2.0;
         if (Number.isNaN(newSpeed) || newSpeed < minSpeed || newSpeed > maxSpeed) {
@@ -258,14 +251,11 @@ function updateBallTexture(scene) {
     ballCanvas.height = bSize;
     const ballCtx = ballCanvas.getContext('2d');
 
-    // Smoother "Glossy" Look
-    // Base Check
     ballCtx.fillStyle = '#' + settings.ballColor.toString(16).padStart(6, '0');
     ballCtx.beginPath();
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Soft Highlight (Top Left)
     const highlightGrad = ballCtx.createRadialGradient(
         bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, 2,
         bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, bRadius
@@ -278,7 +268,6 @@ function updateBallTexture(scene) {
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Subtle Shadow (Bottom Right)
     const shadowGrad = ballCtx.createLinearGradient(0, 0, bSize, bSize);
     shadowGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
     shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
@@ -288,7 +277,6 @@ function updateBallTexture(scene) {
     ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
     ballCtx.fill();
 
-    // Small specular reflection
     ballCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ballCtx.beginPath();
     ballCtx.arc(bRadius - 3, bRadius - 3, 1.5, 0, Math.PI * 2);
@@ -321,13 +309,11 @@ function updatePaddleTexture(scene) {
     paddleCanvas.height = pH;
     const paddleCtx = paddleCanvas.getContext('2d');
 
-    // Rounded Rectangle (Capsule shape) with paddle color
     paddleCtx.fillStyle = '#' + settings.paddleColor.toString(16).padStart(6, '0');
     paddleCtx.beginPath();
     paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
     paddleCtx.fill();
 
-    // Metallic Gradient Overlay
     const paddleGrad = paddleCtx.createLinearGradient(0, 0, 0, pH);
     paddleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
     paddleGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.1)');
@@ -339,7 +325,6 @@ function updatePaddleTexture(scene) {
     paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
     paddleCtx.fill();
 
-    // Neon Glow Strip
     paddleCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     paddleCtx.lineWidth = 2;
     paddleCtx.beginPath();
@@ -363,16 +348,13 @@ function updatePaddleTexture(scene) {
 function updateBallSpeed(scene) {
     if (!scene || !gameState.ball || !gameState.ball.body) return;
 
-    // Only update speed if the ball is currently moving
     const currentVelocity = gameState.ball.body.velocity;
     if (currentVelocity.x !== 0 || currentVelocity.y !== 0) {
-        // Get the current direction (normalized)
         const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + currentVelocity.y * currentVelocity.y);
         const dirX = currentVelocity.x / speed;
         const dirY = currentVelocity.y / speed;
 
-        // Apply new speed with the same direction
-        const baseSpeed = 200; // Base speed from GAME_CONSTANTS.BALL_INITIAL_VELOCITY
+        const baseSpeed = 200;
         const newSpeed = baseSpeed * settings.ballSpeed;
         gameState.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
     }
