@@ -38,6 +38,7 @@ describe('settings modal interactions', () => {
       <input id="ballSpeedSlider" type="range" value="1.0" />
       <span id="ballSpeedValue">1.0</span>
       <button id="pauseButton"></button>
+      <div id="gameMessageOverlay"><div class="game-message gm-countdown">3</div></div>
     `;
 
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 900 });
@@ -78,6 +79,11 @@ describe('settings modal interactions', () => {
     expect(gameState.countdownInterval).toBeNull();
     expect(gameState.wasInCountdown).toBe(true);
     expect(document.getElementById('pauseButton').innerHTML).toContain('fa-play');
+
+    // Verify countdown overlay is hidden when opening settings during countdown
+    const overlay = document.getElementById('gameMessageOverlay');
+    expect(overlay.classList.contains('hidden')).toBe(true);
+    expect(overlay.textContent).toBe('');
 
     document.getElementById('settingsModal').dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(document.getElementById('settingsModal').classList.contains('active')).toBe(false);

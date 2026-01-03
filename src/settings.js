@@ -151,6 +151,13 @@ export function setupSettings(game) {
                 clearInterval(gameState.countdownInterval);
                 gameState.countdownInterval = null;
                 gameState.wasInCountdown = true;
+                
+                // Hide the countdown overlay when opening settings
+                const overlay = document.getElementById('gameMessageOverlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    overlay.textContent = '';
+                }
             }
 
             gameState.setPaused(true);
