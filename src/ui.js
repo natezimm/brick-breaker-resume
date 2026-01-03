@@ -26,7 +26,7 @@ export function createLivesDisplay(scene) {
 export function createScoreText(scene) {
     if (gameState.scoreText) gameState.scoreText.destroy();
 
-    const margin = window.innerWidth < 400 ? 10 : 20;
+    const margin = window.innerWidth < 400 ? 20 : 30;
     const prefix = window.innerWidth >= 405 ? 'SCORE: ' : '';
 
     gameState.scoreText = scene.add.text(
@@ -39,6 +39,7 @@ export function createScoreText(scene) {
             fill: '#FFD700',
             stroke: '#000000',
             strokeThickness: 4,
+            padding: { right: 4 },
             shadow: {
                 offsetX: 2,
                 offsetY: 2,
