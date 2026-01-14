@@ -54,7 +54,8 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 
 ### Using your own resume
 - Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename).
-- Run the update script to regenerate the game data:
+- `npm run dev` / `npm run build` automatically regenerate `assets/resume.json` from the `.docx`.
+- Or run the update script manually to regenerate the game data:
    ```bash
    node scripts/generate_resume_json.js
    ```

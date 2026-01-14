@@ -4,6 +4,9 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "generate:resume": "node scripts/generate_resume_json.js",
+    "predev": "npm run generate:resume",
+    "prebuild": "npm run generate:resume",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

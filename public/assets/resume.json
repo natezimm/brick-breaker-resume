@@ -5,7 +5,7 @@
   },
   {
     "tag": "p",
-    "text": "Boston, MA"
+    "text": "Raritan, NJ"
   },
   {
     "tag": "p",
@@ -17,11 +17,59 @@
   },
   {
     "tag": "p",
+    "text": "nathanzimmerman.com"
+  },
+  {
+    "tag": "p",
     "text": "LinkedIn"
   },
   {
     "tag": "p",
     "text": "GitHub"
+  },
+  {
+    "tag": "p",
+    "text": "WORK HISTORY"
+  },
+  {
+    "tag": "p",
+    "text": "Software Engineer II, Nelnet\t10/2023 – Present"
+  },
+  {
+    "tag": "ul",
+    "text": "Contributed to a greenfield Payment Plans & Billing domain for a multi-tenant SaaS platform.Built a payment plan schedule calculator in PaymentPlanEnrollment. Generated valid installment scenarios based on first-installment constraints, installment count, down payment, frequency (weekly/monthly), and completion date; wired results to an interactive Angular UI (sliders/inputs).Packaged the calculator UI as an npm package and integrated it into PaymentPlans for admin preview via an interactive (read-only) MatDialog so admins can validate configurations against the consumer enrollment flow. Implemented runtime payment plan status calculation computed on-the-fly from persisted confirmation/start/end timestamps to keep UI state accurate without storing status in the database.Improved data quality by expanding FluentValidation rules and adding unit/integration tests (xUnit/Moq)."
+  },
+  {
+    "tag": "p",
+    "text": "Software Development Engineer, Amazon\t05/2022 – 04/2023"
+  },
+  {
+    "tag": "ul",
+    "text": "Engineered risk guidance applications using Java, Scala, Spring, and AWS to screen third-party sellers against denied party lists, predicting financial offenses such as money laundering.Remediated critical security issues by enabling encryption (SQS/SNS/S3 via KMS), tightening IAM policies to least privilege, and upgrading dependencies to address vulnerabilities.Performed EC2 host migrations across IAD/PDX Availability Zones for 10+ applications and 100+ environments, validating cutovers with alarms/dashboards to ensure zero downtime.Reduced support ticket volume by resolving pipeline failures, monitoring alarms, and fixing deployment errors."
+  },
+  {
+    "tag": "p",
+    "text": "Software Developer, Radian Group Inc.\t09/2019 – 04/2022"
+  },
+  {
+    "tag": "ul",
+    "text": "Contributed to launch and maintenance of “MyRadian,” a React + Node.js suite for Valuation and Asset Management Services, supporting feature delivery through code reviews, bug fixes, and production support.Troubleshot production issues and improved performance using AWS (CloudWatch, X-Ray, DynamoDB); maintained legacy C#/.NET and Java apps, resolving customer issues with Splunk and SQL.Automated database reconciliation workflows with Python scripts, eliminating manual daily effort."
+  },
+  {
+    "tag": "p",
+    "text": "PROJECTS"
+  },
+  {
+    "tag": "ul",
+    "text": "Sudoku ( sudoku.nathanzimmerman.com ) - Built a full-stack Sudoku app with a .NET Web API puzzle generator and Angular gameplay UI. Added validation, rate limiting, and CI-backed tests to keep gameplay reliable.Blackjack ( blackjack.nathanzimmerman.com ) - Built a session-backed Blackjack game with Spring Boot + Spring Security and a React UI. Implemented rules (splits, insurance) plus validation and security hardening.Nerdle ( nerdle.nathanzimmerman.com  ) – Built a Wordle-style game with a Node/Express backend that validates guesses server-side. Added rate limiting, theming, and stats tracking.Brick Breaker Resume ( resume.nathanzimmerman.com )– Built a Phaser game that parses a live .docx resume to generate levels from text. Implemented mapping logic, responsive scaling, and score persistence."
+  },
+  {
+    "tag": "p",
+    "text": "SKILLS"
+  },
+  {
+    "tag": "ul",
+    "text": "HTML, CSS, JavaScript, Angular, React, Java, Node.js, C#, .NET, MongoDB, Azure, AWS, REST API, Git"
   },
   {
     "tag": "p",
@@ -34,57 +82,5 @@
   {
     "tag": "p",
     "text": "BA, Psychology, (History minor), Rutgers University School of Arts and Sciences, 2016"
-  },
-  {
-    "tag": "p",
-    "text": "NuCamp Coding Bootcamp, 2021"
-  },
-  {
-    "tag": "ul",
-    "text": "Built frontend applications with React and Redux. Constructed backend with NodeJS, Express, and MongoDB."
-  },
-  {
-    "tag": "p",
-    "text": "WORK HISTORY"
-  },
-  {
-    "tag": "p",
-    "text": "Software Engineer II, Nelnet\t10/2023 – Present"
-  },
-  {
-    "tag": "ul",
-    "text": "Contributed to the development of .NET microservices facilitating payment plans and billing functionalities for clients. Utilized Angular for frontend development and C# for backend implementation. Employed MongoDB and SQL databases to manage data."
-  },
-  {
-    "tag": "p",
-    "text": "Software Development Engineer, Amazon\t05/2022 – 04/2023"
-  },
-  {
-    "tag": "ul",
-    "text": "Worked on applications that provided risk guidance on third-party Amazon sellers to predict offenses such as money laundering and terrorist finance. The applications screened sellers, and vendors of Amazon against denied party and politically exposed persons list. Applications implemented Java, Scala, Spring, and AWS.Enhanced applications via backend development to improve security features within projects. Reduced support tickets queue by resolving for pipeline failures, monitor alarms, and deployment errors. Remediated application security issues in AWS by encrypting resources used (SQS Queues, SNS Topics, S3 Buckets), restricting access privileges for users/groups, and updating deprecated packages. Performed EC2 host migrations in IAD/PDX Availability Zone for 10+ application and 100+ environments."
-  },
-  {
-    "tag": "p",
-    "text": "Software Developer, Radian Group Inc.\t09/2019 – 04/2022"
-  },
-  {
-    "tag": "ul",
-    "text": "Worked on MyRadian project since its launch in 2020. MyRadian served as an all-in-one suite for Radian’s Valuation and Asset Management Services. The project implemented React, GraphQL, Node.js, and AWS. Helped maintain and improve MyRadian product via bug fixes, feature enhancements, and design work. Utilized AWS services such as Cloudwatch, X-Ray, and DynamoDB to troubleshoot MyRadian errors. Wrote a Python script to automate process of capturing missed data between databases on a daily basis. Initially worked on two legacy applications. The mortgage insurance application used C#/.NET with SQL database and the contract underwriting application used Java with Oracle database. Solved customer issues and application errors by using source code, Splunk, and SQL queries."
-  },
-  {
-    "tag": "p",
-    "text": "SKILLS"
-  },
-  {
-    "tag": "ul",
-    "text": "HTML, CSS, JavaScript, Python, Java, C#, Node.js, Express, React, MongoDB, Git, Postman, REST API, AWS"
-  },
-  {
-    "tag": "p",
-    "text": "PROJECTS"
-  },
-  {
-    "tag": "ul",
-    "text": "Literary Labyrinth ( https://literary-labyrinth.onrender.com ) - Wrote a web app using EJS, Node.js, Express, and MongoDB where users can create, read, update, and delete books. Features included user authentication for contributors and displays of book names, authors, descriptions, and prices. Uses RESTful routing. Overbooked ( https://overbooked.onrender.com ) - Built a React web application for a book club which serves as its website. Features include the user being able to find information about the club such as contact information, books read in the past, book of the month, and the history of club. Blackjack Simulator – Wrote a Java application where users play a game of blackjack against a dealer by placing bets. Game implements object-oriented design by having classes to create card, deck, hands, and blackjack hands. User is given money to play and game continues until no money is left or user quits."
   }
 ]
