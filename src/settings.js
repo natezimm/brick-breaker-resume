@@ -61,12 +61,14 @@ export function getThemeColors(theme = settings.theme) {
             background: '#111111',
             hudText: '#ffffff',
             hudTextMuted: '#a9a9a9',
+            scoreText: '#FFD700',
         }
         : {
             theme: THEMES.LIGHT,
             background: '#ffffff',
             hudText: '#000000',
             hudTextMuted: '#4b5563',
+            scoreText: '#FFD700',
         };
 }
 
@@ -94,7 +96,7 @@ export function applyThemeToScene(scene, theme = settings.theme) {
         camera.setBackgroundColor(colors.background);
     }
 
-    setTextFill(gameState.scoreText, colors.hudText);
+    setTextFill(gameState.scoreText, colors.scoreText);
     setTextFill(gameState.countdownText, colors.hudTextMuted);
     setTextFill(gameState.winText, colors.hudTextMuted);
 }

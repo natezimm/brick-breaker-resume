@@ -160,6 +160,22 @@ describe('settings modal interactions', () => {
     expect(localStorage.getItem('brickBreakerTheme')).toBe('light');
   });
 
+  test('theme toggle keeps score text styling consistent', () => {
+    setupSettings(game);
+
+    const setStyle = jest.fn();
+    gameState.scoreText = { setStyle };
+
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.checked = true;
+    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(setStyle).toHaveBeenLastCalledWith({ fill: '#FFD700' });
+
+    themeToggle.checked = false;
+    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(setStyle).toHaveBeenLastCalledWith({ fill: '#FFD700' });
+  });
+
   test('initializeTheme defaults to light theme when no preference stored', () => {
     document.documentElement.removeAttribute('data-theme');
     localStorage.removeItem('brickBreakerTheme');
