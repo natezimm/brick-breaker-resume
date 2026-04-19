@@ -37,7 +37,7 @@
   },
   {
     "tag": "ul",
-    "text": "Contributed to a greenfield Payment Plans & Billing domain for a multi-tenant SaaS platform.Built a payment plan schedule calculator in PaymentPlanEnrollment. Generated valid installment scenarios based on first-installment constraints, installment count, down payment, frequency (weekly/monthly), and completion date; wired results to an interactive Angular UI (sliders/inputs).Packaged the calculator UI as an npm package and integrated it into PaymentPlans for admin preview via an interactive (read-only) MatDialog so admins can validate configurations against the consumer enrollment flow. Implemented runtime payment plan status calculation computed on-the-fly from persisted confirmation/start/end timestamps to keep UI state accurate without storing status in the database.Improved data quality by expanding FluentValidation rules and adding unit/integration tests (xUnit/Moq)."
+    "text": "Contributed to a greenfield Payment Plans & Billing domain for a multi-tenant platform serving schools, built with C#/.NET microservices and Angular. Built a payment plan schedule calculator in the enrollment service. Generated installment scenarios based on first-installment constraints, installment count, down payment, frequency (weekly/monthly), and completion date; wired results to an interactive Angular UI (sliders/inputs).Packaged the calculator as a npm package and integrated it into the payment plans service for admin preview.Subscribed to payments service for returned payments and added handlers in payment plans service to apply return policy actions (e.g., rescheduling installments or cancelling plans).Integrated with an internal correspondence service to trigger automated enrollment confirmation emails.Implemented runtime payment plan status calculation from persisted confirmation/start/end timestamps to keep UI state accurate without storing status in the database.Improved data quality by expanding FluentValidation rules and adding unit/integration tests xUnit and Moq."
   },
   {
     "tag": "p",
@@ -77,7 +77,7 @@
   },
   {
     "tag": "p",
-    "text": "AS, Computer Science, Delaware County Community College, 2018, GPA 3.89"
+    "text": "AS, Computer Science, Delaware County Community College, 2018"
   },
   {
     "tag": "p",
