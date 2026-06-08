@@ -37,7 +37,7 @@
   },
   {
     "tag": "ul",
-    "text": "Contributed to a greenfield Payment Plans & Billing domain for a multi-tenant platform serving schools, built with C#/.NET microservices and Angular. Built a payment plan schedule calculator in the enrollment service. Generated installment scenarios based on first-installment constraints, installment count, down payment, frequency (weekly/monthly), and completion date; wired results to an interactive Angular UI (sliders/inputs).Packaged the calculator as a npm package and integrated it into the payment plans service for admin preview.Subscribed to payments service for returned payments and added handlers in payment plans service to apply return policy actions (e.g., rescheduling installments or cancelling plans).Integrated with an internal correspondence service to trigger automated enrollment confirmation emails.Implemented runtime payment plan status calculation from persisted confirmation/start/end timestamps to keep UI state accurate without storing status in the database.Improved data quality by expanding FluentValidation rules and adding unit/integration tests xUnit and Moq."
+    "text": "Built core features within a greenfield Payment Plans & Billing domain for a multi-tenant SaaS platform serving educational institutions, spanning C#/.NET microservices, Angular, MongoDB, and shared service integrations.Designed payment plan offering and enrollment workflows across admin and payer-facing apps, supporting plan setup, payment rules, schedule scenarios, disclosures, and final enrollment.Developed a reusable payment schedule calculator packaged as a shared Angular/npm component, generating installment scenarios from rules around down payments, cadence, fees, and completion dates.Integrated payment, banking, disclosure, pricing, and messaging services to support payment method selection, disclosure rendering, enrollment confirmations, and payment plan lifecycle updates.Built event-driven returned-payment handling that applied return policy actions including installment rescheduling, failed-payment handling, plan cancellation, and runtime status derivation."
   },
   {
     "tag": "p",
@@ -45,7 +45,7 @@
   },
   {
     "tag": "ul",
-    "text": "Engineered risk guidance applications using Java, Scala, Spring, and AWS to screen third-party sellers against denied party lists, predicting financial offenses such as money laundering.Remediated critical security issues by enabling encryption (SQS/SNS/S3 via KMS), tightening IAM policies to least privilege, and upgrading dependencies to address vulnerabilities.Performed EC2 host migrations across IAD/PDX Availability Zones for 10+ applications and 100+ environments, validating cutovers with alarms/dashboards to ensure zero downtime.Reduced support ticket volume by resolving pipeline failures, monitoring alarms, and fixing deployment errors."
+    "text": "Engineered risk-guidance applications using Java, Scala, Spring, and AWS to screen third-party sellers against denied-party lists and financial crime risk signals, including money-laundering indicators.Remediated critical security issues by enabling encryption for SQS/SNS/S3 via KMS, tightening IAM policies to least privilege, and upgrading vulnerable dependencies.Executed EC2 host migrations across IAD/PDX Availability Zones for 10+ applications and 100+ environments, validating cutovers with alarms and dashboards to maintain zero downtime.Reduced operational support load by resolving pipeline failures, monitoring alarms, and deployment errors across production application workflows."
   },
   {
     "tag": "p",
@@ -53,7 +53,7 @@
   },
   {
     "tag": "ul",
-    "text": "Contributed to launch and maintenance of “MyRadian,” a React + Node.js suite for Valuation and Asset Management Services, supporting feature delivery through code reviews, bug fixes, and production support.Troubleshot production issues and improved performance using AWS (CloudWatch, X-Ray, DynamoDB); maintained legacy C#/.NET and Java apps, resolving customer issues with Splunk and SQL.Automated database reconciliation workflows with Python scripts, eliminating manual daily effort."
+    "text": "Contributed to the launch and maintenance of MyRadian, a React and Node.js application suite for valuation and asset-management services, supporting feature delivery, reviews, bug fixes, and production support.Troubleshot production issues and improved performance using AWS CloudWatch, X-Ray, DynamoDB, Splunk, and SQL across modern and legacy C#/.NET and Java applications.Automated database reconciliation workflows with Python scripts, eliminating recurring manual operations and improving data accuracy."
   },
   {
     "tag": "p",
@@ -61,15 +61,15 @@
   },
   {
     "tag": "ul",
-    "text": "Sudoku ( sudoku.nathanzimmerman.com ) - Built a full-stack Sudoku app with a .NET Web API puzzle generator and Angular gameplay UI. Added validation, rate limiting, and CI-backed tests to keep gameplay reliable.Blackjack ( blackjack.nathanzimmerman.com ) - Built a session-backed Blackjack game with Spring Boot + Spring Security and a React UI. Implemented rules (splits, insurance) plus validation and security hardening.Nerdle ( nerdle.nathanzimmerman.com  ) – Built a Wordle-style game with a Node/Express backend that validates guesses server-side. Added rate limiting, theming, and stats tracking.Brick Breaker Resume ( resume.nathanzimmerman.com )– Built a Phaser game that parses a live .docx resume to generate levels from text. Implemented mapping logic, responsive scaling, and score persistence."
+    "text": "Sudoku - Built a full-stack Sudoku app with a .NET Web API puzzle generator and Angular gameplay UI. Added validation, rate limiting, and CI-backed tests to keep gameplay reliable. | sudoku.nathanzimmerman.comBlackjack - Built a session-backed Blackjack game with Spring Boot + Spring Security and a React UI. Implemented rules (splits, insurance) plus validation and security hardening. | blackjack.nathanzimmerman.comNerdle - Built a Wordle-style game with a Node/Express backend that validates guesses server-side. Added rate limiting, theming, and stats tracking. | nerdle.nathanzimmerman.com  Brick Breaker Resume - Built a Phaser game that parses a live .docx resume to generate levels from text. Implemented mapping logic, responsive scaling, and score persistence. | resume.nathanzimmerman.com"
   },
   {
     "tag": "p",
     "text": "SKILLS"
   },
   {
-    "tag": "ul",
-    "text": "HTML, CSS, JavaScript, Angular, React, Java, Node.js, C#, .NET, MongoDB, Azure, AWS, REST API, Git"
+    "tag": "p",
+    "text": "C#, .NET, Azure, AWS, REST APIs, Microservices, MongoDB, JavaScript, Node.js, Angular, React, Java, CI/CD, Git"
   },
   {
     "tag": "p",
