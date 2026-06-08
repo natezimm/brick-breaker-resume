@@ -36,7 +36,6 @@ export async function renderOverlayBricks() {
 
             brickContainer.appendChild(brickDiv);
         });
-
     } catch (e) {
         console.warn('Could not render overlay bricks:', e);
     }

@@ -7,7 +7,7 @@ function toCssHex(color) {
 export function createPaddleCanvas({
     width = GAME_CONSTANTS.PADDLE_WIDTH,
     height = GAME_CONSTANTS.PADDLE_HEIGHT,
-    color = COLORS.PADDLE,
+    color = COLORS.PADDLE
 } = {}) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -44,7 +44,7 @@ export function createPaddleCanvas({
 export function createBallCanvas({
     size = GAME_CONSTANTS.BALL_SIZE,
     radius = GAME_CONSTANTS.BALL_RADIUS,
-    color = COLORS.BALL,
+    color = COLORS.BALL
 } = {}) {
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -104,7 +104,7 @@ export function registerGameTextures(scene, settings) {
         createPaddleCanvas({
             width: settings.paddleWidth,
             height: GAME_CONSTANTS.PADDLE_HEIGHT,
-            color: settings.paddleColor,
+            color: settings.paddleColor
         })
     );
 
@@ -114,7 +114,7 @@ export function registerGameTextures(scene, settings) {
         createBallCanvas({
             size: GAME_CONSTANTS.BALL_SIZE,
             radius: GAME_CONSTANTS.BALL_RADIUS,
-            color: settings.ballColor,
+            color: settings.ballColor
         })
     );
 }
@@ -128,12 +128,15 @@ export function refreshBallTexture(scene, state, settings) {
         createBallCanvas({
             size: GAME_CONSTANTS.BALL_SIZE,
             radius: GAME_CONSTANTS.BALL_RADIUS,
-            color: settings.ballColor,
+            color: settings.ballColor
         })
     );
 
     state.ball.setTexture(TEXTURE_KEYS.BALL);
-    state.ball.setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE);
+    state.ball.setDisplaySize(
+        GAME_CONSTANTS.BALL_SIZE,
+        GAME_CONSTANTS.BALL_SIZE
+    );
 
     state.livesBalls?.forEach((ball) => {
         ball.setTexture(TEXTURE_KEYS.BALL);
@@ -150,13 +153,19 @@ export function refreshPaddleTexture(scene, state, settings) {
         createPaddleCanvas({
             width: settings.paddleWidth,
             height: GAME_CONSTANTS.PADDLE_HEIGHT,
-            color: settings.paddleColor,
+            color: settings.paddleColor
         })
     );
 
     const { x, y } = state.paddle;
     state.paddle.setTexture(TEXTURE_KEYS.PADDLE);
-    state.paddle.setDisplaySize(settings.paddleWidth, GAME_CONSTANTS.PADDLE_HEIGHT);
+    state.paddle.setDisplaySize(
+        settings.paddleWidth,
+        GAME_CONSTANTS.PADDLE_HEIGHT
+    );
     state.paddle.setPosition(x, y);
-    state.paddle.body.setSize(settings.paddleWidth, GAME_CONSTANTS.PADDLE_HEIGHT);
+    state.paddle.body.setSize(
+        settings.paddleWidth,
+        GAME_CONSTANTS.PADDLE_HEIGHT
+    );
 }

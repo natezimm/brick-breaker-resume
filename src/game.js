@@ -48,26 +48,26 @@ function playSound(scene, key) {
     }
 }
 
-export function preload() {
-    
-}
+export function preload() {}
 
 function createPaddle(scene, state) {
-    state.paddle = scene.physics.add.image(
-        window.innerWidth / 2,
-        window.innerHeight - 55,
-        TEXTURE_KEYS.PADDLE
-    )
+    state.paddle = scene.physics.add
+        .image(
+            window.innerWidth / 2,
+            window.innerHeight - 55,
+            TEXTURE_KEYS.PADDLE
+        )
         .setImmovable(true)
         .setCollideWorldBounds(true);
 }
 
 function createBall(scene, state) {
-    state.ball = scene.physics.add.image(
-        window.innerWidth / 2,
-        window.innerHeight - 80,
-        TEXTURE_KEYS.BALL
-    )
+    state.ball = scene.physics.add
+        .image(
+            window.innerWidth / 2,
+            window.innerHeight - 80,
+            TEXTURE_KEYS.BALL
+        )
         .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
         .setVelocity(0, 0)
         .setBounce(1)
@@ -106,7 +106,7 @@ function setupControls(scene, state) {
         }
     };
 
-    scene.input.on('pointermove', pointer => {
+    scene.input.on('pointermove', (pointer) => {
         triggerAudioLoad();
         if (!state.paused) {
             const paddleWidth = state.paddle.width;
@@ -178,11 +178,12 @@ export function update() {
     const scene = this;
     const state = scene.gameState;
 
-    if (state?.bricksCreated &&
+    if (
+        state?.bricksCreated &&
         state.bricksGroup.countActive() === 0 &&
         state.lives > 0 &&
-        !state.gameEnded) {
-
+        !state.gameEnded
+    ) {
         showWinMessage(scene, state);
         state.ball.setVelocity(0, 0);
         playSound(scene, AUDIO_KEYS.WIN_GAME);

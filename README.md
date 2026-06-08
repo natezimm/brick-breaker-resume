@@ -30,35 +30,36 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 ### Local dev
 
 1. Install dependencies:
-   ```bash
-   git clone https://github.com/natezimm/brick-breaker-resume.git
-   cd brick-breaker-resume
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-4. Visit the URL shown in the terminal (typically `http://localhost:5173`).
+    ```bash
+    git clone https://github.com/natezimm/brick-breaker-resume.git
+    cd brick-breaker-resume
+    npm install
+    ```
+2. Start the development server:
+    ```bash
+    npm run dev
+    ```
+3. Visit the URL shown in the terminal (typically `http://localhost:5173`).
 
 ### Building for Production
 
 1. Build the project:
-   ```bash
-   npm run build
-   ```
+    ```bash
+    npm run build
+    ```
 2. Preview the production build:
-   ```bash
-   npm start
-   ```
+    ```bash
+    npm start
+    ```
 
 ### Using your own resume
+
 - Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename).
 - `npm run dev` / `npm run build` automatically regenerate `assets/resume.json` from the `.docx`.
 - Or run the update script manually to regenerate the game data:
-   ```bash
-   node scripts/generate_resume_json.js
-   ```
+    ```bash
+    node scripts/generate_resume_json.js
+    ```
 
 ## Testing
 
@@ -66,6 +67,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - `npm run test:coverage` generates coverage reports under `coverage/`.
 
 ## Security
+
 - **XSS Prevention**: All DOM manipulation uses safe methods (`textContent`, `createElement`, `appendChild`) instead of `innerHTML` to prevent cross-site scripting attacks.
 - **Input Sanitization**: High scores from `localStorage` are validated as non-negative integers within safe bounds before use.
 - **Asset Path Validation**: Only allowlisted local asset paths can be fetched, preventing unauthorized resource loading.
@@ -76,6 +78,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - GitHub Actions runs tests + coverage on every push to `main` and blocks deployment if thresholds are not met.
 
 **Coverage thresholds:**
+
 - Lines ≥ 90%
 - Statements ≥ 85%
 - Functions ≥ 85%

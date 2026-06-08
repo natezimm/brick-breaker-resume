@@ -2,7 +2,16 @@ import { GAME_CONSTANTS } from './constants.js';
 import { getGameState } from './state.js';
 import { calculateBrickLayout, hexToCss } from './brickLayout.js';
 
-export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = false, state = getGameState(scene)) {
+export function createBrick(
+    scene,
+    x,
+    y,
+    text,
+    brickWidth,
+    color,
+    isLastInRow = false,
+    state = getGameState(scene)
+) {
     const height = GAME_CONSTANTS.BRICK_HEIGHT;
 
     let container = document.getElementById('gameBrickContainer');
@@ -16,13 +25,14 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
         container.style.height = '100%';
         container.style.pointerEvents = 'none'; // Click through to canvas
         container.style.zIndex = '5'; // Above canvas, below controls/modals if needed
-        document.getElementById('app')?.appendChild(container) || document.body.appendChild(container);
+        document.getElementById('app')?.appendChild(container) ||
+            document.body.appendChild(container);
     }
 
     const brickDiv = document.createElement('div');
     brickDiv.className = 'overlay-brick'; // Reuse the class for identical styling
     brickDiv.textContent = text;
-    
+
     brickDiv.style.position = 'absolute';
     brickDiv.style.left = `${x}px`;
     brickDiv.style.top = `${y}px`;
@@ -37,7 +47,7 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
     brickDiv.style.boxSizing = 'border-box';
 
     container.appendChild(brickDiv);
-    
+
     const brick = scene.add.rectangle(x, y, brickWidth, height, 0x000000, 0);
     brick.setOrigin(0, 0);
 
@@ -46,13 +56,22 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
 
     brick.setData('domBrick', brickDiv);
 
-    brick.setData('row', Math.floor((y - GAME_CONSTANTS.MARGIN_TOP) / (height + GAME_CONSTANTS.BRICK_PADDING)));
+    brick.setData(
+        'row',
+        Math.floor(
+            (y - GAME_CONSTANTS.MARGIN_TOP) /
+                (height + GAME_CONSTANTS.BRICK_PADDING)
+        )
+    );
     brick.setData('isLastInRow', isLastInRow);
 
     return brick;
 }
 
-export async function createBricksFromResume(scene, state = getGameState(scene)) {
+export async function createBricksFromResume(
+    scene,
+    state = getGameState(scene)
+) {
     const existingContainer = document.getElementById('gameBrickContainer');
     if (existingContainer) {
         existingContainer.innerHTML = '';
@@ -78,7 +97,12 @@ export async function createBricksFromResume(scene, state = getGameState(scene))
     state.bricksCreated = true;
 }
 
-export function handleBrickCollision(scene, ball, brick, state = getGameState(scene)) {
+export function handleBrickCollision(
+    scene,
+    ball,
+    brick,
+    state = getGameState(scene)
+) {
     const domBrick = brick.getData('domBrick');
     if (domBrick) {
         domBrick.remove(); // Standard DOM removal

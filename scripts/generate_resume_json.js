@@ -3,7 +3,10 @@ const path = require('path');
 const mammoth = require('mammoth');
 const { JSDOM } = require('jsdom');
 
-const DEFAULT_INPUT = path.join(__dirname, '../public/assets/Nathan Zimmerman Resume.docx');
+const DEFAULT_INPUT = path.join(
+    __dirname,
+    '../public/assets/Nathan Zimmerman Resume.docx'
+);
 const DEFAULT_OUTPUT = path.join(__dirname, '../public/assets/resume.json');
 
 function printHelp() {
@@ -13,7 +16,7 @@ function printHelp() {
         'Options:',
         '  --input, -i   Resume .docx file to convert',
         '  --output, -o  JSON file to write',
-        '  --help, -h    Show this help message',
+        '  --help, -h    Show this help message'
     ].join('\n');
 }
 
@@ -21,7 +24,7 @@ function parseArgs(argv = []) {
     const options = {
         input: DEFAULT_INPUT,
         output: DEFAULT_OUTPUT,
-        help: false,
+        help: false
     };
 
     for (let index = 0; index < argv.length; index++) {
@@ -56,7 +59,7 @@ function parseArgs(argv = []) {
     return {
         ...options,
         input: path.resolve(options.input),
-        output: path.resolve(options.output),
+        output: path.resolve(options.output)
     };
 }
 
@@ -112,11 +115,17 @@ function validateResumeElements(elements) {
             throw new Error(`Resume element ${index} must be an object`);
         }
 
-        if (typeof element.tag !== 'string' || !/^[a-z][a-z0-9-]*$/.test(element.tag)) {
+        if (
+            typeof element.tag !== 'string' ||
+            !/^[a-z][a-z0-9-]*$/.test(element.tag)
+        ) {
             throw new Error(`Resume element ${index} has an invalid tag`);
         }
 
-        if (typeof element.text !== 'string' || element.text.trim().length === 0) {
+        if (
+            typeof element.text !== 'string' ||
+            element.text.trim().length === 0
+        ) {
             throw new Error(`Resume element ${index} has empty text`);
         }
     });
@@ -124,10 +133,13 @@ function validateResumeElements(elements) {
     return elements;
 }
 
-async function convertResume({ input = DEFAULT_INPUT, output = DEFAULT_OUTPUT } = {}) {
+async function convertResume({
+    input = DEFAULT_INPUT,
+    output = DEFAULT_OUTPUT
+} = {}) {
     const resolvedOptions = {
         input: path.resolve(input),
-        output: path.resolve(output),
+        output: path.resolve(output)
     };
 
     validatePaths(resolvedOptions);
@@ -139,11 +151,18 @@ async function convertResume({ input = DEFAULT_INPUT, output = DEFAULT_OUTPUT } 
     const result = await mammoth.convertToHtml({ buffer });
 
     console.log('Parsing HTML...');
-    const elements = validateResumeElements(extractResumeElements(result.value));
+    const elements = validateResumeElements(
+        extractResumeElements(result.value)
+    );
 
     fs.mkdirSync(path.dirname(resolvedOptions.output), { recursive: true });
-    console.log(`Writing ${elements.length} elements to ${resolvedOptions.output}...`);
-    fs.writeFileSync(resolvedOptions.output, `${JSON.stringify(elements, null, 2)}\n`);
+    console.log(
+        `Writing ${elements.length} elements to ${resolvedOptions.output}...`
+    );
+    fs.writeFileSync(
+        resolvedOptions.output,
+        `${JSON.stringify(elements, null, 2)}\n`
+    );
 
     return elements;
 }
@@ -174,5 +193,5 @@ module.exports = {
     extractResumeElements,
     parseArgs,
     printHelp,
-    validateResumeElements,
+    validateResumeElements
 };

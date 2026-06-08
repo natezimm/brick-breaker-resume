@@ -4,9 +4,19 @@ import { refreshBallTexture, refreshPaddleTexture } from './textures.js';
 const THEME_STORAGE_KEY = 'brickBreakerTheme';
 const THEMES = Object.freeze({
     LIGHT: 'light',
-    DARK: 'dark',
+    DARK: 'dark'
 });
 const DEFAULT_THEME = THEMES.LIGHT;
+
+/**
+ * @typedef {Object} GameSettings
+ * @property {boolean} soundEnabled
+ * @property {number} ballColor
+ * @property {number} paddleColor
+ * @property {number} paddleWidth
+ * @property {number} ballSpeed
+ * @property {'light' | 'dark'} theme
+ */
 
 function updateDocumentTheme(theme) {
     if (typeof document === 'undefined' || !document.documentElement) {
@@ -20,13 +30,14 @@ if (typeof document !== 'undefined') {
     updateDocumentTheme(DEFAULT_THEME);
 }
 
+/** @type {GameSettings} */
 export const settings = {
     soundEnabled: true,
-    ballColor: 0xA9A9A9,
-    paddleColor: 0xA9A9A9,
+    ballColor: 0xa9a9a9,
+    paddleColor: 0xa9a9a9,
     paddleWidth: 100,
     ballSpeed: 1.0,
-    theme: DEFAULT_THEME,
+    theme: DEFAULT_THEME
 };
 
 function sanitizeTheme(theme) {
@@ -51,6 +62,7 @@ function writeStoredTheme(theme) {
     try {
         localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
+        // Ignore storage failures so private browsing or quota errors do not break play.
     }
 }
 
@@ -58,19 +70,19 @@ export function getThemeColors(theme = settings.theme) {
     const normalizedTheme = sanitizeTheme(theme);
     return normalizedTheme === THEMES.DARK
         ? {
-            theme: THEMES.DARK,
-            background: '#111111',
-            hudText: '#ffffff',
-            hudTextMuted: '#a9a9a9',
-            scoreText: '#FFD700',
-        }
+              theme: THEMES.DARK,
+              background: '#111111',
+              hudText: '#ffffff',
+              hudTextMuted: '#a9a9a9',
+              scoreText: '#FFD700'
+          }
         : {
-            theme: THEMES.LIGHT,
-            background: '#ffffff',
-            hudText: '#000000',
-            hudTextMuted: '#4b5563',
-            scoreText: '#FFD700',
-        };
+              theme: THEMES.LIGHT,
+              background: '#ffffff',
+              hudText: '#000000',
+              hudTextMuted: '#4b5563',
+              scoreText: '#FFD700'
+          };
 }
 
 function setTextFill(text, fill) {
@@ -88,7 +100,11 @@ function setTextFill(text, fill) {
     }
 }
 
-export function applyThemeToScene(scene, theme = settings.theme, state = getGameState(scene)) {
+export function applyThemeToScene(
+    scene,
+    theme = settings.theme,
+    state = getGameState(scene)
+) {
     if (!scene) return;
     const colors = getThemeColors(theme);
 
@@ -156,7 +172,7 @@ export function setupSettings(game) {
                 clearInterval(state.countdownInterval);
                 state.countdownInterval = null;
                 state.wasInCountdown = true;
-                
+
                 // Hide the countdown overlay when opening settings
                 const overlay = document.getElementById('gameMessageOverlay');
                 if (overlay) {
@@ -229,7 +245,11 @@ export function setupSettings(game) {
         const newWidth = parseInt(e.target.value, 10);
         const minWidth = parseInt(paddleWidthSlider.min, 10) || 20;
         const maxWidth = parseInt(paddleWidthSlider.max, 10) || 200;
-        if (Number.isNaN(newWidth) || newWidth < minWidth || newWidth > maxWidth) {
+        if (
+            Number.isNaN(newWidth) ||
+            newWidth < minWidth ||
+            newWidth > maxWidth
+        ) {
             return;
         }
         settings.paddleWidth = newWidth;
@@ -241,7 +261,11 @@ export function setupSettings(game) {
         const newSpeed = parseFloat(e.target.value);
         const minSpeed = parseFloat(ballSpeedSlider.min) || 0.5;
         const maxSpeed = parseFloat(ballSpeedSlider.max) || 2.0;
-        if (Number.isNaN(newSpeed) || newSpeed < minSpeed || newSpeed > maxSpeed) {
+        if (
+            Number.isNaN(newSpeed) ||
+            newSpeed < minSpeed ||
+            newSpeed > maxSpeed
+        ) {
             return;
         }
         settings.ballSpeed = newSpeed;
@@ -265,7 +289,10 @@ function updateBallSpeed(scene, state = getGameState(scene)) {
 
     const currentVelocity = state.ball.body.velocity;
     if (currentVelocity.x !== 0 || currentVelocity.y !== 0) {
-        const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + currentVelocity.y * currentVelocity.y);
+        const speed = Math.sqrt(
+            currentVelocity.x * currentVelocity.x +
+                currentVelocity.y * currentVelocity.y
+        );
         const dirX = currentVelocity.x / speed;
         const dirY = currentVelocity.y / speed;
 
@@ -275,8 +302,4 @@ function updateBallSpeed(scene, state = getGameState(scene)) {
     }
 }
 
-export {
-    updateBallTexture,
-    updatePaddleTexture,
-    updateBallSpeed,
-};
+export { updateBallTexture, updatePaddleTexture, updateBallSpeed };

@@ -12,7 +12,7 @@
     --input-border-hover: rgba(0, 0, 0, 0.35);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
     color-scheme: dark;
     --page-bg: #111111;
     --page-fg: #ffffff;
@@ -126,7 +126,7 @@ canvas {
 }
 
 #startOverlay h1 {
-    background: rgba(0, 0, 0, 0.60);
+    background: rgba(0, 0, 0, 0.6);
     /* Semi-transparent background for readability */
     padding: 10px 20px;
     border-radius: 8px;
@@ -154,7 +154,10 @@ canvas {
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    transition:
+        transform 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
 }
 
 #startButton:hover {
@@ -199,7 +202,9 @@ canvas {
     border-bottom: 2px solid rgba(0, 0, 0, 0.4);
     border-right: 2px solid rgba(0, 0, 0, 0.4);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s;
 }
 
 .overlay-attribution .brick-link:hover {

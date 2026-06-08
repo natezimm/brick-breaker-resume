@@ -4,7 +4,7 @@ import { settings } from './settings.js';
 
 export function createLivesDisplay(scene, state = getGameState(scene)) {
     if (state.livesBalls && state.livesBalls.length > 0) {
-        state.livesBalls.forEach(ball => ball.destroy());
+        state.livesBalls.forEach((ball) => ball.destroy());
     }
     state.livesBalls = [];
 
@@ -13,11 +13,13 @@ export function createLivesDisplay(scene, state = getGameState(scene)) {
     const startX = isSmall ? 15 : 30;
 
     for (let i = 0; i < state.lives; i++) {
-        const lifeBall = scene.add.image(
-            startX + i * spacing,
-            window.innerHeight - 20,
-            TEXTURE_KEYS.BALL
-        ).setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
+        const lifeBall = scene.add
+            .image(
+                startX + i * spacing,
+                window.innerHeight - 20,
+                TEXTURE_KEYS.BALL
+            )
+            .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
             .setOrigin(0.5, 0.5);
         state.livesBalls.push(lifeBall);
     }
@@ -29,29 +31,30 @@ export function createScoreText(scene, state = getGameState(scene)) {
     const margin = window.innerWidth < 400 ? 20 : 30;
     const prefix = window.innerWidth >= 405 ? 'SCORE: ' : '';
 
-    state.scoreText = scene.add.text(
-        window.innerWidth - margin,
-        window.innerHeight - 20,
-        `${prefix}${state.score}`,
-        {
-            fontSize: '24px',
-            fontFamily: '"Arial Black", Gadget, sans-serif',
-            fill: '#FFD700',
-            stroke: '#000000',
-            strokeThickness: 4,
-            padding: { right: 4 },
-            shadow: {
-                offsetX: 2,
-                offsetY: 2,
-                color: '#000',
-                blur: 2,
-                stroke: true,
-                fill: true
+    state.scoreText = scene.add
+        .text(
+            window.innerWidth - margin,
+            window.innerHeight - 20,
+            `${prefix}${state.score}`,
+            {
+                fontSize: '24px',
+                fontFamily: '"Arial Black", Gadget, sans-serif',
+                fill: '#FFD700',
+                stroke: '#000000',
+                strokeThickness: 4,
+                padding: { right: 4 },
+                shadow: {
+                    offsetX: 2,
+                    offsetY: 2,
+                    color: '#000',
+                    blur: 2,
+                    stroke: true,
+                    fill: true
+                }
             }
-        }
-    ).setOrigin(1, 0.5);
+        )
+        .setOrigin(1, 0.5);
 }
-
 
 export function hideGameMessage() {
     const overlay = document.getElementById('gameMessageOverlay');
@@ -86,22 +89,23 @@ export function startCountdown(scene, state = getGameState(scene)) {
 
 function updateCountdownDisplay(value) {
     const overlay = document.getElementById('gameMessageOverlay');
-        if (overlay) {
-            overlay.classList.remove('hidden');
-            overlay.textContent = '';
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.textContent = '';
 
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'game-message gm-countdown';
-            messageDiv.textContent = Number.isInteger(value) && value > 0 && value <= 9 ? value : '';
-            overlay.appendChild(messageDiv);
-        }
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'game-message gm-countdown';
+        messageDiv.textContent =
+            Number.isInteger(value) && value > 0 && value <= 9 ? value : '';
+        overlay.appendChild(messageDiv);
+    }
 }
 
 export function createCountdownText(scene, state = getGameState(scene)) {
     updateCountdownDisplay(state.currentCountdown);
 }
 
-export function showGameOver(_scene) {
+export function showGameOver() {
     const overlay = document.getElementById('gameMessageOverlay');
     if (overlay) {
         overlay.classList.remove('hidden');
@@ -145,7 +149,14 @@ export function showWinMessage(scene, state = getGameState(scene)) {
         container.appendChild(subText);
         overlay.appendChild(container);
 
-        const colors = ['#ff0055', '#00ddff', '#00ffaa', '#ff9900', '#ffd300', '#ff00cc'];
+        const colors = [
+            '#ff0055',
+            '#00ddff',
+            '#00ffaa',
+            '#ff9900',
+            '#ffd300',
+            '#ff00cc'
+        ];
 
         for (let i = 0; i < 100; i++) {
             const confetti = document.createElement('div');
@@ -153,7 +164,8 @@ export function showWinMessage(scene, state = getGameState(scene)) {
             confetti.style.left = Math.random() * 100 + '%';
             confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear infinite`;
             confetti.style.animationDelay = Math.random() * 5 + 's';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.backgroundColor =
+                colors[Math.floor(Math.random() * colors.length)];
 
             const size = Math.random() * 10 + 5;
             confetti.style.width = size + 'px';
@@ -177,7 +189,10 @@ export function togglePause(scene, state = getGameState(scene)) {
         icon.setAttribute('aria-hidden', 'true');
         pauseButton.appendChild(icon);
 
-        pauseButton.setAttribute('aria-label', paused ? 'Resume game' : 'Pause game');
+        pauseButton.setAttribute(
+            'aria-label',
+            paused ? 'Resume game' : 'Pause game'
+        );
         pauseButton.title = paused ? 'Resume' : 'Pause';
     }
 
@@ -206,7 +221,9 @@ export function setupUIButtons(game) {
         highScoreButton.addEventListener('click', () => {
             highScoreModal.classList.add('active');
             if (highScoreValue) {
-                highScoreValue.textContent = getGameState(game.scene.scenes[0]).highScore;
+                highScoreValue.textContent = getGameState(
+                    game.scene.scenes[0]
+                ).highScore;
             }
 
             const scene = game.scene.scenes[0];
@@ -251,8 +268,6 @@ export function setupWindowResize(game) {
                 state.scoreText.setPosition(width - margin, height - 20);
             }
 
-
-
             if (state.livesBalls) {
                 const isSmall = width < 600;
                 const spacing = isSmall ? 20 : 30;
@@ -264,7 +279,7 @@ export function setupWindowResize(game) {
 
             if (state.paddle) {
                 state.paddle.y = height - 55;
-                
+
                 state.paddle.x = Math.max(
                     state.paddle.width / 2,
                     Math.min(state.paddle.x, width - state.paddle.width / 2)

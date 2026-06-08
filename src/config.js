@@ -16,7 +16,7 @@ export function createConfig(Phaser) {
             default: 'arcade',
             arcade: {
                 gravity: { y: 0 },
-                debug: false,
+                debug: false
             }
         },
         scene: {

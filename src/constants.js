@@ -12,17 +12,17 @@ export const GAME_CONSTANTS = {
     MARGIN_TOP: 10,
     COUNTDOWN_START: 3,
     COUNTDOWN_INTERVAL: 1000,
-    MAX_BRICK_HEIGHT_RATIO: 0.75,
+    MAX_BRICK_HEIGHT_RATIO: 0.75
 };
 
 export const COLORS = {
     BACKGROUND: '#FFFFFF',
-    PADDLE: 0xA9A9A9,
-    BALL: 0xA9A9A9,
+    PADDLE: 0xa9a9a9,
+    BALL: 0xa9a9a9,
     TEXT: '#000000',
     TEXT_LIGHT: '#A9A9A9',
     GAME_OVER: '#f00',
-    BRICK_COLORS: [0xf44336, 0xffc107, 0x4caf50, 0x2196f3],
+    BRICK_COLORS: [0xf44336, 0xffc107, 0x4caf50, 0x2196f3]
 };
 
 export const AUDIO_KEYS = {
@@ -30,10 +30,10 @@ export const AUDIO_KEYS = {
     BRICK_HIT: 'brickHit',
     LOSE_LIFE: 'loseLife',
     WIN_GAME: 'winGame',
-    GAME_OVER: 'gameOver',
+    GAME_OVER: 'gameOver'
 };
 
 export const TEXTURE_KEYS = {
     PADDLE: 'paddleTexture',
-    BALL: 'ballTexture',
+    BALL: 'ballTexture'
 };

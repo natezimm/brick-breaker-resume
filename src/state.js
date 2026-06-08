@@ -1,9 +1,27 @@
-
 import { GAME_CONSTANTS } from './constants.js';
+
+/**
+ * Mutable runtime state for one Brick Breaker scene.
+ *
+ * @typedef {Object} GameStateFields
+ * @property {number} highScore
+ * @property {number} lives
+ * @property {number} score
+ * @property {number} totalRows
+ * @property {boolean} paused
+ * @property {boolean} wasInCountdown
+ * @property {number} currentCountdown
+ * @property {boolean} gameEnded
+ * @property {boolean} bricksCreated
+ */
 
 function sanitizeHighScore(value) {
     const parsed = parseInt(value, 10);
-    if (Number.isNaN(parsed) || parsed < 0 || parsed > Number.MAX_SAFE_INTEGER) {
+    if (
+        Number.isNaN(parsed) ||
+        parsed < 0 ||
+        parsed > Number.MAX_SAFE_INTEGER
+    ) {
         return 0;
     }
     return parsed;
@@ -12,7 +30,9 @@ function sanitizeHighScore(value) {
 class GameState {
     constructor() {
         try {
-            this.highScore = sanitizeHighScore(localStorage.getItem('brickBreakerHighScore'));
+            this.highScore = sanitizeHighScore(
+                localStorage.getItem('brickBreakerHighScore')
+            );
         } catch {
             this.highScore = 0;
         }
@@ -60,8 +80,12 @@ class GameState {
         if (this.score > this.highScore) {
             this.highScore = this.score;
             try {
-                localStorage.setItem('brickBreakerHighScore', String(this.highScore));
+                localStorage.setItem(
+                    'brickBreakerHighScore',
+                    String(this.highScore)
+                );
             } catch {
+                // Ignore storage failures so scoring still works when localStorage is unavailable.
             }
         }
     }

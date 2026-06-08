@@ -5,6 +5,17 @@ const ALLOWED_ASSET_PATHS = Object.freeze([
     './assets/resume.json'
 ]);
 
+/**
+ * @typedef {Object} BrickLayoutRecord
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {string} text
+ * @property {number} color
+ * @property {number} rowIndex
+ * @property {boolean} isLastInRow
+ */
+
 function isAllowedAssetPath(path) {
     return ALLOWED_ASSET_PATHS.includes(path);
 }
@@ -12,7 +23,7 @@ function isAllowedAssetPath(path) {
 /**
  * Loads resume.json and calculates brick layout with full justification.
  * Returns an array of brick data objects with position, size, text, and color info.
- * @returns {Promise<{bricks: Array<{x: number, y: number, width: number, text: string, color: number, rowIndex: number, isLastInRow: boolean}>, totalRows: number}>}
+ * @returns {Promise<{bricks: BrickLayoutRecord[], totalRows: number}>}
  */
 export async function calculateBrickLayout() {
     const assetPath = 'assets/resume.json';
@@ -28,7 +39,13 @@ export async function calculateBrickLayout() {
     }
     const elements = await response.json();
 
-    const { MARGIN_TOP, BRICK_HEIGHT, BRICK_PADDING, BASE_BRICK_WIDTH, MAX_BRICK_HEIGHT_RATIO } = GAME_CONSTANTS;
+    const {
+        MARGIN_TOP,
+        BRICK_HEIGHT,
+        BRICK_PADDING,
+        BASE_BRICK_WIDTH,
+        MAX_BRICK_HEIGHT_RATIO
+    } = GAME_CONSTANTS;
     const rightEdge = window.innerWidth - 10;
     let x = 10;
     let y = MARGIN_TOP;
@@ -37,7 +54,7 @@ export async function calculateBrickLayout() {
     const bricksByRow = new Map();
 
     elements.forEach((el) => {
-        const words = el.text.split(/\s+/).filter(w => w.length > 0);
+        const words = el.text.split(/\s+/).filter((w) => w.length > 0);
         words.forEach((word) => {
             const brickWidth = word.length * BASE_BRICK_WIDTH + 10;
 
@@ -45,11 +62,15 @@ export async function calculateBrickLayout() {
                 x = 10;
                 y += BRICK_HEIGHT + BRICK_PADDING;
             }
-            if (y + BRICK_HEIGHT > window.innerHeight * MAX_BRICK_HEIGHT_RATIO) return;
+            if (y + BRICK_HEIGHT > window.innerHeight * MAX_BRICK_HEIGHT_RATIO)
+                return;
 
-            const rowIndex = Math.floor((y - MARGIN_TOP) / (BRICK_HEIGHT + BRICK_PADDING));
+            const rowIndex = Math.floor(
+                (y - MARGIN_TOP) / (BRICK_HEIGHT + BRICK_PADDING)
+            );
             totalRows = Math.max(totalRows, rowIndex + 1);
-            const rowColor = COLORS.BRICK_COLORS[rowIndex % COLORS.BRICK_COLORS.length];
+            const rowColor =
+                COLORS.BRICK_COLORS[rowIndex % COLORS.BRICK_COLORS.length];
 
             if (!bricksByRow.has(rowIndex)) {
                 bricksByRow.set(rowIndex, []);
@@ -70,7 +91,7 @@ export async function calculateBrickLayout() {
 
     const justifiedBricks = [];
 
-    bricksByRow.forEach((bricksInRow, rowIndex) => {
+    bricksByRow.forEach((bricksInRow) => {
         if (bricksInRow.length === 0) return;
 
         const lastBrickData = bricksInRow[bricksInRow.length - 1];
@@ -125,4 +146,3 @@ export async function calculateBrickLayout() {
 export function hexToCss(hex) {
     return '#' + hex.toString(16).padStart(6, '0');
 }
-
