@@ -1,38 +1,38 @@
 import { GAME_CONSTANTS, TEXTURE_KEYS } from './constants.js';
-import { gameState } from './state.js';
+import { getGameState } from './state.js';
 import { settings } from './settings.js';
 
-export function createLivesDisplay(scene) {
-    if (gameState.livesBalls && gameState.livesBalls.length > 0) {
-        gameState.livesBalls.forEach(ball => ball.destroy());
+export function createLivesDisplay(scene, state = getGameState(scene)) {
+    if (state.livesBalls && state.livesBalls.length > 0) {
+        state.livesBalls.forEach(ball => ball.destroy());
     }
-    gameState.livesBalls = [];
+    state.livesBalls = [];
 
     const isSmall = window.innerWidth < 600;
     const spacing = isSmall ? 20 : 30;
     const startX = isSmall ? 15 : 30;
 
-    for (let i = 0; i < gameState.lives; i++) {
+    for (let i = 0; i < state.lives; i++) {
         const lifeBall = scene.add.image(
             startX + i * spacing,
             window.innerHeight - 20,
             TEXTURE_KEYS.BALL
         ).setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
             .setOrigin(0.5, 0.5);
-        gameState.livesBalls.push(lifeBall);
+        state.livesBalls.push(lifeBall);
     }
 }
 
-export function createScoreText(scene) {
-    if (gameState.scoreText) gameState.scoreText.destroy();
+export function createScoreText(scene, state = getGameState(scene)) {
+    if (state.scoreText) state.scoreText.destroy();
 
     const margin = window.innerWidth < 400 ? 20 : 30;
     const prefix = window.innerWidth >= 405 ? 'SCORE: ' : '';
 
-    gameState.scoreText = scene.add.text(
+    state.scoreText = scene.add.text(
         window.innerWidth - margin,
         window.innerHeight - 20,
-        `${prefix}${gameState.score}`,
+        `${prefix}${state.score}`,
         {
             fontSize: '24px',
             fontFamily: '"Arial Black", Gadget, sans-serif',
@@ -61,25 +61,25 @@ export function hideGameMessage() {
     }
 }
 
-export function startCountdown(_scene) {
-    let countdown = gameState.currentCountdown;
+export function startCountdown(scene, state = getGameState(scene)) {
+    let countdown = state.currentCountdown;
 
-    gameState.countdownInterval = setInterval(() => {
+    state.countdownInterval = setInterval(() => {
         countdown--;
-        gameState.currentCountdown = countdown;
+        state.currentCountdown = countdown;
 
         if (countdown > 0) {
             updateCountdownDisplay(countdown);
         } else {
             hideGameMessage();
-            gameState.ball.setVelocity(
+            state.ball.setVelocity(
                 GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
                 GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
             );
-            gameState.setPaused(false);
-            clearInterval(gameState.countdownInterval);
-            gameState.countdownInterval = null;
-            gameState.currentCountdown = GAME_CONSTANTS.COUNTDOWN_START;
+            state.setPaused(false);
+            clearInterval(state.countdownInterval);
+            state.countdownInterval = null;
+            state.currentCountdown = GAME_CONSTANTS.COUNTDOWN_START;
         }
     }, GAME_CONSTANTS.COUNTDOWN_INTERVAL);
 }
@@ -97,8 +97,8 @@ function updateCountdownDisplay(value) {
         }
 }
 
-export function createCountdownText(_scene) {
-    updateCountdownDisplay(gameState.currentCountdown);
+export function createCountdownText(scene, state = getGameState(scene)) {
+    updateCountdownDisplay(state.currentCountdown);
 }
 
 export function showGameOver(_scene) {
@@ -123,8 +123,8 @@ export function showGameOver(_scene) {
     }
 }
 
-export function showWinMessage(_scene) {
-    gameState.gameEnded = true;
+export function showWinMessage(scene, state = getGameState(scene)) {
+    state.gameEnded = true;
     const overlay = document.getElementById('gameMessageOverlay');
     if (overlay) {
         overlay.classList.remove('hidden');
@@ -165,8 +165,8 @@ export function showWinMessage(_scene) {
     }
 }
 
-export function togglePause(scene) {
-    const paused = gameState.togglePause();
+export function togglePause(scene, state = getGameState(scene)) {
+    const paused = state.togglePause();
     scene.physics.world.isPaused = paused;
 
     const pauseButton = document.getElementById('pauseButton');
@@ -181,10 +181,10 @@ export function togglePause(scene) {
         pauseButton.title = paused ? 'Resume' : 'Pause';
     }
 
-    if (!paused && gameState.wasInCountdown) {
-        gameState.wasInCountdown = false;
-        createCountdownText(scene);
-        startCountdown(scene);
+    if (!paused && state.wasInCountdown) {
+        state.wasInCountdown = false;
+        createCountdownText(scene, state);
+        startCountdown(scene, state);
     }
 }
 
@@ -192,7 +192,8 @@ export function setupUIButtons(game) {
     const pauseButton = document.getElementById('pauseButton');
     if (pauseButton) {
         pauseButton.addEventListener('click', () => {
-            togglePause(game.scene.scenes[0]);
+            const scene = game.scene.scenes[0];
+            togglePause(scene, getGameState(scene));
         });
     }
 
@@ -205,12 +206,13 @@ export function setupUIButtons(game) {
         highScoreButton.addEventListener('click', () => {
             highScoreModal.classList.add('active');
             if (highScoreValue) {
-                highScoreValue.textContent = gameState.highScore;
+                highScoreValue.textContent = getGameState(game.scene.scenes[0]).highScore;
             }
 
             const scene = game.scene.scenes[0];
-            if (scene && !gameState.paused) {
-                togglePause(scene);
+            const state = getGameState(scene);
+            if (scene && !state.paused) {
+                togglePause(scene, state);
             }
         });
     }
@@ -238,33 +240,34 @@ export function setupWindowResize(game) {
         game.scale.resize(width, height);
 
         const scene = game.scene.scenes[0];
+        const state = getGameState(scene);
         if (scene) {
             scene.physics.world.setBounds(0, 0, width, height);
 
-            if (gameState.scoreText) {
+            if (state.scoreText) {
                 const margin = width < 400 ? 10 : 20;
                 const prefix = width >= 405 ? 'SCORE: ' : '';
-                gameState.scoreText.setText(`${prefix}${gameState.score}`);
-                gameState.scoreText.setPosition(width - margin, height - 20);
+                state.scoreText.setText(`${prefix}${state.score}`);
+                state.scoreText.setPosition(width - margin, height - 20);
             }
 
 
 
-            if (gameState.livesBalls) {
+            if (state.livesBalls) {
                 const isSmall = width < 600;
                 const spacing = isSmall ? 20 : 30;
                 const startX = isSmall ? 15 : 30;
-                gameState.livesBalls.forEach((ball, i) => {
+                state.livesBalls.forEach((ball, i) => {
                     ball.setPosition(startX + i * spacing, height - 20);
                 });
             }
 
-            if (gameState.paddle) {
-                gameState.paddle.y = height - 55;
+            if (state.paddle) {
+                state.paddle.y = height - 55;
                 
-                gameState.paddle.x = Math.max(
-                    gameState.paddle.width / 2,
-                    Math.min(gameState.paddle.x, width - gameState.paddle.width / 2)
+                state.paddle.x = Math.max(
+                    state.paddle.width / 2,
+                    Math.min(state.paddle.x, width - state.paddle.width / 2)
                 );
             }
         }

@@ -1,5 +1,5 @@
-import { AUDIO_KEYS, TEXTURE_KEYS, COLORS, GAME_CONSTANTS } from './constants.js';
-import { gameState } from './state.js';
+import { AUDIO_KEYS, TEXTURE_KEYS, GAME_CONSTANTS } from './constants.js';
+import { attachGameState, createGameState } from './state.js';
 import { createBricksFromResume, handleBrickCollision } from './bricks.js';
 import {
     createLivesDisplay,
@@ -12,6 +12,7 @@ import {
     hideGameMessage
 } from './ui.js';
 import { applyThemeToScene, settings } from './settings.js';
+import { registerGameTextures } from './textures.js';
 
 let audioLoaded = false;
 let audioLoadPromise = null;
@@ -51,88 +52,8 @@ export function preload() {
     
 }
 
-function createTextures(scene) {
-    const pW = settings.paddleWidth;
-    const pH = GAME_CONSTANTS.PADDLE_HEIGHT;
-
-    const paddleCanvas = document.createElement('canvas');
-    paddleCanvas.width = pW;
-    paddleCanvas.height = pH;
-    const paddleCtx = paddleCanvas.getContext('2d');
-
-    const paddleColorHex = '#' + settings.paddleColor.toString(16).padStart(6, '0');
-    paddleCtx.fillStyle = paddleColorHex;
-
-    paddleCtx.beginPath();
-    paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
-    paddleCtx.fill();
-
-    const paddleGrad = paddleCtx.createLinearGradient(0, 0, 0, pH);
-    paddleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-    paddleGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.1)');
-    paddleGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-    paddleGrad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-
-    paddleCtx.fillStyle = paddleGrad;
-    paddleCtx.beginPath();
-    paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
-    paddleCtx.fill();
-
-    paddleCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    paddleCtx.lineWidth = 2;
-    paddleCtx.beginPath();
-    paddleCtx.moveTo(pH / 2, pH * 0.3);
-    paddleCtx.lineTo(pW - pH / 2, pH * 0.3);
-    paddleCtx.stroke();
-
-    scene.textures.addCanvas(TEXTURE_KEYS.PADDLE, paddleCanvas);
-
-    const bSize = GAME_CONSTANTS.BALL_SIZE;
-    const bRadius = GAME_CONSTANTS.BALL_RADIUS;
-
-    const ballCanvas = document.createElement('canvas');
-    ballCanvas.width = bSize;
-    ballCanvas.height = bSize;
-    const ballCtx = ballCanvas.getContext('2d');
-
-    const ballColorHex = '#' + settings.ballColor.toString(16).padStart(6, '0');
-
-    ballCtx.fillStyle = ballColorHex;
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    const highlightGrad = ballCtx.createRadialGradient(
-        bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, 2,
-        bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, bRadius
-    );
-    highlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-    highlightGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-    ballCtx.fillStyle = highlightGrad;
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    const shadowGrad = ballCtx.createLinearGradient(0, 0, bSize, bSize);
-    shadowGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
-    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-
-    ballCtx.fillStyle = shadowGrad;
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    ballCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius - 3, bRadius - 3, 1.5, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    scene.textures.addCanvas(TEXTURE_KEYS.BALL, ballCanvas);
-}
-
-function createPaddle(scene) {
-    gameState.paddle = scene.physics.add.image(
+function createPaddle(scene, state) {
+    state.paddle = scene.physics.add.image(
         window.innerWidth / 2,
         window.innerHeight - 55,
         TEXTURE_KEYS.PADDLE
@@ -141,8 +62,8 @@ function createPaddle(scene) {
         .setCollideWorldBounds(true);
 }
 
-function createBall(scene) {
-    gameState.ball = scene.physics.add.image(
+function createBall(scene, state) {
+    state.ball = scene.physics.add.image(
         window.innerWidth / 2,
         window.innerHeight - 80,
         TEXTURE_KEYS.BALL
@@ -152,31 +73,31 @@ function createBall(scene) {
         .setBounce(1)
         .setCollideWorldBounds(true);
 
-    gameState.ball.body.allowRotation = false;
+    state.ball.body.allowRotation = false;
 
-    gameState.ball.body.onWorldBounds = true;
-    gameState.ball.body.setCollideWorldBounds(true, 1, 1, true);
+    state.ball.body.onWorldBounds = true;
+    state.ball.body.setCollideWorldBounds(true, 1, 1, true);
 }
 
-function setupCollisions(scene) {
-    scene.physics.add.collider(gameState.ball, gameState.paddle, () => {
+function setupCollisions(scene, state) {
+    scene.physics.add.collider(state.ball, state.paddle, () => {
         playSound(scene, AUDIO_KEYS.BALL_HIT);
     });
 
-    scene.physics.add.collider(gameState.ball, gameState.bricksGroup, (ball, brick) => {
+    scene.physics.add.collider(state.ball, state.bricksGroup, (ball, brick) => {
         playSound(scene, AUDIO_KEYS.BRICK_HIT);
-        handleBrickCollision(scene, ball, brick);
+        handleBrickCollision(scene, ball, brick, state);
     });
 
     scene.physics.world.on('worldbounds', (body, up, down) => {
-        if (down && body.gameObject === gameState.ball) {
+        if (down && body.gameObject === state.ball) {
             playSound(scene, AUDIO_KEYS.LOSE_LIFE);
-            loseLife(scene);
+            loseLife(scene, state);
         }
     });
 }
 
-function setupControls(scene) {
+function setupControls(scene, state) {
     let audioTriggered = false;
     const triggerAudioLoad = () => {
         if (!audioTriggered) {
@@ -187,9 +108,9 @@ function setupControls(scene) {
 
     scene.input.on('pointermove', pointer => {
         triggerAudioLoad();
-        if (!gameState.paused) {
-            const paddleWidth = gameState.paddle.width;
-            gameState.paddle.x = Math.max(
+        if (!state.paused) {
+            const paddleWidth = state.paddle.width;
+            state.paddle.x = Math.max(
                 paddleWidth / 2,
                 Math.min(pointer.x, window.innerWidth - paddleWidth / 2)
             );
@@ -198,75 +119,77 @@ function setupControls(scene) {
 
     scene.input.keyboard.on('keydown-P', () => {
         triggerAudioLoad();
-        togglePause(scene);
+        togglePause(scene, state);
     });
 }
 
-function loseLife(scene) {
-    gameState.decrementLives();
+function loseLife(scene, state) {
+    state.decrementLives();
 
-    if (gameState.lives > 0) {
-        gameState.ball.setPosition(window.innerWidth / 2, window.innerHeight - 80);
-        gameState.ball.setVelocity(0, 0);
+    if (state.lives > 0) {
+        state.ball.setPosition(window.innerWidth / 2, window.innerHeight - 80);
+        state.ball.setVelocity(0, 0);
 
         setTimeout(() => {
-            if (gameState.ball && gameState.lives > 0) {
-                gameState.ball.setVelocity(
+            if (state.ball && state.lives > 0) {
+                state.ball.setVelocity(
                     GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
                     GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
                 );
             }
         }, 1000);
     } else {
-        showGameOver(scene);
-        gameState.ball.destroy();
+        showGameOver(scene, state);
+        state.ball.destroy();
         playSound(scene, AUDIO_KEYS.GAME_OVER);
     }
 }
 
 export function create() {
     const scene = this;
-    applyThemeToScene(scene);
+    const state = attachGameState(scene, createGameState());
+    applyThemeToScene(scene, settings.theme, state);
 
     hideGameMessage();
-    gameState.gameEnded = false;
+    state.gameEnded = false;
 
-    gameState.score = GAME_CONSTANTS.INITIAL_SCORE;
-    gameState.lives = GAME_CONSTANTS.INITIAL_LIVES;
-    gameState.bricksCreated = false;
-    gameState.bricksGroup = scene.physics.add.staticGroup();
+    state.score = GAME_CONSTANTS.INITIAL_SCORE;
+    state.lives = GAME_CONSTANTS.INITIAL_LIVES;
+    state.bricksCreated = false;
+    state.bricksGroup = scene.physics.add.staticGroup();
 
-    createTextures(scene);
-    createPaddle(scene);
-    createBall(scene);
-    setupCollisions(scene);
-    setupControls(scene);
+    registerGameTextures(scene, settings);
+    createPaddle(scene, state);
+    createBall(scene, state);
+    setupCollisions(scene, state);
+    setupControls(scene, state);
 
-    createLivesDisplay(scene);
-    createScoreText(scene);
+    createLivesDisplay(scene, state);
+    createScoreText(scene, state);
 
     (async () => {
-        await createBricksFromResume(scene);
-        createCountdownText(scene);
-        startCountdown(scene);
+        await createBricksFromResume(scene, state);
+        createCountdownText(scene, state);
+        startCountdown(scene, state);
     })();
 }
 
 export function update() {
     const scene = this;
+    const state = scene.gameState;
 
-    if (gameState.bricksCreated &&
-        gameState.bricksGroup.countActive() === 0 &&
-        gameState.lives > 0 &&
-        !gameState.gameEnded) {
+    if (state?.bricksCreated &&
+        state.bricksGroup.countActive() === 0 &&
+        state.lives > 0 &&
+        !state.gameEnded) {
 
-        showWinMessage(scene);
-        gameState.ball.setVelocity(0, 0);
+        showWinMessage(scene, state);
+        state.ball.setVelocity(0, 0);
         playSound(scene, AUDIO_KEYS.WIN_GAME);
-        gameState.setPaused(true);
+        state.setPaused(true);
     }
 
-    if (gameState.ball) {
-        gameState.ball.setRotation(0);
+    if (state?.ball) {
+        state.ball.setRotation(0);
     }
 }

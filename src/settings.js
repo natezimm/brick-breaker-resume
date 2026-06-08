@@ -1,4 +1,5 @@
-import { gameState } from './state.js';
+import { getGameState } from './state.js';
+import { refreshBallTexture, refreshPaddleTexture } from './textures.js';
 
 const THEME_STORAGE_KEY = 'brickBreakerTheme';
 const THEMES = Object.freeze({
@@ -87,7 +88,7 @@ function setTextFill(text, fill) {
     }
 }
 
-export function applyThemeToScene(scene, theme = settings.theme) {
+export function applyThemeToScene(scene, theme = settings.theme, state = getGameState(scene)) {
     if (!scene) return;
     const colors = getThemeColors(theme);
 
@@ -96,9 +97,9 @@ export function applyThemeToScene(scene, theme = settings.theme) {
         camera.setBackgroundColor(colors.background);
     }
 
-    setTextFill(gameState.scoreText, colors.scoreText);
-    setTextFill(gameState.countdownText, colors.hudTextMuted);
-    setTextFill(gameState.winText, colors.hudTextMuted);
+    setTextFill(state.scoreText, colors.scoreText);
+    setTextFill(state.countdownText, colors.hudTextMuted);
+    setTextFill(state.winText, colors.hudTextMuted);
 }
 
 export function initializeTheme() {
@@ -119,7 +120,7 @@ export function applyTheme(theme, game) {
     writeStoredTheme(normalizedTheme);
 
     const scene = game?.scene?.scenes?.[0];
-    applyThemeToScene(scene, normalizedTheme);
+    applyThemeToScene(scene, normalizedTheme, getGameState(scene));
 }
 
 export function setupSettings(game) {
@@ -135,6 +136,7 @@ export function setupSettings(game) {
     const ballSpeedSlider = document.getElementById('ballSpeedSlider');
     const ballSpeedValue = document.getElementById('ballSpeedValue');
     const pauseButton = document.getElementById('pauseButton');
+    const getScene = () => game.scene.scenes[0];
 
     if (themeToggle) {
         themeToggle.checked = settings.theme === THEMES.DARK;
@@ -146,13 +148,14 @@ export function setupSettings(game) {
     settingsButton.addEventListener('click', () => {
         modal.classList.add('active');
 
-        const scene = game.scene.scenes[0];
+        const scene = getScene();
+        const state = getGameState(scene);
 
         if (scene && scene.physics) {
-            if (gameState.countdownInterval) {
-                clearInterval(gameState.countdownInterval);
-                gameState.countdownInterval = null;
-                gameState.wasInCountdown = true;
+            if (state.countdownInterval) {
+                clearInterval(state.countdownInterval);
+                state.countdownInterval = null;
+                state.wasInCountdown = true;
                 
                 // Hide the countdown overlay when opening settings
                 const overlay = document.getElementById('gameMessageOverlay');
@@ -162,7 +165,7 @@ export function setupSettings(game) {
                 }
             }
 
-            gameState.setPaused(true);
+            state.setPaused(true);
             scene.physics.world.isPaused = true;
 
             if (pauseButton) {
@@ -194,7 +197,7 @@ export function setupSettings(game) {
 
     soundToggle.addEventListener('change', (e) => {
         settings.soundEnabled = e.target.checked;
-        const scene = game.scene.scenes[0];
+        const scene = getScene();
         if (scene && scene.sound) {
             scene.sound.mute = !settings.soundEnabled;
         }
@@ -210,7 +213,7 @@ export function setupSettings(game) {
             return;
         }
         settings.ballColor = parseInt(color.replace('#', '0x'));
-        updateBallTexture(game.scene.scenes[0]);
+        updateBallTexture(getScene());
     });
 
     paddleColorPicker.addEventListener('input', (e) => {
@@ -219,7 +222,7 @@ export function setupSettings(game) {
             return;
         }
         settings.paddleColor = parseInt(color.replace('#', '0x'));
-        updatePaddleTexture(game.scene.scenes[0]);
+        updatePaddleTexture(getScene());
     });
 
     paddleWidthSlider.addEventListener('input', (e) => {
@@ -231,7 +234,7 @@ export function setupSettings(game) {
         }
         settings.paddleWidth = newWidth;
         paddleWidthValue.textContent = newWidth;
-        updatePaddleTexture(game.scene.scenes[0]);
+        updatePaddleTexture(getScene());
     });
 
     ballSpeedSlider.addEventListener('input', (e) => {
@@ -243,121 +246,24 @@ export function setupSettings(game) {
         }
         settings.ballSpeed = newSpeed;
         ballSpeedValue.textContent = newSpeed.toFixed(1);
-        updateBallSpeed(game.scene.scenes[0]);
+        updateBallSpeed(getScene());
     });
 
     paddleWidthSlider.max = Math.floor(window.innerWidth / 3);
 }
 
-function updateBallTexture(scene) {
-    if (!scene || !gameState.ball) return;
-
-    const bSize = 20;
-    const bRadius = 10;
-
-    const ballCanvas = document.createElement('canvas');
-    ballCanvas.width = bSize;
-    ballCanvas.height = bSize;
-    const ballCtx = ballCanvas.getContext('2d');
-
-    ballCtx.fillStyle = '#' + settings.ballColor.toString(16).padStart(6, '0');
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    const highlightGrad = ballCtx.createRadialGradient(
-        bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, 2,
-        bRadius - bRadius * 0.3, bRadius - bRadius * 0.3, bRadius
-    );
-    highlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-    highlightGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-    ballCtx.fillStyle = highlightGrad;
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    const shadowGrad = ballCtx.createLinearGradient(0, 0, bSize, bSize);
-    shadowGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
-    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-
-    ballCtx.fillStyle = shadowGrad;
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius, bRadius, bRadius, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    ballCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ballCtx.beginPath();
-    ballCtx.arc(bRadius - 3, bRadius - 3, 1.5, 0, Math.PI * 2);
-    ballCtx.fill();
-
-    if (scene.textures.exists('ballTexture')) {
-        scene.textures.remove('ballTexture');
-    }
-    scene.textures.addCanvas('ballTexture', ballCanvas);
-
-    gameState.ball.setTexture('ballTexture');
-    gameState.ball.setDisplaySize(bSize, bSize);
-
-    if (gameState.livesBalls) {
-        gameState.livesBalls.forEach(ball => {
-            ball.setTexture('ballTexture');
-            ball.setDisplaySize(bSize, bSize);
-        });
-    }
+function updateBallTexture(scene, state = getGameState(scene)) {
+    refreshBallTexture(scene, state, settings);
 }
 
-function updatePaddleTexture(scene) {
-    if (!scene || !gameState.paddle) return;
-
-    const pW = settings.paddleWidth;
-    const pH = 20;
-
-    const paddleCanvas = document.createElement('canvas');
-    paddleCanvas.width = pW;
-    paddleCanvas.height = pH;
-    const paddleCtx = paddleCanvas.getContext('2d');
-
-    paddleCtx.fillStyle = '#' + settings.paddleColor.toString(16).padStart(6, '0');
-    paddleCtx.beginPath();
-    paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
-    paddleCtx.fill();
-
-    const paddleGrad = paddleCtx.createLinearGradient(0, 0, 0, pH);
-    paddleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-    paddleGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.1)');
-    paddleGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-    paddleGrad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-
-    paddleCtx.fillStyle = paddleGrad;
-    paddleCtx.beginPath();
-    paddleCtx.roundRect(0, 0, pW, pH, pH / 2);
-    paddleCtx.fill();
-
-    paddleCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    paddleCtx.lineWidth = 2;
-    paddleCtx.beginPath();
-    paddleCtx.moveTo(pH / 2, pH * 0.3);
-    paddleCtx.lineTo(pW - pH / 2, pH * 0.3);
-    paddleCtx.stroke();
-
-    if (scene.textures.exists('paddleTexture')) {
-        scene.textures.remove('paddleTexture');
-    }
-    scene.textures.addCanvas('paddleTexture', paddleCanvas);
-
-    const currentX = gameState.paddle.x;
-    const currentY = gameState.paddle.y;
-    gameState.paddle.setTexture('paddleTexture');
-    gameState.paddle.setDisplaySize(pW, pH);
-    gameState.paddle.setPosition(currentX, currentY);
-    gameState.paddle.body.setSize(pW, pH);
+function updatePaddleTexture(scene, state = getGameState(scene)) {
+    refreshPaddleTexture(scene, state, settings);
 }
 
-function updateBallSpeed(scene) {
-    if (!scene || !gameState.ball || !gameState.ball.body) return;
+function updateBallSpeed(scene, state = getGameState(scene)) {
+    if (!scene || !state.ball || !state.ball.body) return;
 
-    const currentVelocity = gameState.ball.body.velocity;
+    const currentVelocity = state.ball.body.velocity;
     if (currentVelocity.x !== 0 || currentVelocity.y !== 0) {
         const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + currentVelocity.y * currentVelocity.y);
         const dirX = currentVelocity.x / speed;
@@ -365,7 +271,7 @@ function updateBallSpeed(scene) {
 
         const baseSpeed = 200;
         const newSpeed = baseSpeed * settings.ballSpeed;
-        gameState.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
+        state.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
     }
 }
 

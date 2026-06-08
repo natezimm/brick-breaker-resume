@@ -72,4 +72,22 @@ class GameState {
     }
 }
 
-export const gameState = new GameState();
+export function createGameState() {
+    return new GameState();
+}
+
+export function attachGameState(scene, state = createGameState()) {
+    if (scene) {
+        scene.gameState = state;
+    }
+
+    return state;
+}
+
+export function getGameState(scene) {
+    return scene?.gameState ?? gameState;
+}
+
+export { GameState };
+
+export const gameState = createGameState();

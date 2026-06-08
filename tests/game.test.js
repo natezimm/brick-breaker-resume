@@ -1,6 +1,6 @@
 import { preload, create, update, _setAudioLoaded } from '../src/game.js';
 import { AUDIO_KEYS, GAME_CONSTANTS } from '../src/constants.js';
-import { gameState } from '../src/state.js';
+import { attachGameState, gameState, getGameState } from '../src/state.js';
 import { settings } from '../src/settings.js';
 import { createMockScene } from './mockScene.js';
 import { createBricksFromResume, handleBrickCollision } from '../src/bricks.js';
@@ -71,29 +71,30 @@ describe('game scene', () => {
 
     create.call(scene);
     await Promise.resolve();
+    const state = getGameState(scene);
 
-    expect(createLivesDisplay).toHaveBeenCalledWith(scene);
-    expect(createScoreText).toHaveBeenCalledWith(scene);
-    expect(createBricksFromResume).toHaveBeenCalledWith(scene);
-    expect(createCountdownText).toHaveBeenCalledWith(scene);
-    expect(startCountdown).toHaveBeenCalledWith(scene);
-    expect(gameState.paddle).toBeDefined();
-    expect(gameState.ball).toBeDefined();
+    expect(createLivesDisplay).toHaveBeenCalledWith(scene, state);
+    expect(createScoreText).toHaveBeenCalledWith(scene, state);
+    expect(createBricksFromResume).toHaveBeenCalledWith(scene, state);
+    expect(createCountdownText).toHaveBeenCalledWith(scene, state);
+    expect(startCountdown).toHaveBeenCalledWith(scene, state);
+    expect(state.paddle).toBeDefined();
+    expect(state.ball).toBeDefined();
     expect(scene.colliders.length).toBe(2);
     expect(scene.physics.world.on).toHaveBeenCalled();
 
-    gameState.paused = false;
+    state.paused = false;
     const moveHandler = scene.input.events['pointermove'];
     moveHandler({ x: 1000 });
-    expect(gameState.paddle.x).toBeLessThanOrEqual(window.innerWidth - gameState.paddle.width / 2);
+    expect(state.paddle.x).toBeLessThanOrEqual(window.innerWidth - state.paddle.width / 2);
 
-    const pausedPosition = gameState.paddle.x;
-    gameState.paused = true;
+    const pausedPosition = state.paddle.x;
+    state.paused = true;
     moveHandler({ x: 200 });
-    expect(gameState.paddle.x).toBe(pausedPosition);
-    gameState.paused = false;
+    expect(state.paddle.x).toBe(pausedPosition);
+    state.paused = false;
 
-    scene.physics.world.emit('worldbounds', gameState.ball.body, false, false);
+    scene.physics.world.emit('worldbounds', state.ball.body, false, false);
 
     scene.colliders[0]();
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.BALL_HIT);
@@ -105,44 +106,44 @@ describe('game scene', () => {
     settings.soundEnabled = true;
 
     scene.colliders[1]('ball', 'brick');
-    expect(handleBrickCollision).toHaveBeenCalled();
+    expect(handleBrickCollision).toHaveBeenCalledWith(scene, 'ball', 'brick', state);
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.BRICK_HIT);
 
     const keyboardHandler = scene.input.events['keydown-P'];
     keyboardHandler();
     expect(togglePause).toHaveBeenCalledWith(scene);
 
-    gameState.ball.setPosition = jest.fn();
-    gameState.ball.setVelocity = jest.fn();
-    gameState.ball.setRotation = jest.fn();
-    scene.physics.world.emit('worldbounds', gameState.ball.body, false, true);
+    state.ball.setPosition = jest.fn();
+    state.ball.setVelocity = jest.fn();
+    state.ball.setRotation = jest.fn();
+    scene.physics.world.emit('worldbounds', state.ball.body, false, true);
     jest.runOnlyPendingTimers();
     const expectedX = GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed;
     const expectedY = GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed;
-    expect(gameState.ball.setVelocity).toHaveBeenCalledWith(expectedX, expectedY);
+    expect(state.ball.setVelocity).toHaveBeenCalledWith(expectedX, expectedY);
 
-    const expectedCallsBeforeFalseBranch = gameState.ball.setVelocity.mock.calls.filter(
+    const expectedCallsBeforeFalseBranch = state.ball.setVelocity.mock.calls.filter(
       ([x, y]) => x === expectedX && y === expectedY
     ).length;
 
     jest.clearAllTimers();
-    gameState.lives = 3;
-    scene.physics.world.emit('worldbounds', gameState.ball.body, false, true);
-    gameState.lives = 0;
+    state.lives = 3;
+    scene.physics.world.emit('worldbounds', state.ball.body, false, true);
+    state.lives = 0;
     jest.runOnlyPendingTimers();
 
-    const expectedCallsAfterFalseBranch = gameState.ball.setVelocity.mock.calls.filter(
+    const expectedCallsAfterFalseBranch = state.ball.setVelocity.mock.calls.filter(
       ([x, y]) => x === expectedX && y === expectedY
     ).length;
 
     expect(expectedCallsAfterFalseBranch).toBe(expectedCallsBeforeFalseBranch);
 
-    gameState.lives = 1;
-    gameState.ball.destroy = jest.fn();
+    state.lives = 1;
+    state.ball.destroy = jest.fn();
     scene.sound.play.mockClear();
-    scene.physics.world.emit('worldbounds', gameState.ball.body, false, true);
-    expect(showGameOver).toHaveBeenCalledWith(scene);
-    expect(gameState.ball.destroy).toHaveBeenCalled();
+    scene.physics.world.emit('worldbounds', state.ball.body, false, true);
+    expect(showGameOver).toHaveBeenCalledWith(scene, state);
+    expect(state.ball.destroy).toHaveBeenCalled();
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.GAME_OVER);
 
     jest.useRealTimers();
@@ -152,6 +153,7 @@ describe('game scene', () => {
 
   test('update triggers win flow when bricks are cleared', () => {
     const scene = createMockScene();
+    attachGameState(scene, gameState);
 
     update.call(scene);
     expect(showWinMessage).not.toHaveBeenCalled();
@@ -165,7 +167,7 @@ describe('game scene', () => {
 
     update.call(scene);
 
-    expect(showWinMessage).toHaveBeenCalledWith(scene);
+    expect(showWinMessage).toHaveBeenCalledWith(scene, gameState);
     expect(gameState.ball.setVelocity).toHaveBeenCalledWith(0, 0);
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.WIN_GAME);
     expect(gameState.paused).toBe(true);

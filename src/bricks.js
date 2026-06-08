@@ -1,8 +1,8 @@
 import { GAME_CONSTANTS } from './constants.js';
-import { gameState } from './state.js';
+import { getGameState } from './state.js';
 import { calculateBrickLayout, hexToCss } from './brickLayout.js';
 
-export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = false) {
+export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = false, state = getGameState(scene)) {
     const height = GAME_CONSTANTS.BRICK_HEIGHT;
 
     let container = document.getElementById('gameBrickContainer');
@@ -42,7 +42,7 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
     brick.setOrigin(0, 0);
 
     scene.physics.add.existing(brick, true);
-    gameState.bricksGroup.add(brick);
+    state.bricksGroup.add(brick);
 
     brick.setData('domBrick', brickDiv);
 
@@ -52,7 +52,7 @@ export function createBrick(scene, x, y, text, brickWidth, color, isLastInRow = 
     return brick;
 }
 
-export async function createBricksFromResume(scene) {
+export async function createBricksFromResume(scene, state = getGameState(scene)) {
     const existingContainer = document.getElementById('gameBrickContainer');
     if (existingContainer) {
         existingContainer.innerHTML = '';
@@ -60,7 +60,7 @@ export async function createBricksFromResume(scene) {
 
     const { bricks, totalRows } = await calculateBrickLayout();
 
-    gameState.totalRows = totalRows;
+    state.totalRows = totalRows;
 
     bricks.forEach((brickData) => {
         createBrick(
@@ -70,22 +70,23 @@ export async function createBricksFromResume(scene) {
             brickData.text,
             brickData.width,
             brickData.color,
-            brickData.isLastInRow
+            brickData.isLastInRow,
+            state
         );
     });
 
-    gameState.bricksCreated = true;
+    state.bricksCreated = true;
 }
 
-export function handleBrickCollision(scene, ball, brick) {
+export function handleBrickCollision(scene, ball, brick, state = getGameState(scene)) {
     const domBrick = brick.getData('domBrick');
     if (domBrick) {
         domBrick.remove(); // Standard DOM removal
     }
 
     const row = brick.getData('row');
-    const points = (gameState.totalRows - row) * 10;
-    gameState.incrementScore(points);
+    const points = (state.totalRows - row) * 10;
+    state.incrementScore(points);
 
     brick.destroy(); // Phaser object destruction
 }
