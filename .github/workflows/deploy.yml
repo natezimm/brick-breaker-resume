@@ -1,70 +1,69 @@
 name: CI & Deploy
 
 on:
-    push:
-        branches: ['main']
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['main']
 
 jobs:
-    ci:
-        runs-on: ubuntu-latest
+  ci:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repo
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version-file: .nvmrc
-                  cache: npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Run tests with coverage
-              run: npm run test:coverage
+      - name: Run quality gate
+        run: npm run quality
 
-            - name: Build application
-              run: npm run build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: brick-breaker-build
+          path: dist
+          if-no-files-found: error
 
-            - name: Upload build artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: brick-breaker-build
-                  path: dist
-                  if-no-files-found: error
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-latest
 
-    deploy:
-        needs: ci
-        runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: brick-breaker-build
+          path: site
 
-        steps:
-            - name: Download build artifact
-              uses: actions/download-artifact@v4
-              with:
-                  name: brick-breaker-build
-                  path: site
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan "${{ secrets.LIGHTSAIL_HOST }}" >> ~/.ssh/known_hosts
 
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
-                  chmod 600 ~/.ssh/id_rsa
-                  ssh-keyscan "${{ secrets.LIGHTSAIL_HOST }}" >> ~/.ssh/known_hosts
+      - name: Deploy to Lightsail
+        run: |
+          rsync -avz --delete site/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/var/www/brick-breaker/
 
-            - name: Deploy to Lightsail
-              run: |
-                  rsync -avz --delete site/ \
-                    ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/var/www/brick-breaker/
+      - name: Health check
+        run: |
+          echo "Waiting for site to come up..."
+          sleep 6
 
-            - name: Health check
-              run: |
-                  echo "⏳ Waiting for site to come up..."
-                  sleep 6
+          curl -f https://${{ secrets.APP_DOMAIN }} || {
+            echo "Brick Breaker health check failed"
+            exit 1
+          }
 
-                  curl -f https://${{ secrets.APP_DOMAIN }} || {
-                    echo "❌ Brick Breaker health check failed"
-                    exit 1
-                  }
-
-                  echo "✅ Brick Breaker deployed successfully"
+          echo "Brick Breaker deployed successfully"

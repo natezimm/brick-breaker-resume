@@ -3,7 +3,7 @@
 
 # Brick Breaker Resume
 
-Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and a persistent high score.
+Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into a live Brick Breaker level, letting you break career highlights while tracking lives, score, and a persistent high score. See [`docs/architecture.md`](docs/architecture.md) for runtime boundaries, quality gates, deployment flow, and deferred architecture follow-ups.
 
 ## Features
 
@@ -30,39 +30,41 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 ### Local dev
 
 1. Install dependencies:
-    ```bash
-    git clone https://github.com/natezimm/brick-breaker-resume.git
-    cd brick-breaker-resume
-    npm install
-    ```
+   ```bash
+   git clone https://github.com/natezimm/brick-breaker-resume.git
+   cd brick-breaker-resume
+   npm install
+   ```
 2. Start the development server:
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 3. Visit the URL shown in the terminal (typically `http://localhost:5173`).
 
 ### Building for Production
 
 1. Build the project:
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 2. Preview the production build:
-    ```bash
-    npm start
-    ```
+   ```bash
+   npm start
+   ```
 
 ### Using your own resume
 
 - Replace `assets/Nathan Zimmerman Resume.docx` with your own `.docx` (same filename).
 - `npm run dev` / `npm run build` automatically regenerate `assets/resume.json` from the `.docx`.
 - Or run the update script manually to regenerate the game data:
-    ```bash
-    node scripts/generate_resume_json.js
-    ```
+  ```bash
+  node scripts/generate_resume_json.js
+  ```
 
 ## Testing
 
+- `npm run quality` runs the full root quality gate.
+- `npm run format:check` enforces the shared Prettier config.
 - `npm test` runs the Jest suite for game and UI units.
 - `npm run test:coverage` generates coverage reports under `coverage/`.
 
@@ -75,7 +77,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 
 ## Testing & Quality
 
-- GitHub Actions runs tests + coverage on every push to `main` and blocks deployment if thresholds are not met.
+- GitHub Actions runs `npm run quality` on pull requests and pushes to `main`; deployment only runs for pushes to `main` after the gate passes.
 
 **Coverage thresholds:**
 
