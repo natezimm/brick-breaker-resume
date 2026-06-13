@@ -12,6 +12,8 @@ describe('gameState', () => {
     expect(gameState.score).toBe(0);
     expect(gameState.paused).toBe(true);
     expect(gameState.bricksGroup).toBeNull();
+    expect(gameState.ballTrailPoints).toEqual([]);
+    expect(gameState.paddleTrailPoints).toEqual([]);
   });
 
   test('incrementScore updates score text and high score', () => {

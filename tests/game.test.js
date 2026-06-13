@@ -198,4 +198,23 @@ describe('game scene', () => {
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.WIN_GAME);
     expect(gameState.paused).toBe(true);
   });
+
+  test('update draws ball and paddle trails while playing', () => {
+    const scene = createMockScene();
+    attachGameState(scene, gameState);
+
+    gameState.paused = false;
+    gameState.ball = scene.physics.add
+      .image(100, 200, 'ball')
+      .setDisplaySize(20, 20);
+    gameState.paddle = scene.physics.add
+      .image(300, 545, 'paddle')
+      .setDisplaySize(120, 20);
+
+    update.call(scene);
+
+    expect(scene.add.graphics).toHaveBeenCalledTimes(2);
+    expect(gameState.ballTrailGraphics.fillCircle).toHaveBeenCalled();
+    expect(gameState.paddleTrailGraphics.fillRoundedRect).toHaveBeenCalled();
+  });
 });

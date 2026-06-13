@@ -21,6 +21,8 @@ class MockGameObject {
   setDisplaySize(width, height) {
     this.width = width;
     this.height = height;
+    this.displayWidth = width;
+    this.displayHeight = height;
     return this;
   }
 
@@ -63,6 +65,9 @@ class MockGraphics {
     this.fillPath = jest.fn();
     this.lineStyle = jest.fn();
     this.strokePath = jest.fn();
+    this.clear = jest.fn();
+    this.fillCircle = jest.fn();
+    this.fillRoundedRect = jest.fn();
   }
 
   destroy() {

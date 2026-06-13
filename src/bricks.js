@@ -2,6 +2,43 @@ import { GAME_CONSTANTS } from './constants.js';
 import { getGameState } from './state.js';
 import { calculateBrickLayout, hexToCss } from './brickLayout.js';
 
+function createBrickExplosion(domBrick) {
+  if (
+    !domBrick ||
+    typeof domBrick.getBoundingClientRect !== 'function' ||
+    typeof document === 'undefined'
+  ) {
+    return;
+  }
+
+  const rect = domBrick.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const color = domBrick.style?.backgroundColor || '#ffffff';
+
+  for (let i = 0; i < 12; i++) {
+    const particle = document.createElement('span');
+    const angle = (Math.PI * 2 * i) / 12;
+    const distance = 18 + Math.random() * 28;
+
+    particle.className = 'brick-particle';
+    particle.style.left = `${centerX}px`;
+    particle.style.top = `${centerY}px`;
+    particle.style.backgroundColor = color;
+    particle.style.setProperty(
+      '--particle-x',
+      `${Math.cos(angle) * distance}px`
+    );
+    particle.style.setProperty(
+      '--particle-y',
+      `${Math.sin(angle) * distance}px`
+    );
+
+    document.body.appendChild(particle);
+    window.setTimeout(() => particle.remove(), 700);
+  }
+}
+
 export function createBrick(
   scene,
   x,
@@ -104,6 +141,7 @@ export function handleBrickCollision(
 ) {
   const domBrick = brick.getData('domBrick');
   if (domBrick) {
+    createBrickExplosion(domBrick);
     domBrick.remove(); // Standard DOM removal
   }
 

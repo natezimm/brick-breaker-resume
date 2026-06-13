@@ -211,3 +211,21 @@ canvas {
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.5);
 }
+
+.brick-particle {
+  position: fixed;
+  z-index: 30;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: brickParticleBurst 0.68s ease-out forwards;
+}
+
+@keyframes brickParticleBurst {
+  to {
+    opacity: 0;
+    transform: translate(var(--particle-x), var(--particle-y)) rotate(210deg)
+      scale(0.25);
+  }
+}

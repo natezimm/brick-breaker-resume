@@ -91,6 +91,40 @@ describe('bricks', () => {
     expect(gameState.scoreText.setText).toHaveBeenCalledWith(20);
   });
 
+  test('handleBrickCollision creates brick explosion particles when geometry is available', () => {
+    jest.useFakeTimers();
+    const domBrickRemove = jest.fn();
+    const brickData = new Map([
+      [
+        'domBrick',
+        {
+          remove: domBrickRemove,
+          style: { backgroundColor: 'rgb(244, 67, 54)' },
+          getBoundingClientRect: () => ({
+            left: 20,
+            top: 30,
+            width: 80,
+            height: 24,
+          }),
+        },
+      ],
+      ['row', 0],
+    ]);
+    const brick = {
+      getData: (key) => brickData.get(key),
+      destroy: jest.fn(),
+    };
+
+    gameState.totalRows = 1;
+
+    handleBrickCollision(createMockScene(), {}, brick);
+
+    expect(document.querySelectorAll('.brick-particle')).toHaveLength(12);
+    jest.runOnlyPendingTimers();
+    expect(document.querySelectorAll('.brick-particle')).toHaveLength(0);
+    jest.useRealTimers();
+  });
+
   test('createBrick handles empty text', () => {
     const scene = createMockScene();
     gameState.bricksGroup = scene.physics.add.staticGroup();

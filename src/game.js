@@ -137,6 +137,96 @@ function loseLife(scene, state) {
   }
 }
 
+function getOrCreateTrailGraphics(scene, state, key) {
+  if (!state[key]) {
+    state[key] = scene.add.graphics({ x: 0, y: 0 });
+    state[key].setDepth?.(1);
+  }
+
+  return state[key];
+}
+
+function addTrailPoint(points, point) {
+  return [point, ...points]
+    .map((trailPoint, index) => ({
+      ...trailPoint,
+      alpha: Math.max(0.04, trailPoint.alpha * (1 - index * 0.1)),
+    }))
+    .slice(0, GAME_CONSTANTS.TRAIL_LENGTH);
+}
+
+function drawBallTrail(scene, state) {
+  if (!state.ball || !state.ball.body) return;
+
+  const graphics = getOrCreateTrailGraphics(scene, state, 'ballTrailGraphics');
+  if (!graphics.clear || !graphics.fillStyle || !graphics.fillCircle) return;
+
+  state.ballTrailPoints = addTrailPoint(state.ballTrailPoints, {
+    x: state.ball.x,
+    y: state.ball.y,
+    radius: GAME_CONSTANTS.BALL_RADIUS,
+    alpha: 0.26,
+  });
+
+  graphics.clear();
+  state.ballTrailPoints.forEach((point, index) => {
+    const radius = Math.max(2, point.radius - index * 1.2);
+    graphics.fillStyle(settings.ballColor, point.alpha);
+    graphics.fillCircle(point.x, point.y, radius);
+  });
+}
+
+function drawPaddleTrail(scene, state) {
+  if (!state.paddle) return;
+
+  const graphics = getOrCreateTrailGraphics(
+    scene,
+    state,
+    'paddleTrailGraphics'
+  );
+  if (!graphics.clear || !graphics.fillStyle) return;
+
+  const paddleWidth = state.paddle.displayWidth || state.paddle.width;
+  const paddleHeight = state.paddle.displayHeight || state.paddle.height;
+  state.paddleTrailPoints = addTrailPoint(state.paddleTrailPoints, {
+    x: state.paddle.x,
+    y: state.paddle.y,
+    width: paddleWidth,
+    height: paddleHeight,
+    alpha: 0.18,
+  });
+
+  graphics.clear();
+  state.paddleTrailPoints.forEach((point, index) => {
+    const height = Math.max(4, point.height - index * 2);
+    const width = Math.max(12, point.width - index * 4);
+    graphics.fillStyle(settings.paddleColor, point.alpha);
+
+    if (graphics.fillRoundedRect) {
+      graphics.fillRoundedRect(
+        point.x - width / 2,
+        point.y - height / 2,
+        width,
+        height,
+        height / 2
+      );
+    } else {
+      graphics.fillRect(
+        point.x - width / 2,
+        point.y - height / 2,
+        width,
+        height
+      );
+    }
+  });
+}
+
+function updateTrails(scene, state) {
+  if (state?.paused) return;
+  drawBallTrail(scene, state);
+  drawPaddleTrail(scene, state);
+}
+
 export function create() {
   const scene = this;
   const state = attachGameState(scene, createGameState());
@@ -185,4 +275,6 @@ export function update() {
   if (state?.ball) {
     state.ball.setRotation(0);
   }
+
+  updateTrails(scene, state);
 }

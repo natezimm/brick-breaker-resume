@@ -52,6 +52,10 @@ class GameState {
     this.winText = null;
     this.gameEnded = false;
     this.bricksCreated = false;
+    this.ballTrailGraphics = null;
+    this.ballTrailPoints = [];
+    this.paddleTrailGraphics = null;
+    this.paddleTrailPoints = [];
   }
 
   incrementScore(points) {
