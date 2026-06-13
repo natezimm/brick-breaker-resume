@@ -67,6 +67,8 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - `npm run format:check` enforces the shared Prettier config.
 - `npm test` runs the Jest suite for game and UI units.
 - `npm run test:coverage` generates coverage reports under `coverage/`.
+- `npm run test:e2e` runs Playwright smoke tests against a production preview.
+- `npm run test:e2e:headed` / `npm run test:e2e:ui` debug Playwright in headed or UI mode.
 
 ## Security
 
@@ -78,6 +80,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 ## Testing & Quality
 
 - GitHub Actions runs `npm run quality` on pull requests and pushes to `main`; deployment only runs for pushes to `main` after the gate passes.
+- Playwright covers the built browser game across desktop and mobile Chromium viewports.
 
 **Coverage thresholds:**
 
