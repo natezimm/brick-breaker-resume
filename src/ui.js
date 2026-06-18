@@ -2,6 +2,133 @@ import { GAME_CONSTANTS, TEXTURE_KEYS } from './constants.js';
 import { getGameState } from './state.js';
 import { settings } from './settings.js';
 
+const HUD_FONT_FAMILY =
+  'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+function formatScoreLabel(score, width = window.innerWidth) {
+  return width >= 405 ? `SCORE ${score}` : `${score}`;
+}
+
+function getScoreTextStyle(width = window.innerWidth) {
+  const isSmall = width < 405;
+
+  return {
+    fontSize: isSmall ? '20px' : '22px',
+    fontFamily: HUD_FONT_FAMILY,
+    fontStyle: 'bold',
+    fill: '#FFD700',
+    stroke: '#111827',
+    strokeThickness: isSmall ? 3 : 4,
+    padding: { left: 4, right: 4, top: 2, bottom: 2 },
+    shadow: {
+      offsetX: 0,
+      offsetY: 2,
+      color: 'rgba(0, 0, 0, 0.45)',
+      blur: 5,
+      stroke: true,
+      fill: true,
+    },
+  };
+}
+
+function getScorePosition(
+  width = window.innerWidth,
+  height = window.innerHeight
+) {
+  const margin = width < 400 ? 20 : 30;
+  return {
+    x: width - margin,
+    y: height - 20,
+  };
+}
+
+function getScorePlateBounds(scoreText) {
+  const width =
+    scoreText?.width ?? scoreText?.displayWidth ?? scoreText?.text?.length * 13;
+  const height = scoreText?.height ?? scoreText?.displayHeight ?? 29;
+  const x = (scoreText?.x ?? 0) - width - 9;
+  const y = (scoreText?.y ?? 0) - height / 2 - 5;
+
+  return {
+    x,
+    y,
+    width: width + 18,
+    height: height + 10,
+  };
+}
+
+function getScorePlateStyle() {
+  return settings.theme === 'dark'
+    ? {
+        fill: 0x030712,
+        fillAlpha: 0.82,
+        borderAlpha: 0.34,
+        glowAlpha: 0.1,
+      }
+    : {
+        fill: 0x111827,
+        fillAlpha: 0.74,
+        borderAlpha: 0.15,
+        glowAlpha: 0,
+      };
+}
+
+function redrawScorePlate(state) {
+  const scorePanel = state.scorePanel;
+  const scoreText = state.scoreText;
+  if (!scorePanel || !scoreText) return;
+
+  const bounds = getScorePlateBounds(scoreText);
+  const style = getScorePlateStyle();
+  if (typeof scorePanel.clear === 'function') {
+    scorePanel.clear();
+  }
+  if (
+    style.glowAlpha > 0 &&
+    typeof scorePanel.lineStyle === 'function' &&
+    typeof scorePanel.strokeRoundedRect === 'function'
+  ) {
+    scorePanel.lineStyle(3, 0xffffff, style.glowAlpha);
+    scorePanel.strokeRoundedRect(
+      bounds.x - 1,
+      bounds.y - 1,
+      bounds.width + 2,
+      bounds.height + 2,
+      8
+    );
+  }
+  if (typeof scorePanel.fillStyle === 'function') {
+    scorePanel.fillStyle(style.fill, style.fillAlpha);
+  }
+  if (typeof scorePanel.fillRoundedRect === 'function') {
+    scorePanel.fillRoundedRect(
+      bounds.x,
+      bounds.y,
+      bounds.width,
+      bounds.height,
+      7
+    );
+  }
+  if (typeof scorePanel.lineStyle === 'function') {
+    scorePanel.lineStyle(1, 0xffffff, style.borderAlpha);
+  }
+  if (typeof scorePanel.strokeRoundedRect === 'function') {
+    scorePanel.strokeRoundedRect(
+      bounds.x,
+      bounds.y,
+      bounds.width,
+      bounds.height,
+      7
+    );
+  }
+}
+
+function updateScoreTextLabel(state, score = state.score) {
+  if (!state.scoreText) return;
+  state.scoreText.setText(formatScoreLabel(score));
+  redrawScorePlate(state);
+}
+
 export function createLivesDisplay(scene, state = getGameState(scene)) {
   if (state.livesBalls && state.livesBalls.length > 0) {
     state.livesBalls.forEach((ball) => ball.destroy());
@@ -23,33 +150,30 @@ export function createLivesDisplay(scene, state = getGameState(scene)) {
 
 export function createScoreText(scene, state = getGameState(scene)) {
   if (state.scoreText) state.scoreText.destroy();
+  if (state.scorePanel) state.scorePanel.destroy();
 
-  const margin = window.innerWidth < 400 ? 20 : 30;
-  const prefix = window.innerWidth >= 405 ? 'SCORE: ' : '';
+  const position = getScorePosition();
+  state.scorePanel = scene.add.graphics({ x: 0, y: 0 });
+  if (typeof state.scorePanel.setDepth === 'function') {
+    state.scorePanel.setDepth(8);
+  }
 
   state.scoreText = scene.add
     .text(
-      window.innerWidth - margin,
-      window.innerHeight - 20,
-      `${prefix}${state.score}`,
-      {
-        fontSize: '24px',
-        fontFamily: '"Arial Black", Gadget, sans-serif',
-        fill: '#FFD700',
-        stroke: '#000000',
-        strokeThickness: 4,
-        padding: { right: 4 },
-        shadow: {
-          offsetX: 2,
-          offsetY: 2,
-          color: '#000',
-          blur: 2,
-          stroke: true,
-          fill: true,
-        },
-      }
+      position.x,
+      position.y,
+      formatScoreLabel(state.score),
+      getScoreTextStyle()
     )
-    .setOrigin(1, 0.5);
+    .setOrigin(1, 0.5)
+    .setDepth(9);
+  if (typeof state.scoreText.setResolution === 'function') {
+    state.scoreText.setResolution(2);
+  }
+  state.scoreText.updateScoreLabel = (score) =>
+    updateScoreTextLabel(state, score);
+  state.scoreText.refreshScoreChrome = () => redrawScorePlate(state);
+  redrawScorePlate(state);
 }
 
 export function hideGameMessage() {
@@ -189,6 +313,7 @@ export function togglePause(scene, state = getGameState(scene)) {
       'aria-label',
       paused ? 'Resume game' : 'Pause game'
     );
+    pauseButton.setAttribute('aria-pressed', paused ? 'true' : 'false');
     pauseButton.title = paused ? 'Resume' : 'Pause';
   }
 
@@ -259,9 +384,21 @@ export function setupWindowResize(game) {
 
       if (state.scoreText) {
         const margin = width < 400 ? 10 : 20;
-        const prefix = width >= 405 ? 'SCORE: ' : '';
-        state.scoreText.setText(`${prefix}${state.score}`);
-        state.scoreText.setPosition(width - margin, height - 20);
+        const position = {
+          x: width - margin,
+          y: height - 20,
+        };
+        if (typeof state.scoreText.setStyle === 'function') {
+          state.scoreText.setStyle(getScoreTextStyle(width));
+        }
+        if (typeof state.scoreText.updateScoreLabel === 'function') {
+          state.scoreText.updateScoreLabel(state.score);
+        } else {
+          const prefix = width >= 405 ? 'SCORE: ' : '';
+          state.scoreText.setText(`${prefix}${state.score}`);
+        }
+        state.scoreText.setPosition(position.x, position.y);
+        redrawScorePlate(state);
       }
 
       if (state.livesBalls) {

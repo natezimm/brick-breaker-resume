@@ -42,6 +42,7 @@ class GameState {
     this.lives = GAME_CONSTANTS.INITIAL_LIVES;
     this.livesBalls = [];
     this.score = GAME_CONSTANTS.INITIAL_SCORE;
+    this.scorePanel = null;
     this.scoreText = null;
     this.totalRows = 0;
     this.paused = true;
@@ -61,7 +62,11 @@ class GameState {
   incrementScore(points) {
     this.score += points;
     if (this.scoreText) {
-      this.scoreText.setText(this.score);
+      if (typeof this.scoreText.updateScoreLabel === 'function') {
+        this.scoreText.updateScoreLabel(this.score);
+      } else {
+        this.scoreText.setText(this.score);
+      }
     }
     this.updateHighScore();
   }

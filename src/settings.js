@@ -114,6 +114,7 @@ export function applyThemeToScene(
   }
 
   setTextFill(state.scoreText, colors.scoreText);
+  state.scoreText?.refreshScoreChrome?.();
   setTextFill(state.countdownText, colors.hudTextMuted);
   setTextFill(state.winText, colors.hudTextMuted);
 }
@@ -192,6 +193,7 @@ export function setupSettings(game) {
         pauseButton.appendChild(icon);
 
         pauseButton.setAttribute('aria-label', 'Resume game');
+        pauseButton.setAttribute('aria-pressed', 'true');
         pauseButton.title = 'Resume';
       }
     } else {
