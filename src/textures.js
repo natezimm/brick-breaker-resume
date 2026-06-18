@@ -4,6 +4,31 @@ function toCssHex(color) {
   return `#${color.toString(16).padStart(6, '0')}`;
 }
 
+function toRgb(color) {
+  return {
+    r: (color >> 16) & 255,
+    g: (color >> 8) & 255,
+    b: color & 255,
+  };
+}
+
+function rgba(color, alpha) {
+  const { r, g, b } = toRgb(color);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function fillRoundedRect(context, x, y, width, height, radius) {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+  context.fill();
+}
+
+function strokeRoundedRect(context, x, y, width, height, radius) {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+  context.stroke();
+}
+
 export function createPaddleCanvas({
   width = GAME_CONSTANTS.PADDLE_WIDTH,
   height = GAME_CONSTANTS.PADDLE_HEIGHT,
@@ -14,29 +39,84 @@ export function createPaddleCanvas({
   canvas.height = height;
 
   const context = canvas.getContext('2d');
+  const inset = 1;
+  const bodyX = inset;
+  const bodyY = inset;
+  const bodyWidth = Math.max(1, width - inset * 2);
+  const bodyHeight = Math.max(1, height - inset * 2);
+  const bodyRadius = bodyHeight / 2;
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.24)';
+  fillRoundedRect(
+    context,
+    bodyX,
+    bodyY + 1,
+    bodyWidth,
+    bodyHeight - 1,
+    bodyRadius
+  );
+
   context.fillStyle = toCssHex(color);
+  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
 
-  context.beginPath();
-  context.roundRect(0, 0, width, height, height / 2);
-  context.fill();
+  const faceGradient = context.createLinearGradient(
+    0,
+    bodyY,
+    0,
+    bodyY + bodyHeight
+  );
+  faceGradient.addColorStop(0, 'rgba(255, 255, 255, 0.46)');
+  faceGradient.addColorStop(0.24, 'rgba(255, 255, 255, 0.16)');
+  faceGradient.addColorStop(0.55, rgba(color, 0.08));
+  faceGradient.addColorStop(0.82, 'rgba(0, 0, 0, 0.16)');
+  faceGradient.addColorStop(1, 'rgba(0, 0, 0, 0.34)');
 
-  const gradient = context.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-  gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.1)');
-  gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+  context.fillStyle = faceGradient;
+  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
 
-  context.fillStyle = gradient;
-  context.beginPath();
-  context.roundRect(0, 0, width, height, height / 2);
-  context.fill();
+  const sideGradient = context.createLinearGradient(bodyX, 0, width - inset, 0);
+  sideGradient.addColorStop(0, 'rgba(0, 0, 0, 0.22)');
+  sideGradient.addColorStop(0.16, 'rgba(255, 255, 255, 0.12)');
+  sideGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+  sideGradient.addColorStop(0.84, 'rgba(0, 0, 0, 0.02)');
+  sideGradient.addColorStop(1, 'rgba(0, 0, 0, 0.28)');
 
-  context.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-  context.lineWidth = 2;
-  context.beginPath();
-  context.moveTo(height / 2, height * 0.3);
-  context.lineTo(width - height / 2, height * 0.3);
-  context.stroke();
+  context.fillStyle = sideGradient;
+  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
+
+  const railY = bodyY + Math.max(4, bodyHeight * 0.28);
+  const railStart = bodyX + bodyRadius + 4;
+  const railEnd = bodyX + bodyWidth - bodyRadius - 4;
+
+  if (railEnd > railStart) {
+    context.strokeStyle = 'rgba(255, 255, 255, 0.48)';
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(railStart, railY);
+    context.lineTo(railEnd, railY);
+    context.stroke();
+  }
+
+  context.strokeStyle = 'rgba(255, 255, 255, 0.34)';
+  context.lineWidth = 1;
+  strokeRoundedRect(
+    context,
+    bodyX + 0.5,
+    bodyY + 0.5,
+    bodyWidth - 1,
+    bodyHeight - 1,
+    Math.max(1, bodyRadius - 0.5)
+  );
+
+  context.strokeStyle = 'rgba(0, 0, 0, 0.24)';
+  strokeRoundedRect(
+    context,
+    bodyX + 0.5,
+    bodyY + 0.5,
+    bodyWidth - 1,
+    bodyHeight - 1,
+    Math.max(1, bodyRadius - 0.5)
+  );
 
   return canvas;
 }
@@ -51,39 +131,68 @@ export function createBallCanvas({
   canvas.height = size;
 
   const context = canvas.getContext('2d');
+  const center = size / 2;
+  const visualRadius = Math.max(2, Math.min(radius, center) - 1);
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  context.beginPath();
+  context.arc(center + 0.75, center + 0.9, visualRadius, 0, Math.PI * 2);
+  context.fill();
+
   context.fillStyle = toCssHex(color);
   context.beginPath();
-  context.arc(radius, radius, radius, 0, Math.PI * 2);
+  context.arc(center, center, visualRadius, 0, Math.PI * 2);
   context.fill();
 
-  const highlightGradient = context.createRadialGradient(
-    radius - radius * 0.3,
-    radius - radius * 0.3,
-    2,
-    radius - radius * 0.3,
-    radius - radius * 0.3,
-    radius
+  const materialGradient = context.createRadialGradient(
+    center - visualRadius * 0.42,
+    center - visualRadius * 0.46,
+    visualRadius * 0.12,
+    center + visualRadius * 0.12,
+    center + visualRadius * 0.1,
+    visualRadius * 1.2
   );
-  highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-  highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  materialGradient.addColorStop(0, 'rgba(255, 255, 255, 0.74)');
+  materialGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.22)');
+  materialGradient.addColorStop(0.58, rgba(color, 0.05));
+  materialGradient.addColorStop(0.82, 'rgba(0, 0, 0, 0.12)');
+  materialGradient.addColorStop(1, 'rgba(0, 0, 0, 0.42)');
 
-  context.fillStyle = highlightGradient;
+  context.fillStyle = materialGradient;
   context.beginPath();
-  context.arc(radius, radius, radius, 0, Math.PI * 2);
+  context.arc(center, center, visualRadius, 0, Math.PI * 2);
   context.fill();
 
-  const shadowGradient = context.createLinearGradient(0, 0, size, size);
-  shadowGradient.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
-  shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+  const rimGradient = context.createLinearGradient(0, 0, size, size);
+  rimGradient.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+  rimGradient.addColorStop(0.45, 'rgba(255, 255, 255, 0)');
+  rimGradient.addColorStop(1, 'rgba(0, 0, 0, 0.36)');
 
-  context.fillStyle = shadowGradient;
+  context.fillStyle = rimGradient;
   context.beginPath();
-  context.arc(radius, radius, radius, 0, Math.PI * 2);
+  context.arc(center, center, visualRadius, 0, Math.PI * 2);
   context.fill();
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  context.lineWidth = 1;
   context.beginPath();
-  context.arc(radius - 3, radius - 3, 1.5, 0, Math.PI * 2);
+  context.arc(center, center, visualRadius - 0.5, 0, Math.PI * 2);
+  context.stroke();
+
+  context.strokeStyle = 'rgba(0, 0, 0, 0.22)';
+  context.beginPath();
+  context.arc(center, center, visualRadius - 0.5, 0, Math.PI * 2);
+  context.stroke();
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.88)';
+  context.beginPath();
+  context.arc(
+    center - visualRadius * 0.36,
+    center - visualRadius * 0.4,
+    Math.max(1.2, visualRadius * 0.16),
+    0,
+    Math.PI * 2
+  );
   context.fill();
 
   return canvas;

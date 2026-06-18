@@ -141,11 +141,20 @@ describe('game scene', () => {
     state.ball.setVelocity = jest.fn();
     state.ball.setRotation = jest.fn();
     scene.physics.world.emit('worldbounds', state.ball.body, false, true);
-    jest.runOnlyPendingTimers();
     const expectedX =
       GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed;
     const expectedY =
       GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed;
+    expect(state.ball.setVelocity).not.toHaveBeenCalledWith(
+      expectedX,
+      expectedY
+    );
+    jest.advanceTimersByTime(GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY - 1);
+    expect(state.ball.setVelocity).not.toHaveBeenCalledWith(
+      expectedX,
+      expectedY
+    );
+    jest.advanceTimersByTime(1);
     expect(state.ball.setVelocity).toHaveBeenCalledWith(expectedX, expectedY);
 
     const expectedCallsBeforeFalseBranch =

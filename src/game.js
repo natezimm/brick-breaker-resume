@@ -53,6 +53,7 @@ export function preload() {}
 function createPaddle(scene, state) {
   state.paddle = scene.physics.add
     .image(window.innerWidth / 2, window.innerHeight - 55, TEXTURE_KEYS.PADDLE)
+    .setDepth(2)
     .setImmovable(true)
     .setCollideWorldBounds(true);
 }
@@ -61,6 +62,7 @@ function createBall(scene, state) {
   state.ball = scene.physics.add
     .image(window.innerWidth / 2, window.innerHeight - 80, TEXTURE_KEYS.BALL)
     .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
+    .setDepth(3)
     .setVelocity(0, 0)
     .setBounce(1)
     .setCollideWorldBounds(true);
@@ -129,7 +131,7 @@ function loseLife(scene, state) {
           GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
         );
       }
-    }, 1000);
+    }, GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY);
   } else {
     showGameOver(scene, state);
     state.ball.destroy();
@@ -171,7 +173,17 @@ function drawBallTrail(scene, state) {
   graphics.clear();
   state.ballTrailPoints.forEach((point, index) => {
     const radius = Math.max(2, point.radius - index * 1.2);
-    graphics.fillStyle(settings.ballColor, point.alpha);
+    const glowRadius = radius + 4 - index * 0.35;
+
+    graphics.fillStyle(settings.ballColor, point.alpha * 0.24);
+    graphics.fillCircle(point.x, point.y, glowRadius);
+    graphics.fillStyle(0xffffff, point.alpha * 0.08);
+    graphics.fillCircle(
+      point.x - radius * 0.2,
+      point.y - radius * 0.2,
+      Math.max(1, radius * 0.36)
+    );
+    graphics.fillStyle(settings.ballColor, point.alpha * 0.72);
     graphics.fillCircle(point.x, point.y, radius);
   });
 }
@@ -200,17 +212,35 @@ function drawPaddleTrail(scene, state) {
   state.paddleTrailPoints.forEach((point, index) => {
     const height = Math.max(4, point.height - index * 2);
     const width = Math.max(12, point.width - index * 4);
-    graphics.fillStyle(settings.paddleColor, point.alpha);
+    const radius = height / 2;
 
     if (graphics.fillRoundedRect) {
+      graphics.fillStyle(settings.paddleColor, point.alpha * 0.28);
+      graphics.fillRoundedRect(
+        point.x - width / 2,
+        point.y - height / 2 - 1,
+        width,
+        height + 2,
+        radius + 1
+      );
+      graphics.fillStyle(settings.paddleColor, point.alpha * 0.62);
       graphics.fillRoundedRect(
         point.x - width / 2,
         point.y - height / 2,
         width,
         height,
-        height / 2
+        radius
+      );
+      graphics.fillStyle(0xffffff, point.alpha * 0.08);
+      graphics.fillRoundedRect(
+        point.x - width / 2 + radius,
+        point.y - height / 2 + 2,
+        Math.max(4, width - radius * 2),
+        Math.max(2, height * 0.22),
+        Math.max(1, height * 0.11)
       );
     } else {
+      graphics.fillStyle(settings.paddleColor, point.alpha * 0.62);
       graphics.fillRect(
         point.x - width / 2,
         point.y - height / 2,
