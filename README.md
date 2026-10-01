@@ -89,10 +89,10 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - Functions ≥ 85%
 - Branches ≥ 80%
 
-## Deployment (GitHub Actions → Lightsail)
+## Deployment (GitHub Actions → GCP)
 
 - The `deploy` job downloads the repo as an artifact and `rsync`s it to `/var/www/brick-breaker/` on the target host, then runs a simple health check.
-- Required GitHub secrets: `LIGHTSAIL_SSH_KEY`, `LIGHTSAIL_HOST`, `LIGHTSAIL_USER`, `APP_DOMAIN`.
+- Required GitHub secrets: `GCP_SSH_KEY`, `GCP_HOST`, `GCP_USER`, `APP_DOMAIN`.
 
 ## File Structure
 

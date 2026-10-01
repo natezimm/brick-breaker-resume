@@ -51,13 +51,13 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan "${{ secrets.LIGHTSAIL_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan "${{ secrets.GCP_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy to Lightsail
+      - name: Deploy to GCP
         run: |
-          rsync -avz --delete site/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/var/www/brick-breaker/
+          rsync -avz --delete site/ ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:/var/www/brick-breaker/
 
       - name: Health check
         run: |

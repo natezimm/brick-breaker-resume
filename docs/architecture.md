@@ -18,7 +18,7 @@ flowchart LR
   Generator --> Assets
   Repo["Repo quality gate<br/>npm run quality"] --> Prebuild["prebuild<br/>generate resume JSON"]
   Prebuild --> Build["Vite build<br/>dist/"]
-  Build --> Deploy["GitHub Actions<br/>rsync to Lightsail"]
+  Build --> Deploy["GitHub Actions<br/>rsync to GCP"]
 
   classDef user fill:#f8fafc,stroke:#475569,color:#0f172a
   classDef site fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e
@@ -45,7 +45,7 @@ Run `npm run quality` from the repo root. The gate checks Prettier formatting, E
 
 ## Deployment Flow
 
-GitHub Actions runs the root quality gate for pull requests and pushes to `main`. Pushes to `main` upload the built `dist/` artifact, download it in the deploy job, sync it to Lightsail, and run a public health check.
+GitHub Actions runs the root quality gate for pull requests and pushes to `main`. Pushes to `main` upload the built `dist/` artifact, download it in the deploy job, sync it to GCP, and run a public health check.
 
 ## Workspace Connectivity
 
@@ -75,12 +75,12 @@ flowchart LR
   NerdleRepo --> Actions
   SudokuRepo --> Actions
   BlackjackRepo --> Actions
-  Actions --> Lightsail["AWS Lightsail<br/>static sites + app services"]
-  Lightsail --> PortfolioSite
-  Lightsail --> BrickSite
-  Lightsail --> NerdleSite
-  Lightsail --> SudokuSite
-  Lightsail --> BlackjackSite
+  Actions --> GCP["AWS GCP<br/>static sites + app services"]
+  GCP --> PortfolioSite
+  GCP --> BrickSite
+  GCP --> NerdleSite
+  GCP --> SudokuSite
+  GCP --> BlackjackSite
 
   classDef user fill:#f8fafc,stroke:#475569,color:#0f172a
   classDef site fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e
@@ -92,7 +92,7 @@ flowchart LR
   classDef external fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d
   class PortfolioRepo,BrickRepo,NerdleRepo,SudokuRepo,BlackjackRepo repo
   class PortfolioSite,BrickSite,NerdleSite,SudokuSite,BlackjackSite site
-  class Actions,Lightsail delivery
+  class Actions,GCP delivery
 ```
 
 ## Deferred Architecture Follow-Ups
