@@ -53,11 +53,20 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan "${{ secrets.GCP_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan github.com >> ~/.ssh/known_hosts || true
+          ssh-keyscan "${{ secrets.GCP_HOST }}" >> ~/.ssh/known_hosts || true
+
+          cat <<SSHCONFIG > ~/.ssh/config
+          Host gcp
+            HostName ${{ secrets.GCP_HOST }}
+            User ${{ secrets.GCP_USER }}
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking=no
+          SSHCONFIG
 
       - name: Deploy to GCP
         run: |
-          rsync -avz --delete site/ ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:/var/www/brick-breaker/
+          rsync -avz --delete site/ gcp:/var/www/brick-breaker/
 
       - name: Health check
         run: |
