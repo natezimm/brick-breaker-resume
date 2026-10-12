@@ -1,4 +1,4 @@
-import { renderOverlayBricks } from '../src/overlay.js';
+import { enableSeamDrag, renderOverlayBricks } from '../src/overlay.js';
 
 function mockResume(elements) {
   global.fetch = jest.fn().mockResolvedValue({
@@ -72,5 +72,75 @@ describe('start screen résumé', () => {
 
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
+  });
+});
+
+describe('start screen seam', () => {
+  let overlay;
+
+  const pointer = (
+    type,
+    { x = 0, pointerType = 'touch', target = overlay }
+  ) => {
+    const event = new Event(type, { bubbles: true });
+    Object.assign(event, { clientX: x, pointerType });
+    target.dispatchEvent(event);
+  };
+  const split = () => overlay.style.getPropertyValue('--split');
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="startOverlay">
+        <button id="play">Play</button>
+      </div>`;
+    overlay = document.getElementById('startOverlay');
+    overlay.getBoundingClientRect = () => ({ left: 0, width: 400 });
+    enableSeamDrag();
+  });
+
+  test('a finger drags the seam, back and forth', () => {
+    pointer('pointerdown', { x: 100 });
+    expect(split()).toBe('25.0%');
+    expect(overlay.classList.contains('is-dragging')).toBe(true);
+
+    pointer('pointermove', { x: 300 });
+    expect(split()).toBe('75.0%');
+
+    pointer('pointermove', { x: 180 });
+    expect(split()).toBe('45.0%');
+
+    pointer('pointerup', {});
+    expect(overlay.classList.contains('is-dragging')).toBe(false);
+    expect(split()).toBe('45.0%');
+  });
+
+  test('the seam stops short of either edge', () => {
+    pointer('pointermove', { x: 0, pointerType: 'pen' });
+    expect(split()).toBe('12.0%');
+
+    pointer('pointermove', { x: 400 });
+    expect(split()).toBe('88.0%');
+
+    pointer('pointercancel', {});
+    expect(overlay.classList.contains('is-dragging')).toBe(false);
+  });
+
+  test('a mouse, a tap on a button, and a hidden overlay leave the seam alone', () => {
+    pointer('pointermove', { x: 100, pointerType: 'mouse' });
+    pointer('pointerdown', { x: 100, target: document.getElementById('play') });
+    expect(split()).toBe('');
+
+    overlay.classList.add('hidden');
+    pointer('pointermove', { x: 100 });
+    expect(split()).toBe('');
+  });
+
+  test('does nothing without an overlay or before it has a size', () => {
+    overlay.getBoundingClientRect = () => ({ left: 0, width: 0 });
+    pointer('pointermove', { x: 100 });
+    expect(split()).toBe('');
+
+    document.body.innerHTML = '';
+    expect(() => enableSeamDrag()).not.toThrow();
   });
 });

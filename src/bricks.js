@@ -1,11 +1,7 @@
 import { GAME_CONSTANTS, THEMES } from './constants.js';
 import { getGameState } from './state.js';
 import { calculateBrickLayout } from './brickLayout.js';
-import {
-  createBrickElement,
-  createDecorElement,
-  createGhostElement,
-} from './brickDom.js';
+import { createBrickElement, createGhostElement } from './brickDom.js';
 
 const PARTICLE_COUNT = 12;
 const PARTICLE_LIFETIME = 700;
@@ -167,17 +163,13 @@ export async function createBricksFromResume(
   scene,
   state = getGameState(scene)
 ) {
-  const { bricks, decor, totalRows, mode } = await calculateBrickLayout();
+  const { bricks, totalRows, mode } = await calculateBrickLayout();
 
   const container = getBrickContainer();
   container.textContent = '';
   container.dataset.layout = mode;
 
   state.totalRows = totalRows;
-
-  decor.forEach((mark) => {
-    container.appendChild(createDecorElement(mark));
-  });
 
   bricks.forEach((brickData) => {
     // Words broken before a theme switch stay broken in the new layout.

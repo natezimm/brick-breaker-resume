@@ -44,6 +44,7 @@ const MAX_CONTENT_WIDTH = 1400;
 const RULE_SEGMENT = 110;
 const RULE_GAP = 2;
 const RULE_HIT_HEIGHT = 6;
+const BULLET = '•';
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -79,7 +80,7 @@ export function layoutTypeset(elements, { width, height, measure, scale = 1 }) {
   const padX = 2;
 
   const bricks = [];
-  const decor = [];
+  let dots = 0;
   let y = clamp(height * 0.03, GAME_CONSTANTS.MARGIN_TOP, 26);
   let row = 0;
   let wordIndex = 0;
@@ -251,16 +252,24 @@ export function layoutTypeset(elements, { width, height, measure, scale = 1 }) {
     if (element.kind === 'bullet') {
       const metrics = metricsFor('bullet');
       const indent = Math.round(15 * scale);
+      // The dot is in play too, keyed apart from the words like the rule.
       if (y + metrics.height <= maxY) {
-        decor.push({
-          type: 'bullet',
-          x: left + 2 * scale,
+        bricks.push({
+          x: left,
           y,
+          width: metrics.widthOf(BULLET) + padX * 2,
           height: metrics.height,
+          text: BULLET,
+          kind: 'dot',
           font: metrics.font,
-          text: '•',
+          letterSpacing: 0,
+          color: COLORS.INK,
+          rowIndex: row,
+          wordIndex: `dot-${dots}`,
+          isLastInRow: false,
         });
       }
+      dots++;
       flow(toTokens(element.text), 'bullet', {
         startX: left + indent,
         wrapX: left + indent,
@@ -284,7 +293,7 @@ export function layoutTypeset(elements, { width, height, measure, scale = 1 }) {
     0
   );
 
-  return { bricks, decor, totalRows, truncated, scale };
+  return { bricks, totalRows, truncated, scale };
 }
 
 /**

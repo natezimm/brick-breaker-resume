@@ -2,7 +2,7 @@ import { hexToCss } from './brickLayout.js';
 
 /**
  * DOM rendering shared by the start overlay and the running game, so both
- * draw a layout record identically.
+ * draw a layout record identically. Everything on the page is a brick.
  */
 
 function applyBox(element, { x, y, width, height }) {
@@ -55,20 +55,6 @@ export function createGhostElement(brick) {
   return element;
 }
 
-/** Marks such as bullet glyphs: part of the page, never part of the game. */
-export function createDecorElement(decor) {
-  const element = document.createElement('div');
-  element.className = `brick-decor brick-decor--${decor.type}`;
-
-  applyBox(element, decor);
-  if (decor.text) {
-    element.textContent = decor.text;
-    applyType(element, decor);
-  }
-
-  return element;
-}
-
 /**
  * Fills a container with a layout. Words in `brokenWords` are skipped; the
  * typeset page keeps their impression.
@@ -77,10 +63,6 @@ export function createDecorElement(decor) {
 export function renderLayout(container, layout, { onBrick, brokenWords } = {}) {
   container.textContent = '';
   container.dataset.layout = layout.mode;
-
-  layout.decor.forEach((decor) => {
-    container.appendChild(createDecorElement(decor));
-  });
 
   layout.bricks.forEach((brick) => {
     if (brokenWords?.has(brick.wordIndex)) {

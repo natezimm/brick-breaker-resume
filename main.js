@@ -1,10 +1,11 @@
 import { createConfig } from './src/config.js';
 import { setupUIButtons, setupWindowResize } from './src/ui.js';
 import { applyTheme, initializeTheme, setupSettings } from './src/settings.js';
-import { renderOverlayBricks } from './src/overlay.js';
+import { enableSeamDrag, renderOverlayBricks } from './src/overlay.js';
 
 initializeTheme();
 renderOverlayBricks();
+enableSeamDrag();
 
 async function initGame() {
   const { default: Phaser } = await import('phaser');
@@ -32,7 +33,10 @@ function startGame(theme) {
   applyTheme(theme);
 
   if (startOverlay) {
-    // The chosen look sweeps across the whole screen as the overlay leaves.
+    // The chosen look sweeps across the whole screen as the overlay leaves,
+    // from wherever a finger may have left the seam.
+    startOverlay.classList.remove('is-dragging');
+    startOverlay.style.removeProperty('--split');
     startOverlay.dataset.chosen = theme;
     startOverlay.classList.add('hidden');
   }

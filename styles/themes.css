@@ -126,7 +126,8 @@
 }
 
 [data-layout='typeset'] .overlay-brick.brick--contact,
-[data-layout='typeset'] .overlay-brick.brick--date {
+[data-layout='typeset'] .overlay-brick.brick--date,
+[data-layout='typeset'] .overlay-brick.brick--dot {
   color: var(--ink-soft, #5b6170);
 }
 
@@ -155,15 +156,6 @@
   --stroke: rgba(22, 24, 29, 0.13);
 }
 
-.brick-decor {
-  pointer-events: none;
-}
-
-.brick-decor--bullet {
-  justify-content: flex-start;
-  color: var(--ink-soft, #5b6170);
-}
-
 /* ---------- Entrance: the résumé arrives on the start screen ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -172,8 +164,7 @@
     animation-delay: calc(var(--row) * 50ms + var(--col) * 14ms);
   }
 
-  .look-resume[data-layout='typeset'] .overlay-brick,
-  .look-resume[data-layout='typeset'] .brick-decor {
+  .look-resume[data-layout='typeset'] .overlay-brick {
     animation: inkArrive 0.55s ease both;
     animation-delay: calc(var(--row, 0) * 30ms + var(--col, 0) * 12ms);
   }

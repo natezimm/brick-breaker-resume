@@ -21,3 +21,38 @@ export async function renderOverlayBricks() {
     console.warn('Could not render overlay bricks:', e);
   }
 }
+
+const SEAM_MIN = 12;
+const SEAM_MAX = 88;
+
+/**
+ * Lets a finger or pen drag the seam between the two looks. A mouse leans
+ * the seam by hovering instead (see base.css), which touch screens cannot do.
+ */
+export function enableSeamDrag(
+  overlay = document.getElementById('startOverlay')
+) {
+  if (!overlay) return;
+
+  const follow = (event) => {
+    if (event.pointerType === 'mouse') return;
+    if (overlay.classList.contains('hidden')) return;
+    // A tap on a button or link is a choice, not a drag.
+    if (event.target?.closest?.('button, a')) return;
+
+    const { left, width } = overlay.getBoundingClientRect();
+    if (!width) return;
+
+    const percent = ((event.clientX - left) / width) * 100;
+    const split = Math.min(SEAM_MAX, Math.max(SEAM_MIN, percent));
+    overlay.classList.add('is-dragging');
+    overlay.style.setProperty('--split', `${split.toFixed(1)}%`);
+  };
+
+  const release = () => overlay.classList.remove('is-dragging');
+
+  overlay.addEventListener('pointerdown', follow);
+  overlay.addEventListener('pointermove', follow);
+  overlay.addEventListener('pointerup', release);
+  overlay.addEventListener('pointercancel', release);
+}

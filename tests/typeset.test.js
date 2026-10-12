@@ -28,11 +28,11 @@ const narrow = { width: 360, height: 900, measure };
 
 describe('typeset layout', () => {
   test('sets each part of the résumé in its own style, top to bottom', () => {
-    const { bricks, decor, totalRows, truncated } = layoutTypeset(resume, wide);
+    const { bricks, totalRows, truncated } = layoutTypeset(resume, wide);
 
     expect(truncated).toBe(false);
     expect(bricks[0]).toMatchObject({ text: 'Nathan', kind: 'name' });
-    const words = bricks.filter((brick) => brick.kind !== 'rule');
+    const words = bricks.filter((brick) => typeof brick.wordIndex === 'number');
     expect(words.map((brick) => brick.wordIndex)).toEqual(
       words.map((_, index) => index)
     );
@@ -45,6 +45,7 @@ describe('typeset layout', () => {
       'heading',
       'role',
       'date',
+      'dot',
       'bullet',
       'body',
     ]);
@@ -57,7 +58,6 @@ describe('typeset layout', () => {
       1.38
     );
 
-    expect(decor.map((mark) => mark.type)).toEqual(['bullet', 'bullet']);
     expect(totalRows).toBe(bricks[bricks.length - 1].rowIndex + 1);
 
     const ys = bricks.map((brick) => brick.y);
@@ -99,7 +99,7 @@ describe('typeset layout', () => {
   });
 
   test('stops at the play area and still numbers the words it left out', () => {
-    const { bricks, decor, truncated } = layoutTypeset(resume, {
+    const { bricks, truncated } = layoutTypeset(resume, {
       width: 360,
       height: 240,
       measure,
@@ -110,13 +110,10 @@ describe('typeset layout', () => {
     bricks.forEach((brick) => {
       expect(brick.y + brick.height).toBeLessThanOrEqual(240 * 0.75);
     });
-    decor.forEach((mark) => {
-      expect(mark.y).toBeLessThanOrEqual(240 * 0.75);
-    });
 
     const full = layoutTypeset(resume, narrow);
     const lastShown = bricks[bricks.length - 1];
-    expect(lastShown.kind).not.toBe('rule');
+    expect(typeof lastShown.wordIndex).toBe('number');
     expect(
       full.bricks.find((brick) => brick.wordIndex === lastShown.wordIndex).text
     ).toBe(lastShown.text);
@@ -145,6 +142,38 @@ describe('typeset layout', () => {
     expect(heading.y).toBeGreaterThan(rule[0].y + rule[0].height);
   });
 
+  test('each bullet dot is a small brick ahead of its text', () => {
+    const { bricks } = layoutTypeset(resume, wide);
+    const dots = bricks.filter((brick) => brick.kind === 'dot');
+    const bullets = bricks.filter((brick) => brick.kind === 'bullet');
+
+    expect(dots.map((brick) => brick.wordIndex)).toEqual(['dot-0', 'dot-1']);
+    expect(dots.every((brick) => brick.text === '•')).toBe(true);
+
+    // The dot shares the first line of its bullet and stops short of the text.
+    expect(dots[0].rowIndex).toBe(bullets[0].rowIndex);
+    expect(dots[0].y).toBe(bullets[0].y);
+    expect(dots[0].x).toBeCloseTo(1200 * 0.06, 5);
+    expect(dots[0].x + dots[0].width).toBeLessThanOrEqual(bullets[0].x);
+    expect(dots[0].font).toBe(bullets[0].font);
+    expect(dots[1].y).toBeGreaterThan(dots[0].y);
+  });
+
+  test('a bullet below the play area gets no dot', () => {
+    const heights = Array.from({ length: 120 }, (_, step) => 200 + step * 2);
+    const cut = heights
+      .map((height) => layoutTypeset(resume, { width: 1200, height, measure }))
+      .find(
+        (layout) =>
+          layout.bricks.filter((brick) => brick.kind === 'dot').length === 1
+      );
+
+    expect(cut.truncated).toBe(true);
+    expect(cut.bricks.find((brick) => brick.kind === 'dot').wordIndex).toBe(
+      'dot-0'
+    );
+  });
+
   test('a rule with no room is left out', () => {
     const { bricks } = layoutTypeset(resume, {
       width: 1200,
@@ -157,7 +186,7 @@ describe('typeset layout', () => {
   });
 
   test('handles a résumé with no contact line or dates', () => {
-    const { bricks, decor } = layoutTypeset(
+    const { bricks } = layoutTypeset(
       classifyElements([
         { tag: 'p', text: 'Nathan Zimmerman' },
         { tag: 'p', text: 'PROJECTS' },
@@ -167,8 +196,8 @@ describe('typeset layout', () => {
       wide
     );
 
-    expect(decor).toHaveLength(0);
     expect(bricks.some((brick) => brick.kind === 'rule')).toBe(false);
+    expect(bricks.some((brick) => brick.kind === 'dot')).toBe(false);
     expect(bricks.some((brick) => brick.kind === 'date')).toBe(false);
     expect(bricks.filter((brick) => brick.kind === 'heading')).toHaveLength(2);
   });

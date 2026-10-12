@@ -256,9 +256,7 @@ describe('bricks', () => {
       await createBricksFromResume(scene);
       const container = document.getElementById('gameBrickContainer');
       expect(container.dataset.layout).toBe('typeset');
-      expect(container.querySelectorAll('.brick-decor').length).toBeGreaterThan(
-        0
-      );
+      expect(container.querySelectorAll('.brick--dot')).toHaveLength(1);
 
       const brick = liveBricks()[0];
       handleBrickCollision(scene, { body: { velocity: { x: 200 } } }, brick);
@@ -299,7 +297,7 @@ describe('bricks', () => {
         liveBricks()
           .map((brick) => brick.getData('record').text)
           .filter(Boolean)
-      ).toEqual(['Zimmerman', 'Raritan', 'SKILLS', 'Angular', 'React']);
+      ).toEqual(['Zimmerman', 'Raritan', 'SKILLS', '•', 'Angular', 'React']);
       expect(container.querySelector('.brick-ghost').textContent).toBe(
         'Nathan'
       );

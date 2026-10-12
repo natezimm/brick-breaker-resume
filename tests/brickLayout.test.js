@@ -71,10 +71,9 @@ describe('brick layout', () => {
   });
 
   test('wall layout justifies rows and keeps each word findable', async () => {
-    const { bricks, decor, totalRows, mode } = await calculateBrickLayout();
+    const { bricks, totalRows, mode } = await calculateBrickLayout();
 
     expect(mode).toBe('wall');
-    expect(decor).toEqual([]);
     expect(totalRows).toBe(bricks[bricks.length - 1].rowIndex + 1);
     expect(bricks[0]).toMatchObject({
       text: 'Nathan',
@@ -110,13 +109,13 @@ describe('brick layout', () => {
   test('typeset layout is used for the Paper theme', async () => {
     document.documentElement.dataset.theme = 'light';
 
-    const { bricks, decor, totalRows, mode } = await calculateBrickLayout();
+    const { bricks, totalRows, mode } = await calculateBrickLayout();
 
     expect(mode).toBe('typeset');
     expect(bricks[0]).toMatchObject({ text: 'Nathan', kind: 'name' });
     expect(bricks[0].font).toContain('px');
     expect(bricks.some((brick) => brick.kind === 'rule')).toBe(true);
-    expect(decor.map((mark) => mark.type)).toEqual(['bullet']);
+    expect(bricks.filter((brick) => brick.kind === 'dot')).toHaveLength(1);
     expect(totalRows).toBeGreaterThan(4);
   });
 

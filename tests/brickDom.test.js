@@ -1,6 +1,5 @@
 import {
   createBrickElement,
-  createDecorElement,
   createGhostElement,
   renderLayout,
 } from '../src/brickDom.js';
@@ -80,30 +79,6 @@ describe('brick DOM rendering', () => {
     ).toBe('brick-ghost');
   });
 
-  test('createDecorElement draws rules and bullet glyphs', () => {
-    const rule = createDecorElement({
-      type: 'rule',
-      x: 96,
-      y: 100,
-      width: 800,
-      height: 1.5,
-    });
-    expect(rule.className).toBe('brick-decor brick-decor--rule');
-    expect(rule.style.width).toBe('800px');
-    expect(rule.textContent).toBe('');
-
-    const bullet = createDecorElement({
-      type: 'bullet',
-      x: 98,
-      y: 120,
-      height: 19,
-      font: '400 15px Georgia, serif',
-      text: '•',
-    });
-    expect(bullet.textContent).toBe('•');
-    expect(bullet.style.lineHeight).toBe('1');
-  });
-
   test('renderLayout replaces the container and skips broken words', () => {
     const container = document.createElement('div');
     container.innerHTML = '<span>stale</span>';
@@ -113,7 +88,6 @@ describe('brick DOM rendering', () => {
       container,
       {
         mode: 'typeset',
-        decor: [{ type: 'rule', x: 0, y: 0, width: 10, height: 1 }],
         bricks: [typeBrick, { ...typeBrick, text: 'SKILLS', wordIndex: 9 }],
       },
       { onBrick, brokenWords: new Set([9]) }
@@ -121,7 +95,6 @@ describe('brick DOM rendering', () => {
 
     expect(container.dataset.layout).toBe('typeset');
     expect(container.querySelector('span')).toBeNull();
-    expect(container.querySelectorAll('.brick-decor')).toHaveLength(1);
     expect(container.querySelectorAll('.overlay-brick')).toHaveLength(1);
     expect(container.querySelector('.brick-ghost').textContent).toBe('SKILLS');
     expect(onBrick).toHaveBeenCalledTimes(1);
@@ -132,12 +105,12 @@ describe('brick DOM rendering', () => {
 
     renderLayout(
       container,
-      { mode: 'wall', decor: [], bricks: [wallBrick] },
+      { mode: 'wall', bricks: [wallBrick] },
       { brokenWords: new Set([7]) }
     );
     expect(container.children).toHaveLength(0);
 
-    renderLayout(container, { mode: 'wall', decor: [], bricks: [wallBrick] });
+    renderLayout(container, { mode: 'wall', bricks: [wallBrick] });
     expect(container.querySelectorAll('.overlay-brick')).toHaveLength(1);
   });
 });

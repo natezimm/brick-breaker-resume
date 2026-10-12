@@ -11,6 +11,7 @@ jest.mock('../src/settings.js', () => ({
 
 jest.mock('../src/overlay.js', () => ({
   renderOverlayBricks: jest.fn(),
+  enableSeamDrag: jest.fn(),
 }));
 
 describe('main entrypoint', () => {
@@ -39,12 +40,14 @@ describe('main entrypoint', () => {
     document.body.innerHTML = startScreen;
 
     const { initializeTheme } = await import('../src/settings.js');
-    const { renderOverlayBricks } = await import('../src/overlay.js');
+    const { renderOverlayBricks, enableSeamDrag } =
+      await import('../src/overlay.js');
     await import('../main.js');
     const { default: Phaser } = await import('phaser');
 
     expect(initializeTheme).toHaveBeenCalled();
     expect(renderOverlayBricks).toHaveBeenCalledTimes(1);
+    expect(enableSeamDrag).toHaveBeenCalledTimes(1);
     expect(Phaser.Game).not.toHaveBeenCalled();
   });
 
@@ -59,8 +62,14 @@ describe('main entrypoint', () => {
     await import('../main.js');
     const { default: Phaser } = await import('phaser');
 
+    // A finger may have left the seam off-centre before the choice.
+    startOverlay.classList.add('is-dragging');
+    startOverlay.style.setProperty('--split', '70%');
+
     jest.useFakeTimers();
     startDark.click();
+    expect(startOverlay.style.getPropertyValue('--split')).toBe('');
+    expect(startOverlay.classList.contains('is-dragging')).toBe(false);
 
     // The game waits for the chosen look to finish sweeping across.
     expect(Phaser.Game).not.toHaveBeenCalled();

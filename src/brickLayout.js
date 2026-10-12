@@ -18,9 +18,9 @@ const MAX_HEADING_LENGTH = 40;
  * @property {string} text
  * @property {number} color
  * @property {number} rowIndex
- * @property {number | string} wordIndex position of the word in the résumé, stable across layouts; pieces of the typeset rule use `rule-N`
+ * @property {number | string} wordIndex position of the word in the résumé, stable across layouts; the typeset rule and bullet dots use `rule-N` and `dot-N`
  * @property {boolean} isLastInRow
- * @property {string} kind name | contact | rule | heading | role | date | bullet | body
+ * @property {string} kind name | contact | rule | heading | role | date | dot | bullet | body
  * @property {string} [font] CSS font shorthand (typeset layout only)
  * @property {number} [letterSpacing] pixels (typeset layout only)
  */
@@ -28,7 +28,6 @@ const MAX_HEADING_LENGTH = 40;
 /**
  * @typedef {Object} BrickLayout
  * @property {BrickLayoutRecord[]} bricks
- * @property {Array<Object>} decor marks that are not in play, such as bullet glyphs
  * @property {number} totalRows
  * @property {'wall' | 'typeset'} mode
  */
@@ -211,7 +210,7 @@ function layoutWall(elements) {
     });
   });
 
-  return { bricks: justifiedBricks, decor: [], totalRows, mode: 'wall' };
+  return { bricks: justifiedBricks, totalRows, mode: 'wall' };
 }
 
 async function loadResumeElements() {
@@ -233,12 +232,12 @@ async function loadResumeElements() {
 async function layoutElements(elements, mode) {
   if (mode === 'typeset') {
     await loadTypesetFonts();
-    const { bricks, decor, totalRows } = fitTypeset(elements, {
+    const { bricks, totalRows } = fitTypeset(elements, {
       width: window.innerWidth,
       height: window.innerHeight,
       measure: createMeasurer(),
     });
-    return { bricks, decor, totalRows, mode };
+    return { bricks, totalRows, mode };
   }
 
   return layoutWall(elements);

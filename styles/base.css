@@ -88,18 +88,36 @@ canvas {
   z-index: 1000;
   overflow: hidden;
   background: #060913;
+  /* One-finger moves drag the seam; pinch still zooms. */
+  touch-action: pinch-zoom;
   transition:
     --split 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.45s ease,
     visibility 0s linear 0s;
 }
 
-#startOverlay:has(.look-pane--light:hover, .look-pane--light :focus-visible) {
+/* A mouse leans the seam toward the side it is over. A finger drags it. */
+@media (hover: hover) {
+  #startOverlay:has(.look-pane--light:hover) {
+    --split: 56%;
+  }
+
+  #startOverlay:has(.look-pane--dark:hover) {
+    --split: 44%;
+  }
+}
+
+#startOverlay:has(.look-pane--light :focus-visible) {
   --split: 56%;
 }
 
-#startOverlay:has(.look-pane--dark:hover, .look-pane--dark :focus-visible) {
+#startOverlay:has(.look-pane--dark :focus-visible) {
   --split: 44%;
+}
+
+/* While a finger is on the seam it follows at once, with no easing. */
+#startOverlay.is-dragging {
+  transition: none;
 }
 
 #startOverlay.hidden {
@@ -208,6 +226,19 @@ canvas {
   padding: clamp(44px, 7vh, 62px) 10px 34px;
   box-sizing: border-box;
   text-align: center;
+}
+
+/* A card dragged too narrow to hold its button steps out of the way. */
+.look-card {
+  container-type: inline-size;
+}
+
+@container (max-width: 150px) {
+  .look-name,
+  .look-line,
+  .look-start {
+    visibility: hidden;
+  }
 }
 
 .look-pane--light .look-card {
@@ -321,8 +352,7 @@ canvas {
 
 /* Geometry shared by both looks; each brick is positioned by its layout. */
 .overlay-brick,
-.brick-ghost,
-.brick-decor {
+.brick-ghost {
   position: absolute;
   display: flex;
   justify-content: center;
