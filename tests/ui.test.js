@@ -1,7 +1,7 @@
 import * as ui from '../src/ui.js';
 import { gameState } from '../src/state.js';
 import { settings } from '../src/settings.js';
-import { createMockScene, MockImage } from './mockScene.js';
+import { createMockScene } from './mockScene.js';
 import { GAME_CONSTANTS } from '../src/constants.js';
 
 function captureResizeHandler() {
@@ -28,6 +28,11 @@ describe('ui helpers', () => {
   beforeEach(() => {
     jest.useRealTimers();
     document.body.innerHTML = `
+      <div id="hudLives"></div>
+      <div id="hudScore">
+        <span id="hudBestValue"></span>
+        <span id="hudScoreValue"></span>
+      </div>
       <button id="pauseButton"></button>
       <button id="highScoreButton"></button>
       <div id="highScoreModal" class="modal"></div>
@@ -46,38 +51,97 @@ describe('ui helpers', () => {
     });
   });
 
-  test('createLivesDisplay refreshes life icons for varying screen sizes', () => {
-    gameState.lives = 2;
-    gameState.livesBalls = [{ destroy: jest.fn() }];
-
-    window.innerWidth = 500;
-    ui.createLivesDisplay(scene);
-    expect(gameState.livesBalls).toHaveLength(2);
-    expect(gameState.livesBalls[0]).toBeInstanceOf(MockImage);
-
-    window.innerWidth = 900;
-    ui.createLivesDisplay(scene);
-    expect(gameState.livesBalls).toHaveLength(2);
-  });
-
-  test('createLivesDisplay handles an empty lives list without error', () => {
+  test('createLivesDisplay draws one pip per life in the HUD', () => {
     gameState.lives = 3;
-    gameState.livesBalls = [];
 
     ui.createLivesDisplay(scene);
+
+    const container = document.getElementById('hudLives');
     expect(gameState.livesBalls).toHaveLength(3);
+    expect(container.querySelectorAll('.hud-pip')).toHaveLength(3);
+    expect(container.getAttribute('aria-label')).toBe('3 lives left');
+
+    // Drawing again replaces the row instead of adding to it.
+    gameState.lives = 2;
+    ui.createLivesDisplay(scene);
+    expect(container.querySelectorAll('.hud-pip')).toHaveLength(2);
+    expect(container.querySelectorAll('.hud-pips')).toHaveLength(1);
   });
 
-  test('createScoreText positions and refreshes score label', () => {
-    window.innerWidth = 300;
-    ui.createScoreText(scene);
-    expect(gameState.scoreText).toBeDefined();
+  test('a lost life stays in its slot as an empty ring', () => {
+    gameState.lives = 2;
+    ui.createLivesDisplay(scene);
+    const container = document.getElementById('hudLives');
 
-    const destroySpy = jest.fn();
-    gameState.scoreText.destroy = destroySpy;
-    window.innerWidth = 900;
+    gameState.decrementLives();
+
+    const pips = container.querySelectorAll('.hud-pip');
+    expect(pips).toHaveLength(2);
+    expect(pips[0].classList.contains('is-lost')).toBe(false);
+    expect(pips[1].classList.contains('is-lost')).toBe(true);
+    expect(container.getAttribute('aria-label')).toBe('1 life left');
+    expect(gameState.lives).toBe(1);
+  });
+
+  test('createLivesDisplay reuses an existing pip track', () => {
+    document.getElementById('hudLives').innerHTML =
+      '<span class="hud-label">Lives</span><span class="hud-pips"><i>old</i></span>';
+    gameState.lives = 1;
+
+    ui.createLivesDisplay(scene);
+
+    const track = document.querySelector('#hudLives .hud-pips');
+    expect(track.children).toHaveLength(1);
+    expect(document.querySelector('#hudLives .hud-label')).not.toBeNull();
+  });
+
+  test('lives still count down when the HUD is not on the page', () => {
+    document.getElementById('hudLives').remove();
+    gameState.lives = 2;
+
+    ui.createLivesDisplay(scene);
+    expect(gameState.livesBalls).toHaveLength(2);
+
+    expect(() => gameState.decrementLives()).not.toThrow();
+    expect(gameState.livesBalls).toHaveLength(1);
+  });
+
+  test('the score readout follows the score and the best score', () => {
+    gameState.highScore = 500;
     ui.createScoreText(scene);
-    expect(destroySpy).toHaveBeenCalled();
+
+    const value = document.getElementById('hudScoreValue');
+    const best = document.getElementById('hudBestValue');
+    const group = document.getElementById('hudScore');
+    expect(value.textContent).toBe('0');
+    expect(best.textContent).toBe('500');
+    expect(group.classList.contains('is-best')).toBe(false);
+    expect(value.classList.contains('is-bumped')).toBe(false);
+
+    gameState.incrementScore(1240);
+
+    expect(value.textContent).toBe('1,240');
+    expect(best.textContent).toBe('1,240');
+    expect(group.classList.contains('is-best')).toBe(true);
+    expect(value.classList.contains('is-bumped')).toBe(true);
+  });
+
+  test('createScoreText rebinds cleanly and tolerates a missing HUD', () => {
+    ui.createScoreText(scene);
+    gameState.incrementScore(10);
+    const value = document.getElementById('hudScoreValue');
+    expect(value.classList.contains('is-bumped')).toBe(true);
+
+    gameState.score = 0;
+    ui.createScoreText(scene);
+    expect(value.classList.contains('is-bumped')).toBe(false);
+    expect(value.textContent).toBe('0');
+
+    document.getElementById('hudScore').remove();
+    ui.createScoreText(scene);
+    expect(() => gameState.incrementScore(20)).not.toThrow();
+    expect(() => gameState.scoreText.setText('not a number')).not.toThrow();
+    expect(gameState.score).toBe(20);
   });
 
   test('startCountdown counts down then launches the ball', () => {
@@ -251,18 +315,11 @@ describe('ui helpers', () => {
     expect(modal.classList.contains('active')).toBe(true);
   });
 
-  test('setupWindowResize updates UI elements on resize', () => {
+  test('setupWindowResize resizes the game and keeps the paddle on screen', () => {
     const game = {
       scale: { resize: jest.fn() },
       scene: { scenes: [scene] },
     };
-    gameState.scoreText = {
-      setStyle: jest.fn(),
-      setPosition: jest.fn(),
-      setText: jest.fn(),
-    };
-    gameState.livesBalls = [new MockImage(0, 0), new MockImage(0, 0)];
-    gameState.countdownText = { setPosition: jest.fn() };
     gameState.paddle = { width: 200, x: 500, y: 0 };
 
     const interceptor = captureResizeHandler();
@@ -278,57 +335,16 @@ describe('ui helpers', () => {
 
     expect(game.scale.resize).toHaveBeenCalledWith(300, 400);
     expect(scene.physics.world.setBounds).toHaveBeenCalledWith(0, 0, 300, 400);
-
-    expect(gameState.scoreText.setText).toHaveBeenCalledWith(`0`); // No prefix for < 405
-    expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(
-      300 - 10,
-      400 - 20
-    );
-    expect(gameState.livesBalls[0].x).toBe(15);
-    expect(gameState.livesBalls[0].x).toBe(15);
-
     expect(gameState.paddle.y).toBe(345);
-    expect(gameState.paddle.y).toBe(345);
-    expect(gameState.paddle.x).toBeLessThanOrEqual(200);
-  });
+    expect(gameState.paddle.x).toBe(200);
 
-  test('setupWindowResize widens spacing on larger screens', () => {
-    const game = {
-      scale: { resize: jest.fn() },
-      scene: { scenes: [scene] },
-    };
-    gameState.scoreText = {
-      setStyle: jest.fn(),
-      setPosition: jest.fn(),
-      setText: jest.fn(),
-    };
-    gameState.livesBalls = [new MockImage(0, 0)];
-    gameState.countdownText = { setPosition: jest.fn() };
-    gameState.paddle = { width: 200, x: 400, y: 0 };
-
-    const interceptor = captureResizeHandler();
-    ui.setupWindowResize(game);
-    const resizeHandler = interceptor.handler;
-    interceptor.restore();
-
-    expect(resizeHandler).toBeDefined();
-
-    window.innerWidth = 800;
-    window.innerHeight = 600;
+    window.innerWidth = 1000;
+    window.innerHeight = 800;
+    gameState.paddle.x = 50;
     resizeHandler();
 
-    expect(game.scale.resize).toHaveBeenCalledWith(800, 600);
-
-    expect(gameState.scoreText.setText).toHaveBeenCalledWith(`SCORE: 0`); // Prefix for >= 405
-    expect(gameState.scoreText.setPosition).toHaveBeenCalledWith(
-      800 - 20,
-      600 - 20
-    );
-    expect(gameState.livesBalls[0].x).toBe(30);
-    expect(gameState.livesBalls[0].x).toBe(30);
-
-    expect(gameState.paddle.y).toBe(545);
-    expect(gameState.paddle.y).toBe(545);
+    expect(gameState.paddle.y).toBe(745);
+    expect(gameState.paddle.x).toBe(100);
   });
 
   test('setupWindowResize ignores missing UI components', () => {

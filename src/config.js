@@ -1,4 +1,3 @@
-import { COLORS } from './constants.js';
 import { preload, create, update } from './game.js';
 
 export function createConfig(Phaser) {
@@ -7,7 +6,8 @@ export function createConfig(Phaser) {
     width: window.innerWidth,
     height: window.innerHeight,
     parent: 'app',
-    backgroundColor: COLORS.BACKGROUND,
+    // The page draws the backdrop behind a clear canvas; see styles/themes.css.
+    transparent: true,
     resolution: window.devicePixelRatio,
     dom: {
       createContainer: true,

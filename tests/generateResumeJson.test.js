@@ -49,6 +49,21 @@ describe('generate_resume_json script helpers', () => {
     ]);
   });
 
+  test('extractResumeElements emits one entry per list item', () => {
+    const elements = extractResumeElements(`
+      <p>WORK HISTORY</p>
+      <ul><li>Built the first thing.</li><li>Shipped the second thing.</li></ul>
+      <ol><li>Ranked first</li></ol>
+    `);
+
+    expect(elements).toEqual([
+      { tag: 'p', text: 'WORK HISTORY' },
+      { tag: 'li', text: 'Built the first thing.' },
+      { tag: 'li', text: 'Shipped the second thing.' },
+      { tag: 'li', text: 'Ranked first' },
+    ]);
+  });
+
   test('validateResumeElements enforces the generated schema', () => {
     expect(validateResumeElements([{ tag: 'p', text: 'Valid text' }])).toEqual([
       { tag: 'p', text: 'Valid text' },

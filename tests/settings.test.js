@@ -5,6 +5,7 @@ import {
   updatePaddleTexture,
   updateBallSpeed,
   initializeTheme,
+  applyTheme,
 } from '../src/settings.js';
 import { gameState } from '../src/state.js';
 import { createMockScene, MockPhysicsImage, MockImage } from './mockScene.js';
@@ -42,7 +43,11 @@ describe('settings modal interactions', () => {
       <button id="settingsButton"></button>
       <button id="closeModal"></button>
       <input id="soundToggle" type="checkbox" checked />
-      <input id="themeToggle" type="checkbox" />
+      <input id="themeDark" type="radio" name="theme" value="dark" />
+      <input id="themeLight" type="radio" name="theme" value="light" />
+      <button id="resetColors"></button>
+      <span id="ballColorValue"></span>
+      <span id="paddleColorValue"></span>
       <input id="ballColorPicker" type="color" value="#a9a9a9" />
       <input id="paddleColorPicker" type="color" value="#a9a9a9" />
       <input id="paddleWidthSlider" type="range" value="100" />
@@ -141,8 +146,6 @@ describe('settings modal interactions', () => {
 
     gameState.ball.setTexture = jest.fn();
     gameState.ball.setDisplaySize = jest.fn();
-    gameState.livesBalls[0].setTexture = jest.fn();
-    gameState.livesBalls[0].setDisplaySize = jest.fn();
     document.getElementById('ballColorPicker').value = '#ff0000';
     document
       .getElementById('ballColorPicker')
@@ -185,51 +188,213 @@ describe('settings modal interactions', () => {
     expect(gameState.ball.setVelocity).toHaveBeenCalled();
   });
 
-  test('theme toggle updates dataset and persists preference', () => {
+  const chooseTheme = (theme) => {
+    const option = document.getElementById(
+      theme === 'dark' ? 'themeDark' : 'themeLight'
+    );
+    option.checked = true;
+    option.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  test('the theme chooser shows the current look and switches between the two', () => {
     setupSettings(game);
 
-    const themeToggle = document.getElementById('themeToggle');
-    expect(themeToggle.checked).toBe(false);
+    expect(document.getElementById('themeLight').checked).toBe(true);
+    expect(document.getElementById('themeDark').checked).toBe(false);
     expect(settings.theme).toBe('light');
 
-    themeToggle.checked = true;
-    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    chooseTheme('dark');
     expect(settings.theme).toBe('dark');
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem('brickBreakerTheme')).toBe('dark');
 
-    themeToggle.checked = false;
-    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    chooseTheme('light');
     expect(settings.theme).toBe('light');
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem('brickBreakerTheme')).toBe('light');
   });
 
-  test('theme toggle keeps score text styling consistent', () => {
+  test('a theme option that loses its selection does not apply itself', () => {
     setupSettings(game);
 
-    const setStyle = jest.fn();
-    gameState.scoreText = { setStyle };
+    const dark = document.getElementById('themeDark');
+    dark.checked = false;
+    dark.dispatchEvent(new Event('change', { bubbles: true }));
 
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.checked = true;
-    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(setStyle).toHaveBeenLastCalledWith({ fill: '#FFD700' });
-
-    themeToggle.checked = false;
-    themeToggle.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(setStyle).toHaveBeenLastCalledWith({ fill: '#FFD700' });
+    expect(settings.theme).toBe('light');
   });
 
-  test('initializeTheme defaults to light theme when no preference stored', () => {
+  test('switching looks keeps the canvas clear so the page backdrop shows', () => {
+    const setBackgroundColor = jest.fn();
+    scene.cameras = { main: { setBackgroundColor } };
+    setupSettings(game);
+
+    chooseTheme('dark');
+
+    expect(setBackgroundColor).toHaveBeenLastCalledWith('rgba(0, 0, 0, 0)');
+  });
+
+  test('the ball and paddle appearance is published for the HUD and the preview', () => {
+    settings.ballColorCustom = false;
+    settings.paddleColorCustom = false;
+    setupSettings(game);
+    const rootStyle = document.documentElement.style;
+
+    expect(rootStyle.getPropertyValue('--ball-color')).toBe('#16181d');
+    expect(rootStyle.getPropertyValue('--paddle-width')).toBe(
+      `${settings.paddleWidth}px`
+    );
+    expect(document.getElementById('ballColorValue').textContent).toBe(
+      '#16181d'
+    );
+
+    const paddleColorPicker = document.getElementById('paddleColorPicker');
+    paddleColorPicker.value = '#00ff00';
+    paddleColorPicker.dispatchEvent(new Event('input'));
+    expect(rootStyle.getPropertyValue('--paddle-color')).toBe('#00ff00');
+    expect(document.getElementById('paddleColorValue').textContent).toBe(
+      '#00ff00'
+    );
+
+    const paddleWidthSlider = document.getElementById('paddleWidthSlider');
+    paddleWidthSlider.value = '160';
+    paddleWidthSlider.dispatchEvent(new Event('input'));
+    expect(rootStyle.getPropertyValue('--paddle-width')).toBe('160px');
+
+    settings.paddleColorCustom = false;
+    settings.paddleWidth = 100;
+  });
+
+  test('reset colors returns the ball and paddle to the look defaults', () => {
+    setupSettings(game);
+    gameState.ball.setTexture = jest.fn();
+
+    const ballColorPicker = document.getElementById('ballColorPicker');
+    ballColorPicker.value = '#ff0000';
+    ballColorPicker.dispatchEvent(new Event('input'));
+    expect(settings.ballColorCustom).toBe(true);
+
+    document.getElementById('resetColors').click();
+
+    expect(settings.ballColorCustom).toBe(false);
+    expect(settings.ballColor).toBe(0x16181d);
+    expect(ballColorPicker.value).toBe('#16181d');
+    expect(gameState.ball.setTexture).toHaveBeenCalledTimes(2);
+  });
+
+  test('slider tracks are filled up to their value', () => {
+    setupSettings(game);
+    const paddleWidthSlider = document.getElementById('paddleWidthSlider');
+    const ballSpeedSlider = document.getElementById('ballSpeedSlider');
+    const fill = (slider) => slider.style.getPropertyValue('--fill');
+
+    // 900px wide: the paddle slider runs 0 to 300, so 100 is a third along.
+    expect(fill(paddleWidthSlider)).toBe('33.3%');
+
+    ballSpeedSlider.min = '0.5';
+    ballSpeedSlider.max = '2.0';
+    ballSpeedSlider.value = '2.0';
+    ballSpeedSlider.dispatchEvent(new Event('input'));
+    expect(fill(ballSpeedSlider)).toBe('100.0%');
+
+    paddleWidthSlider.min = '20';
+    paddleWidthSlider.value = '20';
+    paddleWidthSlider.dispatchEvent(new Event('input'));
+    expect(fill(paddleWidthSlider)).toBe('0.0%');
+
+    settings.paddleWidth = 100;
+    settings.ballSpeed = 1.0;
+  });
+
+  test('the settings menu works without the optional controls', () => {
+    document.getElementById('themeDark').remove();
+    document.getElementById('themeLight').remove();
+    document.getElementById('resetColors').remove();
+    document.getElementById('ballColorValue').remove();
+    document.getElementById('ballColorPicker').value = '#a9a9a9';
+
+    expect(() => setupSettings(game)).not.toThrow();
+    expect(document.getElementById('ballColorPicker').value).toBe('#16181d');
+  });
+
+  test("theme toggle wipes the previous look's trails while paused", () => {
+    setupSettings(game);
+    const clear = jest.fn();
+    gameState.ballTrailGraphics = { clear };
+    gameState.paddleTrailGraphics = { clear };
+    gameState.ballTrailPoints = [{ x: 1, y: 2 }];
+
+    applyTheme('dark', game);
+
+    expect(clear).toHaveBeenCalledTimes(2);
+    expect(gameState.ballTrailPoints).toEqual([]);
+  });
+
+  test('each look brings its own ball and paddle colour until the player picks one', () => {
+    settings.ballColorCustom = false;
+    settings.paddleColorCustom = false;
+    setupSettings(game);
+
+    applyTheme('dark', game);
+    expect(settings.ballColor).toBe(0xffffff);
+    expect(settings.paddleColor).toBe(0xffffff);
+    expect(document.getElementById('ballColorPicker').value).toBe('#ffffff');
+
+    applyTheme('light', game);
+    expect(settings.ballColor).toBe(0x16181d);
+    expect(document.getElementById('paddleColorPicker').value).toBe('#16181d');
+
+    const ballColorPicker = document.getElementById('ballColorPicker');
+    ballColorPicker.value = '#ff0000';
+    ballColorPicker.dispatchEvent(new Event('input', { bubbles: true }));
+
+    applyTheme('dark', game);
+    expect(settings.ballColor).toBe(0xff0000);
+    expect(settings.paddleColor).toBe(0xffffff);
+
+    settings.ballColorCustom = false;
+  });
+
+  test('switching looks mid-game lays the remaining bricks out again', async () => {
+    setupSettings(game);
+    const clear = jest.fn();
+    gameState.bricksGroup = { ...scene.physics.add.staticGroup(), clear };
+    gameState.bricksCreated = true;
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([{ tag: 'p', text: 'Nathan' }]),
+    });
+
+    applyTheme('dark', game);
+    await gameState.rebuildingBricks;
+
+    expect(clear).toHaveBeenCalledWith(true, true);
+    expect(global.fetch).toHaveBeenCalledWith('assets/resume.json');
+    expect(gameState.bricksCreated).toBe(true);
+  });
+
+  test('applyTheme without a running game only updates the page', () => {
+    expect(() => applyTheme('dark')).not.toThrow();
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('brickBreakerTheme')).toBe('dark');
+  });
+
+  test('initializeTheme defaults to the Glass theme when no preference stored', () => {
     document.documentElement.removeAttribute('data-theme');
     localStorage.removeItem('brickBreakerTheme');
-    settings.theme = 'dark';
+    settings.theme = 'light';
 
     const resultingTheme = initializeTheme();
 
-    expect(resultingTheme).toBe('light');
-    expect(settings.theme).toBe('light');
+    expect(resultingTheme).toBe('dark');
+    expect(settings.theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
+  test('initializeTheme restores a stored Paper preference', () => {
+    localStorage.setItem('brickBreakerTheme', 'light');
+
+    expect(initializeTheme()).toBe('light');
     expect(document.documentElement.dataset.theme).toBe('light');
   });
 
@@ -280,7 +445,7 @@ describe('settings modal interactions', () => {
     expect(scene.sound).toBeNull();
   });
 
-  test('updateBallTexture refreshes ball texture and life icons', () => {
+  test('updateBallTexture refreshes the ball texture', () => {
     const scene = createMockScene();
     scene.textures.exists = jest.fn(() => true);
     scene.textures.remove = jest.fn();
@@ -291,18 +456,10 @@ describe('settings modal interactions', () => {
     ball.setDisplaySize = jest.fn();
     gameState.ball = ball;
 
-    const lifeBalls = [new MockImage(0, 0), new MockImage(0, 0)];
-    lifeBalls.forEach((ball) => {
-      ball.setTexture = jest.fn();
-      ball.setDisplaySize = jest.fn();
-    });
-    gameState.livesBalls = lifeBalls;
-
     updateBallTexture(scene);
 
     expect(scene.textures.remove).toHaveBeenCalledWith('ballTexture');
     expect(ball.setTexture).toHaveBeenCalledWith('ballTexture');
-    expect(lifeBalls[0].setTexture).toHaveBeenCalledWith('ballTexture');
   });
 
   test('updatePaddleTexture rebuilds paddle canvas and body bounds', () => {

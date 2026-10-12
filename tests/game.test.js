@@ -226,4 +226,85 @@ describe('game scene', () => {
     expect(gameState.ballTrailGraphics.fillCircle).toHaveBeenCalled();
     expect(gameState.paddleTrailGraphics.fillRoundedRect).toHaveBeenCalled();
   });
+
+  describe('trails for each look', () => {
+    const play = (scene) => {
+      attachGameState(scene, gameState);
+      gameState.paused = false;
+      gameState.ball = scene.physics.add
+        .image(100, 200, 'ball')
+        .setDisplaySize(20, 20);
+      gameState.paddle = scene.physics.add
+        .image(300, 545, 'paddle')
+        .setDisplaySize(120, 20);
+    };
+
+    afterEach(() => {
+      settings.theme = 'dark';
+    });
+
+    test('Glass glows in the colour of the last brick broken', () => {
+      settings.theme = 'dark';
+      const scene = createMockScene();
+      play(scene);
+      gameState.lastHitColor = 0x4caf50;
+
+      update.call(scene);
+
+      const colors = gameState.ballTrailGraphics.fillStyle.mock.calls.map(
+        ([color]) => color
+      );
+      expect(new Set(colors)).toEqual(new Set([0x4caf50]));
+      // One trail point plus the stacked halo and under-paddle glow.
+      expect(gameState.ballTrailGraphics.fillCircle).toHaveBeenCalledTimes(6);
+      expect(
+        gameState.paddleTrailGraphics.fillRoundedRect
+      ).toHaveBeenCalledTimes(4);
+    });
+
+    test('Paper leaves a plain ink smear with no glow', () => {
+      settings.theme = 'light';
+      settings.ballColor = 0x16181d;
+      const scene = createMockScene();
+      play(scene);
+      gameState.lastHitColor = 0x4caf50;
+
+      update.call(scene);
+
+      expect(gameState.ballTrailGraphics.fillCircle).toHaveBeenCalledTimes(1);
+      expect(gameState.ballTrailGraphics.fillStyle).toHaveBeenCalledWith(
+        0x16181d,
+        expect.any(Number)
+      );
+      expect(
+        gameState.paddleTrailGraphics.fillRoundedRect
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    test('trails switch blend mode with the look and survive a bare renderer', () => {
+      const scene = createMockScene();
+      play(scene);
+      const setBlendMode = jest.fn();
+      gameState.ballTrailGraphics = {
+        clear: jest.fn(),
+        fillStyle: jest.fn(),
+        fillCircle: jest.fn(),
+        setBlendMode,
+      };
+      gameState.paddleTrailGraphics = {
+        clear: jest.fn(),
+        fillStyle: jest.fn(),
+        fillRect: jest.fn(),
+      };
+
+      settings.theme = 'dark';
+      update.call(scene);
+      expect(setBlendMode).toHaveBeenLastCalledWith(1);
+      expect(gameState.paddleTrailGraphics.fillRect).toHaveBeenCalledTimes(1);
+
+      settings.theme = 'light';
+      update.call(scene);
+      expect(setBlendMode).toHaveBeenLastCalledWith(0);
+    });
+  });
 });

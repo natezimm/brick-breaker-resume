@@ -1,41 +1,22 @@
-import { GAME_CONSTANTS } from './constants.js';
-import { calculateBrickLayout, hexToCss } from './brickLayout.js';
+import { calculateBrickLayouts } from './brickLayout.js';
+import { renderLayout } from './brickDom.js';
 
+/**
+ * Draws the résumé into every look pane on the start screen. Each pane names
+ * the layout it shows with `data-mode`, and all of them share one request.
+ */
 export async function renderOverlayBricks() {
   const overlay = document.getElementById('startOverlay');
   if (!overlay) return;
 
-  let brickContainer = document.getElementById('brickContainer');
-  if (!brickContainer) {
-    brickContainer = document.createElement('div');
-    brickContainer.id = 'brickContainer';
-    overlay.insertBefore(brickContainer, overlay.firstChild);
-  }
+  const panes = [...overlay.querySelectorAll('.look-resume[data-mode]')];
+  if (panes.length === 0) return;
 
   try {
-    const { bricks } = await calculateBrickLayout();
-    const { BRICK_HEIGHT } = GAME_CONSTANTS;
-
-    bricks.forEach((brickData) => {
-      const cssColor = hexToCss(brickData.color);
-
-      const brickDiv = document.createElement('div');
-      brickDiv.className = 'overlay-brick';
-      brickDiv.textContent = brickData.text;
-      brickDiv.style.left = `${brickData.x}px`;
-      brickDiv.style.top = `${brickData.y}px`;
-      brickDiv.style.width = `${brickData.width}px`;
-      brickDiv.style.height = `${BRICK_HEIGHT}px`;
-      brickDiv.style.backgroundColor = cssColor;
-      brickDiv.style.display = 'flex';
-      brickDiv.style.justifyContent = 'center';
-      brickDiv.style.alignItems = 'center';
-      brickDiv.style.margin = '0';
-      brickDiv.style.lineHeight = '1';
-      brickDiv.style.boxSizing = 'border-box';
-
-      brickContainer.appendChild(brickDiv);
-    });
+    const layouts = await calculateBrickLayouts(
+      panes.map((pane) => pane.dataset.mode)
+    );
+    panes.forEach((pane, index) => renderLayout(pane, layouts[index]));
   } catch (e) {
     console.warn('Could not render overlay bricks:', e);
   }

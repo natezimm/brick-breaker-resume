@@ -78,6 +78,16 @@ function validatePaths({ input, output }) {
   }
 }
 
+function pushTextBlocks(elements, tag, text) {
+  text
+    .split(/[\n•]/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0)
+    .forEach((block) => {
+      elements.push({ tag, text: block });
+    });
+}
+
 function extractResumeElements(html) {
   const dom = new JSDOM(html);
   const doc = dom.window.document;
@@ -87,15 +97,17 @@ function extractResumeElements(html) {
     if (node.nodeType !== 1) return;
 
     const tag = node.tagName.toLowerCase();
-    const text = node.textContent.trim();
-    const blocks = text
-      .split(/[\n•]/)
-      .map((block) => block.trim())
-      .filter((block) => block.length > 0);
 
-    blocks.forEach((block) => {
-      elements.push({ tag, text: block });
-    });
+    // Each list item becomes its own entry; reading the whole list's
+    // textContent would run the items together without a separator.
+    if (tag === 'ul' || tag === 'ol') {
+      node.querySelectorAll('li').forEach((item) => {
+        pushTextBlocks(elements, 'li', item.textContent);
+      });
+      return;
+    }
+
+    pushTextBlocks(elements, tag, node.textContent);
   });
 
   return elements;

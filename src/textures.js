@@ -1,4 +1,11 @@
-import { COLORS, GAME_CONSTANTS, TEXTURE_KEYS } from './constants.js';
+import { COLORS, GAME_CONSTANTS, TEXTURE_KEYS, THEMES } from './constants.js';
+
+/** `glass` belongs to the Glass theme, `ink` to Paper. */
+const LOOKS = Object.freeze({ GLASS: 'glass', INK: 'ink' });
+
+function lookFor(theme) {
+  return theme === THEMES.LIGHT ? LOOKS.INK : LOOKS.GLASS;
+}
 
 function toCssHex(color) {
   return `#${color.toString(16).padStart(6, '0')}`;
@@ -29,102 +36,106 @@ function strokeRoundedRect(context, x, y, width, height, radius) {
   context.stroke();
 }
 
+function fillCircle(context, x, y, radius) {
+  context.beginPath();
+  context.arc(x, y, radius, 0, Math.PI * 2);
+  context.fill();
+}
+
+/** A lit glass pill: translucent body, bright rim, sheen across the top. */
+function drawGlassPaddle(context, width, height, color) {
+  const inset = 1;
+  const bodyWidth = Math.max(1, width - inset * 2);
+  const bodyHeight = Math.max(1, height - inset * 2);
+  const radius = bodyHeight / 2;
+
+  context.fillStyle = rgba(color, 0.2);
+  fillRoundedRect(context, inset, inset, bodyWidth, bodyHeight, radius);
+
+  const sheen = context.createLinearGradient(0, inset, 0, inset + bodyHeight);
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+  sheen.addColorStop(0.45, 'rgba(255, 255, 255, 0.08)');
+  sheen.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  context.fillStyle = sheen;
+  fillRoundedRect(context, inset, inset, bodyWidth, bodyHeight, radius);
+
+  context.strokeStyle = rgba(color, 0.92);
+  context.lineWidth = 1.25;
+  strokeRoundedRect(
+    context,
+    inset + 0.5,
+    inset + 0.5,
+    bodyWidth - 1,
+    bodyHeight - 1,
+    Math.max(1, radius - 0.5)
+  );
+}
+
+/** A printer's rule: a heavy bar with a hairline beneath it. */
+function drawInkPaddle(context, width, height, color) {
+  const barHeight = Math.max(2, Math.round(height * 0.45));
+
+  context.fillStyle = toCssHex(color);
+  context.fillRect(0, 0, width, barHeight);
+  context.fillRect(0, barHeight + 3, width, 1.5);
+}
+
 export function createPaddleCanvas({
   width = GAME_CONSTANTS.PADDLE_WIDTH,
   height = GAME_CONSTANTS.PADDLE_HEIGHT,
   color = COLORS.PADDLE,
+  look = LOOKS.GLASS,
 } = {}) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
 
   const context = canvas.getContext('2d');
-  const inset = 1;
-  const bodyX = inset;
-  const bodyY = inset;
-  const bodyWidth = Math.max(1, width - inset * 2);
-  const bodyHeight = Math.max(1, height - inset * 2);
-  const bodyRadius = bodyHeight / 2;
-
-  context.fillStyle = 'rgba(0, 0, 0, 0.24)';
-  fillRoundedRect(
-    context,
-    bodyX,
-    bodyY + 1,
-    bodyWidth,
-    bodyHeight - 1,
-    bodyRadius
-  );
-
-  context.fillStyle = toCssHex(color);
-  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
-
-  const faceGradient = context.createLinearGradient(
-    0,
-    bodyY,
-    0,
-    bodyY + bodyHeight
-  );
-  faceGradient.addColorStop(0, 'rgba(255, 255, 255, 0.46)');
-  faceGradient.addColorStop(0.24, 'rgba(255, 255, 255, 0.16)');
-  faceGradient.addColorStop(0.55, rgba(color, 0.08));
-  faceGradient.addColorStop(0.82, 'rgba(0, 0, 0, 0.16)');
-  faceGradient.addColorStop(1, 'rgba(0, 0, 0, 0.34)');
-
-  context.fillStyle = faceGradient;
-  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
-
-  const sideGradient = context.createLinearGradient(bodyX, 0, width - inset, 0);
-  sideGradient.addColorStop(0, 'rgba(0, 0, 0, 0.22)');
-  sideGradient.addColorStop(0.16, 'rgba(255, 255, 255, 0.12)');
-  sideGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
-  sideGradient.addColorStop(0.84, 'rgba(0, 0, 0, 0.02)');
-  sideGradient.addColorStop(1, 'rgba(0, 0, 0, 0.28)');
-
-  context.fillStyle = sideGradient;
-  fillRoundedRect(context, bodyX, bodyY, bodyWidth, bodyHeight, bodyRadius);
-
-  const railY = bodyY + Math.max(4, bodyHeight * 0.28);
-  const railStart = bodyX + bodyRadius + 4;
-  const railEnd = bodyX + bodyWidth - bodyRadius - 4;
-
-  if (railEnd > railStart) {
-    context.strokeStyle = 'rgba(255, 255, 255, 0.48)';
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(railStart, railY);
-    context.lineTo(railEnd, railY);
-    context.stroke();
+  if (look === LOOKS.INK) {
+    drawInkPaddle(context, width, height, color);
+  } else {
+    drawGlassPaddle(context, width, height, color);
   }
 
-  context.strokeStyle = 'rgba(255, 255, 255, 0.34)';
-  context.lineWidth = 1;
-  strokeRoundedRect(
-    context,
-    bodyX + 0.5,
-    bodyY + 0.5,
-    bodyWidth - 1,
-    bodyHeight - 1,
-    Math.max(1, bodyRadius - 0.5)
-  );
-
-  context.strokeStyle = 'rgba(0, 0, 0, 0.24)';
-  strokeRoundedRect(
-    context,
-    bodyX + 0.5,
-    bodyY + 0.5,
-    bodyWidth - 1,
-    bodyHeight - 1,
-    Math.max(1, bodyRadius - 0.5)
-  );
-
   return canvas;
+}
+
+/** A white-hot core that takes on the chosen colour toward its edge. */
+function drawGlassBall(context, center, radius, color) {
+  context.fillStyle = toCssHex(color);
+  fillCircle(context, center, center, radius);
+
+  const core = context.createRadialGradient(
+    center,
+    center,
+    radius * 0.1,
+    center,
+    center,
+    radius
+  );
+  core.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  core.addColorStop(0.55, 'rgba(255, 255, 255, 0.85)');
+  core.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+  context.fillStyle = core;
+  fillCircle(context, center, center, radius);
+}
+
+/** A flat dot of ink with a faint offset shadow on the paper. */
+function drawInkBall(context, center, radius, color) {
+  const inkRadius = radius - 1.5;
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.14)';
+  fillCircle(context, center + 1, center + 1.5, inkRadius);
+
+  context.fillStyle = toCssHex(color);
+  fillCircle(context, center, center, inkRadius);
 }
 
 export function createBallCanvas({
   size = GAME_CONSTANTS.BALL_SIZE,
   radius = GAME_CONSTANTS.BALL_RADIUS,
   color = COLORS.BALL,
+  look = LOOKS.GLASS,
 } = {}) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -134,66 +145,11 @@ export function createBallCanvas({
   const center = size / 2;
   const visualRadius = Math.max(2, Math.min(radius, center) - 1);
 
-  context.fillStyle = 'rgba(0, 0, 0, 0.18)';
-  context.beginPath();
-  context.arc(center + 0.75, center + 0.9, visualRadius, 0, Math.PI * 2);
-  context.fill();
-
-  context.fillStyle = toCssHex(color);
-  context.beginPath();
-  context.arc(center, center, visualRadius, 0, Math.PI * 2);
-  context.fill();
-
-  const materialGradient = context.createRadialGradient(
-    center - visualRadius * 0.42,
-    center - visualRadius * 0.46,
-    visualRadius * 0.12,
-    center + visualRadius * 0.12,
-    center + visualRadius * 0.1,
-    visualRadius * 1.2
-  );
-  materialGradient.addColorStop(0, 'rgba(255, 255, 255, 0.74)');
-  materialGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.22)');
-  materialGradient.addColorStop(0.58, rgba(color, 0.05));
-  materialGradient.addColorStop(0.82, 'rgba(0, 0, 0, 0.12)');
-  materialGradient.addColorStop(1, 'rgba(0, 0, 0, 0.42)');
-
-  context.fillStyle = materialGradient;
-  context.beginPath();
-  context.arc(center, center, visualRadius, 0, Math.PI * 2);
-  context.fill();
-
-  const rimGradient = context.createLinearGradient(0, 0, size, size);
-  rimGradient.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
-  rimGradient.addColorStop(0.45, 'rgba(255, 255, 255, 0)');
-  rimGradient.addColorStop(1, 'rgba(0, 0, 0, 0.36)');
-
-  context.fillStyle = rimGradient;
-  context.beginPath();
-  context.arc(center, center, visualRadius, 0, Math.PI * 2);
-  context.fill();
-
-  context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-  context.lineWidth = 1;
-  context.beginPath();
-  context.arc(center, center, visualRadius - 0.5, 0, Math.PI * 2);
-  context.stroke();
-
-  context.strokeStyle = 'rgba(0, 0, 0, 0.22)';
-  context.beginPath();
-  context.arc(center, center, visualRadius - 0.5, 0, Math.PI * 2);
-  context.stroke();
-
-  context.fillStyle = 'rgba(255, 255, 255, 0.88)';
-  context.beginPath();
-  context.arc(
-    center - visualRadius * 0.36,
-    center - visualRadius * 0.4,
-    Math.max(1.2, visualRadius * 0.16),
-    0,
-    Math.PI * 2
-  );
-  context.fill();
+  if (look === LOOKS.INK) {
+    drawInkBall(context, center, visualRadius, color);
+  } else {
+    drawGlassBall(context, center, visualRadius, color);
+  }
 
   return canvas;
 }
@@ -206,62 +162,42 @@ function replaceTexture(scene, textureKey, canvas) {
   scene.textures.addCanvas(textureKey, canvas);
 }
 
-export function registerGameTextures(scene, settings) {
-  replaceTexture(
-    scene,
-    TEXTURE_KEYS.PADDLE,
-    createPaddleCanvas({
-      width: settings.paddleWidth,
-      height: GAME_CONSTANTS.PADDLE_HEIGHT,
-      color: settings.paddleColor,
-    })
-  );
+function paddleCanvasFor(settings) {
+  return createPaddleCanvas({
+    width: settings.paddleWidth,
+    height: GAME_CONSTANTS.PADDLE_HEIGHT,
+    color: settings.paddleColor,
+    look: lookFor(settings.theme),
+  });
+}
 
-  replaceTexture(
-    scene,
-    TEXTURE_KEYS.BALL,
-    createBallCanvas({
-      size: GAME_CONSTANTS.BALL_SIZE,
-      radius: GAME_CONSTANTS.BALL_RADIUS,
-      color: settings.ballColor,
-    })
-  );
+function ballCanvasFor(settings) {
+  return createBallCanvas({
+    size: GAME_CONSTANTS.BALL_SIZE,
+    radius: GAME_CONSTANTS.BALL_RADIUS,
+    color: settings.ballColor,
+    look: lookFor(settings.theme),
+  });
+}
+
+export function registerGameTextures(scene, settings) {
+  replaceTexture(scene, TEXTURE_KEYS.PADDLE, paddleCanvasFor(settings));
+  replaceTexture(scene, TEXTURE_KEYS.BALL, ballCanvasFor(settings));
 }
 
 export function refreshBallTexture(scene, state, settings) {
   if (!scene || !state?.ball) return;
 
-  replaceTexture(
-    scene,
-    TEXTURE_KEYS.BALL,
-    createBallCanvas({
-      size: GAME_CONSTANTS.BALL_SIZE,
-      radius: GAME_CONSTANTS.BALL_RADIUS,
-      color: settings.ballColor,
-    })
-  );
+  replaceTexture(scene, TEXTURE_KEYS.BALL, ballCanvasFor(settings));
 
   state.ball.setTexture(TEXTURE_KEYS.BALL);
   state.ball.setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE);
-
-  state.livesBalls?.forEach((ball) => {
-    ball.setTexture(TEXTURE_KEYS.BALL);
-    ball.setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE);
-  });
 }
 
 export function refreshPaddleTexture(scene, state, settings) {
   if (!scene || !state?.paddle) return;
 
-  replaceTexture(
-    scene,
-    TEXTURE_KEYS.PADDLE,
-    createPaddleCanvas({
-      width: settings.paddleWidth,
-      height: GAME_CONSTANTS.PADDLE_HEIGHT,
-      color: settings.paddleColor,
-    })
-  );
+  replaceTexture(scene, TEXTURE_KEYS.PADDLE, paddleCanvasFor(settings));
 
   const { x, y } = state.paddle;
   state.paddle.setTexture(TEXTURE_KEYS.PADDLE);

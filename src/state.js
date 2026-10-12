@@ -13,6 +13,8 @@ import { GAME_CONSTANTS } from './constants.js';
  * @property {number} currentCountdown
  * @property {boolean} gameEnded
  * @property {boolean} bricksCreated
+ * @property {Set<number>} brokenWords
+ * @property {number | null} lastHitColor
  */
 
 function sanitizeHighScore(value) {
@@ -42,7 +44,6 @@ class GameState {
     this.lives = GAME_CONSTANTS.INITIAL_LIVES;
     this.livesBalls = [];
     this.score = GAME_CONSTANTS.INITIAL_SCORE;
-    this.scorePanel = null;
     this.scoreText = null;
     this.totalRows = 0;
     this.paused = true;
@@ -57,6 +58,11 @@ class GameState {
     this.ballTrailPoints = [];
     this.paddleTrailGraphics = null;
     this.paddleTrailPoints = [];
+    // Keys of the bricks already broken (a word's position in the résumé), so
+    // a theme switch can lay the rest out again without restoring them.
+    this.brokenWords = new Set();
+    this.rebuildingBricks = null;
+    this.lastHitColor = null;
   }
 
   incrementScore(points) {

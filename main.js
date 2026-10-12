@@ -1,6 +1,6 @@
 import { createConfig } from './src/config.js';
 import { setupUIButtons, setupWindowResize } from './src/ui.js';
-import { initializeTheme, setupSettings } from './src/settings.js';
+import { applyTheme, initializeTheme, setupSettings } from './src/settings.js';
 import { renderOverlayBricks } from './src/overlay.js';
 
 initializeTheme();
@@ -15,17 +15,42 @@ async function initGame() {
   setupSettings(game);
 }
 
-const startButton = document.getElementById('startButton');
 const startOverlay = document.getElementById('startOverlay');
+const startButtons = document.querySelectorAll('[data-theme-choice]');
 
-if (startButton) {
-  startButton.addEventListener('click', () => {
-    if (startOverlay) {
-      startOverlay.classList.add('hidden');
-    }
+// How long the chosen look takes to sweep across; matches `--split` in base.css.
+const SWEEP_DURATION = 550;
 
-    startButton.disabled = true;
-
-    initGame();
-  });
+function prefersReducedMotion() {
+  return (
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  );
 }
+
+/** Each half of the start screen starts the game in its own look. */
+function startGame(theme) {
+  applyTheme(theme);
+
+  if (startOverlay) {
+    // The chosen look sweeps across the whole screen as the overlay leaves.
+    startOverlay.dataset.chosen = theme;
+    startOverlay.classList.add('hidden');
+  }
+  startButtons.forEach((button) => {
+    button.disabled = true;
+  });
+
+  // Booting Phaser ties up the main thread, which would freeze the sweep, so
+  // the game starts once the sweep has finished.
+  if (startOverlay && !prefersReducedMotion()) {
+    window.setTimeout(initGame, SWEEP_DURATION);
+  } else {
+    initGame();
+  }
+}
+
+startButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    startGame(button.dataset.themeChoice);
+  });
+});

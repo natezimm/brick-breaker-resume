@@ -8,9 +8,10 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 ## Features
 
 - **Resume-driven bricks**: Parses a `.docx` resume (default: `assets/Nathan Zimmerman Resume.docx`) and creates a brick per word, sized to the word length.
+- **Two looks**: Glass (dark, the default) lays the words out as a wall of glowing glass bricks. Paper (light) typesets the resume as a printed page, where the ball knocks words off the page and each leaves a faint impression. The start screen shows the resume in both looks, split down the middle, and each half has its own play button. Switch later from the Theme chooser in settings; the choice persists via `localStorage` (`brickBreakerTheme`).
 - **Scoring by row**: Higher rows are worth more points when broken.
-- **Lives + game states**: Lives render as ball icons; win and game-over states include matching sound effects.
-- **Settings modal (auto-pauses)**: Toggle sound, toggle dark mode, adjust ball/paddle colors, change paddle width, and tweak ball speed mid-game.
+- **Lives + game states**: The HUD shows a pip per life (a lost life stays as an empty ring), the score, and your best score; win and game-over states include matching sound effects.
+- **Settings modal (auto-pauses)**: Choose the Dark or Light theme, adjust ball/paddle colors with a live preview, reset colors to the theme's own, change paddle width, tweak ball speed, and toggle sound mid-game.
 - **High score modal**: High score persists via `localStorage` (`brickBreakerHighScore`).
 - **Responsive + pausable**: Physics bounds, HUD, and paddle positioning adapt to resize; pause via the on-screen button or the `P` key; resumes with a countdown.
 
@@ -19,7 +20,7 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 - **Mouse / touch**: Move the paddle horizontally.
 - **Pause/Play**: Click the pause button or press `P`.
 - **High score**: Click the trophy button to view your saved high score.
-- **Settings**: Click the cog button to toggle sound/dark mode and adjust colors/speeds/sizing.
+- **Settings**: Click the cog button to choose the theme, toggle sound, and adjust colors/speeds/sizing. Changing the theme mid-game switches looks and keeps the words you have already broken.
 
 ## Getting Started
 
@@ -98,7 +99,8 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 
 - `index.html`: Entry point; loads the game module (`main.js`).
 - `main.js`: Initializes theme + Phaser game and wires up UI handlers.
-- `src/`: Game modules (`game.js`, `bricks.js`, `ui.js`, `settings.js`, `state.js`, `config.js`, `constants.js`).
+- `src/`: Game modules (`game.js`, `bricks.js`, `brickLayout.js`, `typeset.js`, `brickDom.js`, `overlay.js`, `textures.js`, `ui.js`, `settings.js`, `state.js`, `config.js`, `constants.js`).
+- `styles/`: `base.css` (tokens and shared geometry), `themes.css` (each look's surfaces), `components.css`, `messages.css`, and `fonts.css` (self-hosted Newsreader).
 - `scripts/`: Build/utility scripts.
 - `assets/`: Contains audio cues, icons, and the sample resume used to seed the level.
 

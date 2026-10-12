@@ -1,12 +1,11 @@
+import { THEMES, THEME_LOOKS } from './constants.js';
 import { getGameState } from './state.js';
+import { rebuildBricks } from './bricks.js';
 import { refreshBallTexture, refreshPaddleTexture } from './textures.js';
 
 const THEME_STORAGE_KEY = 'brickBreakerTheme';
-const THEMES = Object.freeze({
-  LIGHT: 'light',
-  DARK: 'dark',
-});
-const DEFAULT_THEME = THEMES.LIGHT;
+// The look used until a visitor picks one on the start screen or in settings.
+const DEFAULT_THEME = THEMES.DARK;
 
 /**
  * @typedef {Object} GameSettings
@@ -16,6 +15,8 @@ const DEFAULT_THEME = THEMES.LIGHT;
  * @property {number} paddleWidth
  * @property {number} ballSpeed
  * @property {'light' | 'dark'} theme
+ * @property {boolean} ballColorCustom true once the player picks a ball colour
+ * @property {boolean} paddleColorCustom true once the player picks a paddle colour
  */
 
 function updateDocumentTheme(theme) {
@@ -33,12 +34,68 @@ if (typeof document !== 'undefined') {
 /** @type {GameSettings} */
 export const settings = {
   soundEnabled: true,
-  ballColor: 0xa9a9a9,
-  paddleColor: 0xa9a9a9,
+  ballColor: THEME_LOOKS[DEFAULT_THEME].ball,
+  paddleColor: THEME_LOOKS[DEFAULT_THEME].paddle,
   paddleWidth: 100,
   ballSpeed: 1.0,
   theme: DEFAULT_THEME,
+  ballColorCustom: false,
+  paddleColorCustom: false,
 };
+
+function toHexInput(color) {
+  return `#${color.toString(16).padStart(6, '0')}`;
+}
+
+/**
+ * Each theme brings its own ball and paddle colour. A colour the player has
+ * picked is theirs and survives a theme switch.
+ */
+function applyLookColors(theme) {
+  const look = THEME_LOOKS[theme];
+  if (!settings.ballColorCustom) settings.ballColor = look.ball;
+  if (!settings.paddleColorCustom) settings.paddleColor = look.paddle;
+
+  syncAppearance();
+}
+
+/**
+ * Publishes the ball and paddle appearance to the page. The HUD's life pips
+ * and the settings preview are drawn from these custom properties, and the
+ * colour controls show the same values.
+ */
+function syncAppearance() {
+  if (typeof document === 'undefined') return;
+
+  const ballColor = toHexInput(settings.ballColor);
+  const paddleColor = toHexInput(settings.paddleColor);
+  const rootStyle = document.documentElement.style;
+  rootStyle.setProperty('--ball-color', ballColor);
+  rootStyle.setProperty('--paddle-color', paddleColor);
+  rootStyle.setProperty('--paddle-width', `${settings.paddleWidth}px`);
+
+  const show = (pickerId, valueId, color) => {
+    const picker = document.getElementById(pickerId);
+    const value = document.getElementById(valueId);
+    if (picker) picker.value = color;
+    if (value) value.textContent = color;
+  };
+  show('ballColorPicker', 'ballColorValue', ballColor);
+  show('paddleColorPicker', 'paddleColorValue', paddleColor);
+}
+
+/** Fills a slider's track up to its thumb; the track is styled in CSS. */
+function paintRange(slider) {
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const value = parseFloat(slider.value) || 0;
+  const filled = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
+  slider.style.setProperty(
+    '--fill',
+    `${Math.min(100, Math.max(0, filled)).toFixed(1)}%`
+  );
+}
 
 function sanitizeTheme(theme) {
   if (theme === THEMES.DARK) {
@@ -71,17 +128,15 @@ export function getThemeColors(theme = settings.theme) {
   return normalizedTheme === THEMES.DARK
     ? {
         theme: THEMES.DARK,
-        background: '#111111',
+        background: '#060913',
         hudText: '#ffffff',
-        hudTextMuted: '#a9a9a9',
-        scoreText: '#FFD700',
+        hudTextMuted: '#a9b4c8',
       }
     : {
         theme: THEMES.LIGHT,
-        background: '#ffffff',
-        hudText: '#000000',
-        hudTextMuted: '#4b5563',
-        scoreText: '#FFD700',
+        background: '#f6f5f0',
+        hudText: '#16181d',
+        hudTextMuted: '#5b6170',
       };
 }
 
@@ -108,13 +163,19 @@ export function applyThemeToScene(
   if (!scene) return;
   const colors = getThemeColors(theme);
 
+  // The page paints the backdrop (aurora or paper); the canvas stays clear
+  // so it shows through.
   const camera = scene.cameras?.main;
   if (camera && typeof camera.setBackgroundColor === 'function') {
-    camera.setBackgroundColor(colors.background);
+    camera.setBackgroundColor('rgba(0, 0, 0, 0)');
   }
 
-  setTextFill(state.scoreText, colors.scoreText);
-  state.scoreText?.refreshScoreChrome?.();
+  // Trails are only redrawn while playing, so wipe the old look's glow now.
+  state.ballTrailGraphics?.clear?.();
+  state.paddleTrailGraphics?.clear?.();
+  state.ballTrailPoints = [];
+  state.paddleTrailPoints = [];
+
   setTextFill(state.countdownText, colors.hudTextMuted);
   setTextFill(state.winText, colors.hudTextMuted);
 }
@@ -124,6 +185,7 @@ export function initializeTheme() {
   settings.theme = storedTheme;
 
   updateDocumentTheme(storedTheme);
+  applyLookColors(storedTheme);
 
   return storedTheme;
 }
@@ -133,11 +195,21 @@ export function applyTheme(theme, game) {
   settings.theme = normalizedTheme;
 
   updateDocumentTheme(normalizedTheme);
+  applyLookColors(normalizedTheme);
 
   writeStoredTheme(normalizedTheme);
 
   const scene = game?.scene?.scenes?.[0];
-  applyThemeToScene(scene, normalizedTheme, getGameState(scene));
+  if (!scene) return;
+
+  const state = getGameState(scene);
+  applyThemeToScene(scene, normalizedTheme, state);
+  if (scene.textures) {
+    refreshBallTexture(scene, state, settings);
+    refreshPaddleTexture(scene, state, settings);
+  }
+  // The two themes lay the résumé out differently, so the wall is rebuilt.
+  rebuildBricks(scene, state);
 }
 
 export function setupSettings(game) {
@@ -145,7 +217,8 @@ export function setupSettings(game) {
   const settingsButton = document.getElementById('settingsButton');
   const closeButton = document.getElementById('closeModal');
   const soundToggle = document.getElementById('soundToggle');
-  const themeToggle = document.getElementById('themeToggle');
+  const themeOptions = document.querySelectorAll('input[name="theme"]');
+  const resetColorsButton = document.getElementById('resetColors');
   const ballColorPicker = document.getElementById('ballColorPicker');
   const paddleColorPicker = document.getElementById('paddleColorPicker');
   const paddleWidthSlider = document.getElementById('paddleWidthSlider');
@@ -155,10 +228,23 @@ export function setupSettings(game) {
   const pauseButton = document.getElementById('pauseButton');
   const getScene = () => game.scene.scenes[0];
 
-  if (themeToggle) {
-    themeToggle.checked = settings.theme === THEMES.DARK;
-    themeToggle.addEventListener('change', (e) => {
-      applyTheme(e.target.checked ? THEMES.DARK : THEMES.LIGHT, game);
+  applyLookColors(settings.theme);
+
+  // Theme is a choice between two named looks, not an on/off switch.
+  themeOptions.forEach((option) => {
+    option.checked = option.value === settings.theme;
+    option.addEventListener('change', () => {
+      if (option.checked) applyTheme(option.value, game);
+    });
+  });
+
+  if (resetColorsButton) {
+    resetColorsButton.addEventListener('click', () => {
+      settings.ballColorCustom = false;
+      settings.paddleColorCustom = false;
+      applyLookColors(settings.theme);
+      updateBallTexture(getScene());
+      updatePaddleTexture(getScene());
     });
   }
 
@@ -231,6 +317,8 @@ export function setupSettings(game) {
       return;
     }
     settings.ballColor = parseInt(color.replace('#', '0x'));
+    settings.ballColorCustom = true;
+    syncAppearance();
     updateBallTexture(getScene());
   });
 
@@ -240,6 +328,8 @@ export function setupSettings(game) {
       return;
     }
     settings.paddleColor = parseInt(color.replace('#', '0x'));
+    settings.paddleColorCustom = true;
+    syncAppearance();
     updatePaddleTexture(getScene());
   });
 
@@ -252,6 +342,8 @@ export function setupSettings(game) {
     }
     settings.paddleWidth = newWidth;
     paddleWidthValue.textContent = newWidth;
+    paintRange(paddleWidthSlider);
+    syncAppearance();
     updatePaddleTexture(getScene());
   });
 
@@ -264,10 +356,13 @@ export function setupSettings(game) {
     }
     settings.ballSpeed = newSpeed;
     ballSpeedValue.textContent = newSpeed.toFixed(1);
+    paintRange(ballSpeedSlider);
     updateBallSpeed(getScene());
   });
 
   paddleWidthSlider.max = Math.floor(window.innerWidth / 3);
+  paintRange(paddleWidthSlider);
+  paintRange(ballSpeedSlider);
 }
 
 function updateBallTexture(scene, state = getGameState(scene)) {

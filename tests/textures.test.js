@@ -6,7 +6,7 @@ import {
   refreshPaddleTexture,
   registerGameTextures,
 } from '../src/textures.js';
-import { createMockScene, MockImage, MockPhysicsImage } from './mockScene.js';
+import { createMockScene, MockPhysicsImage } from './mockScene.js';
 
 describe('texture factory', () => {
   const settings = {
@@ -36,20 +36,14 @@ describe('texture factory', () => {
     expect(scene.textures.addCanvas).toHaveBeenCalledTimes(2);
   });
 
-  test('refreshBallTexture updates active ball and life icons', () => {
+  test('refreshBallTexture updates the active ball', () => {
     const scene = createMockScene();
     const ball = new MockPhysicsImage(0, 0);
-    const lifeBall = new MockImage(0, 0);
-    const state = {
-      ball,
-      livesBalls: [lifeBall],
-    };
 
-    refreshBallTexture(scene, state, settings);
+    refreshBallTexture(scene, { ball }, settings);
 
     expect(ball.texture).toBe(TEXTURE_KEYS.BALL);
     expect(ball.width).toBe(GAME_CONSTANTS.BALL_SIZE);
-    expect(lifeBall.texture).toBe(TEXTURE_KEYS.BALL);
   });
 
   test('refreshPaddleTexture updates active paddle and body size', () => {
@@ -85,5 +79,37 @@ describe('texture factory', () => {
     expect(() =>
       refreshPaddleTexture(createMockScene(), { paddle: null }, settings)
     ).not.toThrow();
+  });
+
+  test('the Paper theme draws an ink ball and a ruled paddle', () => {
+    const context = {
+      fillStyle: '',
+      beginPath: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn(),
+      fillRect: jest.fn(),
+    };
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = jest.fn(() => context);
+    const scene = createMockScene();
+
+    registerGameTextures(scene, { ...settings, theme: 'light' });
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
+
+    // A bar and the hairline beneath it; two discs for the ball and its shadow.
+    expect(context.fillRect).toHaveBeenCalledTimes(2);
+    expect(context.fillRect).toHaveBeenCalledWith(0, 0, 140, 9);
+    expect(context.arc).toHaveBeenCalledTimes(2);
+    expect(context.fillStyle).toBe('#ff0000');
+  });
+
+  test('the Glass theme draws a lit ball and a glass paddle', () => {
+    const scene = createMockScene();
+
+    expect(() =>
+      registerGameTextures(scene, { ...settings, theme: 'dark' })
+    ).not.toThrow();
+    expect(createPaddleCanvas({ look: 'ink', height: 2 }).height).toBe(2);
+    expect(createBallCanvas({ look: 'ink', size: 4, radius: 2 }).width).toBe(4);
   });
 });

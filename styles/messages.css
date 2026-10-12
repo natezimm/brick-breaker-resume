@@ -226,3 +226,78 @@
     font-size: 20px;
   }
 }
+
+/* Glass: messages are lit from within rather than outlined. */
+:root[data-theme='dark'] .game-message {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  color: #ffffff;
+  -webkit-text-stroke: 0;
+  text-shadow:
+    0 0 28px rgba(59, 157, 255, 0.85),
+    0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme='dark'] .gm-gameover {
+  color: #ff6a5f;
+  background: rgba(8, 12, 26, 0.86);
+  border: 1px solid rgba(255, 106, 95, 0.8);
+  border-radius: 18px;
+  box-shadow: 0 0 60px rgba(255, 90, 79, 0.45);
+  text-shadow: 0 0 24px rgba(255, 90, 79, 0.7);
+}
+
+:root[data-theme='dark'] .gm-gameover .sub-text {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Paper: messages are set in type. */
+:root[data-theme='light'] .game-message {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--ink);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+:root[data-theme='light'] .gm-countdown {
+  font-size: 150px;
+}
+
+:root[data-theme='light'] .gm-gameover {
+  color: var(--ink);
+  background: var(--page-bg);
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 0 24px 60px rgba(22, 24, 29, 0.25);
+}
+
+:root[data-theme='light'] .gm-gameover .sub-text {
+  font-family: var(--font-sans);
+  font-style: normal;
+  color: var(--ink-soft);
+}
+
+:root[data-theme='light'] .gm-win {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: none;
+  animation: none;
+}
+
+:root[data-theme='light'] .gm-win-sub {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-shadow: none;
+}
+
+@media (max-width: 600px) {
+  :root[data-theme='light'] .gm-countdown {
+    font-size: 100px;
+  }
+}

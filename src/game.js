@@ -1,4 +1,10 @@
-import { AUDIO_KEYS, TEXTURE_KEYS, GAME_CONSTANTS } from './constants.js';
+import {
+  AUDIO_KEYS,
+  TEXTURE_KEYS,
+  GAME_CONSTANTS,
+  THEMES,
+  THEME_LOOKS,
+} from './constants.js';
 import { attachGameState, createGameState } from './state.js';
 import { createBricksFromResume, handleBrickCollision } from './bricks.js';
 import {
@@ -139,6 +145,9 @@ function loseLife(scene, state) {
   }
 }
 
+const BLEND_NORMAL = 0;
+const BLEND_ADD = 1;
+
 function getOrCreateTrailGraphics(scene, state, key) {
   if (!state[key]) {
     state[key] = scene.add.graphics({ x: 0, y: 0 });
@@ -157,34 +166,59 @@ function addTrailPoint(points, point) {
     .slice(0, GAME_CONSTANTS.TRAIL_LENGTH);
 }
 
+function isGlassTheme() {
+  return settings.theme !== THEMES.LIGHT;
+}
+
+/** Glass lights the ball and paddle with the last colour they broke. */
+function getGlowColor(state) {
+  return state.lastHitColor ?? THEME_LOOKS[THEMES.DARK].accent;
+}
+
 function drawBallTrail(scene, state) {
   if (!state.ball || !state.ball.body) return;
 
   const graphics = getOrCreateTrailGraphics(scene, state, 'ballTrailGraphics');
   if (!graphics.clear || !graphics.fillStyle || !graphics.fillCircle) return;
 
+  const glass = isGlassTheme();
   state.ballTrailPoints = addTrailPoint(state.ballTrailPoints, {
     x: state.ball.x,
     y: state.ball.y,
     radius: GAME_CONSTANTS.BALL_RADIUS,
-    alpha: 0.26,
+    alpha: glass ? 0.3 : 0.16,
   });
 
   graphics.clear();
-  state.ballTrailPoints.forEach((point, index) => {
-    const radius = Math.max(2, point.radius - index * 1.2);
-    const glowRadius = radius + 4 - index * 0.35;
+  graphics.setBlendMode?.(glass ? BLEND_ADD : BLEND_NORMAL);
 
-    graphics.fillStyle(settings.ballColor, point.alpha * 0.24);
-    graphics.fillCircle(point.x, point.y, glowRadius);
-    graphics.fillStyle(0xffffff, point.alpha * 0.08);
-    graphics.fillCircle(
-      point.x - radius * 0.2,
-      point.y - radius * 0.2,
-      Math.max(1, radius * 0.36)
-    );
-    graphics.fillStyle(settings.ballColor, point.alpha * 0.72);
+  if (!glass) {
+    // Paper: a smear of ink behind the ball.
+    state.ballTrailPoints.forEach((point, index) => {
+      graphics.fillStyle(settings.ballColor, point.alpha * 0.7);
+      graphics.fillCircle(
+        point.x,
+        point.y,
+        Math.max(2, point.radius - 2 - index * 0.9)
+      );
+    });
+    return;
+  }
+
+  const glow = getGlowColor(state);
+  state.ballTrailPoints.forEach((point, index) => {
+    const radius = Math.max(2, point.radius - index * 1.1);
+
+    graphics.fillStyle(glow, point.alpha * 0.34);
+    graphics.fillCircle(point.x, point.y, radius + 5 - index * 0.4);
+    graphics.fillStyle(glow, point.alpha * 0.6);
     graphics.fillCircle(point.x, point.y, radius);
+  });
+
+  // A soft halo, built from stacked discs since Graphics has no blur.
+  [30, 23, 17, 12].forEach((radius, index) => {
+    graphics.fillStyle(glow, 0.05 + index * 0.035);
+    graphics.fillCircle(state.ball.x, state.ball.y, radius);
   });
 }
 
@@ -198,6 +232,7 @@ function drawPaddleTrail(scene, state) {
   );
   if (!graphics.clear || !graphics.fillStyle) return;
 
+  const glass = isGlassTheme();
   const paddleWidth = state.paddle.displayWidth || state.paddle.width;
   const paddleHeight = state.paddle.displayHeight || state.paddle.height;
   state.paddleTrailPoints = addTrailPoint(state.paddleTrailPoints, {
@@ -205,49 +240,55 @@ function drawPaddleTrail(scene, state) {
     y: state.paddle.y,
     width: paddleWidth,
     height: paddleHeight,
-    alpha: 0.18,
+    alpha: glass ? 0.2 : 0.07,
   });
 
   graphics.clear();
+  graphics.setBlendMode?.(glass ? BLEND_ADD : BLEND_NORMAL);
+
+  const color = glass ? getGlowColor(state) : settings.paddleColor;
+
+  if (!graphics.fillRoundedRect) {
+    const [point] = state.paddleTrailPoints;
+    graphics.fillStyle(color, point.alpha * 0.62);
+    graphics.fillRect(
+      point.x - point.width / 2,
+      point.y - point.height / 2,
+      point.width,
+      point.height
+    );
+    return;
+  }
+
   state.paddleTrailPoints.forEach((point, index) => {
     const height = Math.max(4, point.height - index * 2);
     const width = Math.max(12, point.width - index * 4);
-    const radius = height / 2;
 
-    if (graphics.fillRoundedRect) {
-      graphics.fillStyle(settings.paddleColor, point.alpha * 0.28);
-      graphics.fillRoundedRect(
-        point.x - width / 2,
-        point.y - height / 2 - 1,
-        width,
-        height + 2,
-        radius + 1
-      );
-      graphics.fillStyle(settings.paddleColor, point.alpha * 0.62);
-      graphics.fillRoundedRect(
-        point.x - width / 2,
-        point.y - height / 2,
-        width,
-        height,
-        radius
-      );
-      graphics.fillStyle(0xffffff, point.alpha * 0.08);
-      graphics.fillRoundedRect(
-        point.x - width / 2 + radius,
-        point.y - height / 2 + 2,
-        Math.max(4, width - radius * 2),
-        Math.max(2, height * 0.22),
-        Math.max(1, height * 0.11)
-      );
-    } else {
-      graphics.fillStyle(settings.paddleColor, point.alpha * 0.62);
-      graphics.fillRect(
-        point.x - width / 2,
-        point.y - height / 2,
-        width,
-        height
-      );
-    }
+    graphics.fillStyle(color, point.alpha * (glass ? 0.5 : 0.6));
+    graphics.fillRoundedRect(
+      point.x - width / 2,
+      point.y - height / 2,
+      width,
+      height,
+      glass ? height / 2 : 1
+    );
+  });
+
+  if (!glass) return;
+
+  // Glow beneath the glass paddle, stacked like the ball's halo.
+  [14, 9, 5].forEach((spread, index) => {
+    const width = paddleWidth + spread * 2;
+    const height = paddleHeight + spread * 2;
+
+    graphics.fillStyle(color, 0.05 + index * 0.04);
+    graphics.fillRoundedRect(
+      state.paddle.x - width / 2,
+      state.paddle.y - height / 2,
+      width,
+      height,
+      height / 2
+    );
   });
 }
 

@@ -1,44 +1,136 @@
-import { GAME_CONSTANTS, COLORS } from './constants.js';
+import { GAME_CONSTANTS, COLORS, THEMES, THEME_LOOKS } from './constants.js';
+import { fitTypeset, getTypesetFontSpecs } from './typeset.js';
 
 const ALLOWED_ASSET_PATHS = Object.freeze([
   'assets/resume.json',
   './assets/resume.json',
 ]);
 
+const FONT_LOAD_TIMEOUT = 1500;
+const MAX_HEADING_LENGTH = 40;
+
 /**
  * @typedef {Object} BrickLayoutRecord
  * @property {number} x
  * @property {number} y
  * @property {number} width
+ * @property {number} height
  * @property {string} text
  * @property {number} color
  * @property {number} rowIndex
+ * @property {number | string} wordIndex position of the word in the résumé, stable across layouts; pieces of the typeset rule use `rule-N`
  * @property {boolean} isLastInRow
+ * @property {string} kind name | contact | rule | heading | role | date | bullet | body
+ * @property {string} [font] CSS font shorthand (typeset layout only)
+ * @property {number} [letterSpacing] pixels (typeset layout only)
+ */
+
+/**
+ * @typedef {Object} BrickLayout
+ * @property {BrickLayoutRecord[]} bricks
+ * @property {Array<Object>} decor marks that are not in play, such as bullet glyphs
+ * @property {number} totalRows
+ * @property {'wall' | 'typeset'} mode
  */
 
 function isAllowedAssetPath(path) {
   return ALLOWED_ASSET_PATHS.includes(path);
 }
 
+function isHeading(text) {
+  return (
+    text.length <= MAX_HEADING_LENGTH &&
+    /[A-Z]/.test(text) &&
+    !/\d/.test(text) &&
+    text === text.toUpperCase()
+  );
+}
+
 /**
- * Loads resume.json and calculates brick layout with full justification.
- * Returns an array of brick data objects with position, size, text, and color info.
- * @returns {Promise<{bricks: BrickLayoutRecord[], totalRows: number}>}
+ * Labels each résumé entry with the part it plays on the page, so layouts can
+ * give the name, headings, and job titles their own treatment.
  */
-export async function calculateBrickLayout() {
-  const assetPath = 'assets/resume.json';
+export function classifyElements(elements) {
+  let seenHeading = false;
 
-  if (!isAllowedAssetPath(assetPath)) {
-    console.error('Security: Attempted to load unauthorized asset path');
-    return { bricks: [], totalRows: 0 };
+  return elements.map((element, index) => {
+    const text = typeof element?.text === 'string' ? element.text : '';
+    let kind = 'body';
+
+    if (index === 0) {
+      kind = 'name';
+    } else if (element?.tag === 'li') {
+      kind = 'bullet';
+    } else if (isHeading(text)) {
+      kind = 'heading';
+      seenHeading = true;
+    } else if (text.includes('\t')) {
+      kind = 'role';
+    } else if (!seenHeading) {
+      kind = 'contact';
+    }
+
+    return { ...element, text, kind };
+  });
+}
+
+/** The layout the active theme calls for; the document theme is the source of truth. */
+export function getLayoutMode() {
+  const theme =
+    typeof document !== 'undefined'
+      ? document.documentElement?.dataset?.theme
+      : undefined;
+
+  return theme === THEMES.LIGHT ? THEME_LOOKS[THEMES.LIGHT].layout : 'wall';
+}
+
+function createMeasurer() {
+  const context =
+    typeof document !== 'undefined'
+      ? document.createElement('canvas').getContext?.('2d')
+      : null;
+
+  if (context && typeof context.measureText === 'function') {
+    return (text, font) => {
+      context.font = font;
+      return context.measureText(text).width;
+    };
   }
 
-  const response = await fetch(assetPath);
-  if (!response.ok) {
-    throw new Error(`Failed to load resume data: ${response.status}`);
-  }
-  const elements = await response.json();
+  // No canvas text metrics (tests, very old browsers): estimate from the size.
+  return (text, font) => {
+    const size = parseFloat(/([\d.]+)px/.exec(font)?.[1] ?? '16');
+    return text.length * size * 0.5;
+  };
+}
 
+async function loadTypesetFonts() {
+  if (typeof document === 'undefined' || !document.fonts?.load) return;
+
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(resolve, FONT_LOAD_TIMEOUT);
+  });
+
+  try {
+    await Promise.race([
+      Promise.all(
+        getTypesetFontSpecs().map((font) => document.fonts.load(font))
+      ),
+      timeout,
+    ]);
+  } catch {
+    // Fall back to whichever face the browser renders; measuring uses the same stack.
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Wall layout: every word is a fixed-height brick and each row is stretched
+ * to fill the width.
+ */
+function layoutWall(elements) {
   const {
     MARGIN_TOP,
     BRICK_HEIGHT,
@@ -50,12 +142,14 @@ export async function calculateBrickLayout() {
   let x = 10;
   let y = MARGIN_TOP;
   let totalRows = 0;
+  let wordIndex = 0;
 
   const bricksByRow = new Map();
 
   elements.forEach((el) => {
     const words = el.text.split(/\s+/).filter((w) => w.length > 0);
     words.forEach((word) => {
+      const index = wordIndex++;
       const brickWidth = word.length * BASE_BRICK_WIDTH + 10;
 
       if (x + brickWidth > rightEdge) {
@@ -83,6 +177,8 @@ export async function calculateBrickLayout() {
         text: word,
         color: rowColor,
         rowIndex,
+        wordIndex: index,
+        kind: el.kind,
       });
 
       x += brickWidth + BRICK_PADDING;
@@ -92,50 +188,80 @@ export async function calculateBrickLayout() {
   const justifiedBricks = [];
 
   bricksByRow.forEach((bricksInRow) => {
-    if (bricksInRow.length === 0) return;
-
     const lastBrickData = bricksInRow[bricksInRow.length - 1];
     const currentRightEdge = lastBrickData.x + lastBrickData.width;
     const spaceRemaining = rightEdge - currentRightEdge;
+    const extraPerBrick =
+      spaceRemaining > 0 ? spaceRemaining / bricksInRow.length : 0;
 
-    if (spaceRemaining > 0) {
-      const extraPerBrick = spaceRemaining / bricksInRow.length;
-      let accumulatedOffset = 0;
-
-      bricksInRow.forEach((data, index) => {
-        const newWidth = data.originalWidth + extraPerBrick;
-        const newX = data.x + accumulatedOffset;
-        const isLastInRow = index === bricksInRow.length - 1;
-
-        justifiedBricks.push({
-          x: newX,
-          y: data.y,
-          width: newWidth,
-          text: data.text,
-          color: data.color,
-          rowIndex: data.rowIndex,
-          isLastInRow,
-        });
-
-        accumulatedOffset += extraPerBrick;
+    bricksInRow.forEach((data, index) => {
+      justifiedBricks.push({
+        x: data.x + extraPerBrick * index,
+        y: data.y,
+        width: data.originalWidth + extraPerBrick,
+        height: BRICK_HEIGHT,
+        text: data.text,
+        color: data.color,
+        rowIndex: data.rowIndex,
+        colIndex: index,
+        wordIndex: data.wordIndex,
+        kind: data.kind,
+        isLastInRow: index === bricksInRow.length - 1,
       });
-    } else {
-      bricksInRow.forEach((data, index) => {
-        const isLastInRow = index === bricksInRow.length - 1;
-        justifiedBricks.push({
-          x: data.x,
-          y: data.y,
-          width: data.width,
-          text: data.text,
-          color: data.color,
-          rowIndex: data.rowIndex,
-          isLastInRow,
-        });
-      });
-    }
+    });
   });
 
-  return { bricks: justifiedBricks, totalRows };
+  return { bricks: justifiedBricks, decor: [], totalRows, mode: 'wall' };
+}
+
+async function loadResumeElements() {
+  const assetPath = 'assets/resume.json';
+
+  if (!isAllowedAssetPath(assetPath)) {
+    console.error('Security: Attempted to load unauthorized asset path');
+    return [];
+  }
+
+  const response = await fetch(assetPath);
+  if (!response.ok) {
+    throw new Error(`Failed to load resume data: ${response.status}`);
+  }
+
+  return classifyElements(await response.json());
+}
+
+async function layoutElements(elements, mode) {
+  if (mode === 'typeset') {
+    await loadTypesetFonts();
+    const { bricks, decor, totalRows } = fitTypeset(elements, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      measure: createMeasurer(),
+    });
+    return { bricks, decor, totalRows, mode };
+  }
+
+  return layoutWall(elements);
+}
+
+/**
+ * Loads resume.json and lays its words out as bricks for the active theme.
+ * @param {{mode?: 'wall' | 'typeset'}} [options]
+ * @returns {Promise<BrickLayout>}
+ */
+export async function calculateBrickLayout({ mode = getLayoutMode() } = {}) {
+  return layoutElements(await loadResumeElements(), mode);
+}
+
+/**
+ * Lays the résumé out in several modes from one request. The start screen
+ * uses this to show both looks side by side.
+ * @param {Array<'wall' | 'typeset'>} modes
+ * @returns {Promise<BrickLayout[]>}
+ */
+export async function calculateBrickLayouts(modes) {
+  const elements = await loadResumeElements();
+  return Promise.all(modes.map((mode) => layoutElements(elements, mode)));
 }
 
 /**
