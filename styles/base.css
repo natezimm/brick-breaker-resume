@@ -77,8 +77,19 @@ canvas {
  */
 @property --split {
   syntax: '<percentage>';
-  inherits: true;
+  inherits: false;
   initial-value: 50%;
+}
+
+/*
+ * `--split` is not inherited on purpose. If it were, every one of the
+ * résumé's hundreds of bricks would be restyled on each frame the seam moves.
+ * Only the pieces that place themselves by it take it from their parent.
+ */
+.look-pane,
+.look-card,
+.look-seam {
+  --split: inherit;
 }
 
 #startOverlay {

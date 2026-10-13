@@ -288,8 +288,12 @@
   height: 12px;
   margin: -6px 0 0 -6px;
   clip-path: polygon(0 82%, 100% 64%, 46% 0);
-  mix-blend-mode: screen;
-  filter: brightness(1.4) saturate(1.2);
+  /*
+   * Brightened in the colour itself. Blending the shards with the page
+   * (mix-blend-mode) made the browser recomposite the whole glowing wall
+   * for every one, which froze play for a tenth of a second per brick.
+   */
+  background: color-mix(in srgb, var(--particle-color, #ffffff) 62%, white);
   animation-name: shardBurst;
 }
 
@@ -326,9 +330,9 @@
   margin: calc(var(--ring-size, 40px) / -2) 0 0
     calc(var(--ring-size, 40px) / -2);
   box-sizing: border-box;
-  border: 2px solid var(--particle-color, #ffffff);
+  border: 2px solid
+    color-mix(in srgb, var(--particle-color, #ffffff) 70%, white);
   border-radius: 50%;
-  mix-blend-mode: screen;
   animation: ringExpand 0.45s ease-out forwards;
 }
 
