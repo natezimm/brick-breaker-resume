@@ -53,15 +53,15 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts || true
-          ssh-keyscan "${{ secrets.GCP_HOST }}" >> ~/.ssh/known_hosts || true
+          echo "${{ secrets.GCP_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
           cat <<SSHCONFIG > ~/.ssh/config
           Host gcp
             HostName ${{ secrets.GCP_HOST }}
             User ${{ secrets.GCP_USER }}
             IdentityFile ~/.ssh/id_rsa
-            StrictHostKeyChecking=no
+            StrictHostKeyChecking=yes
           SSHCONFIG
 
       - name: Deploy to GCP
