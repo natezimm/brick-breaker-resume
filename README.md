@@ -93,7 +93,8 @@ Brick Breaker Resume is a Phaser 3 browser game that turns a `.docx` resume into
 ## Deployment (GitHub Actions → GCP)
 
 - The `deploy` job downloads the repo as an artifact and `rsync`s it to `/var/www/brick-breaker/` on the target host, then runs a simple health check.
-- Required GitHub secrets: `GCP_SSH_KEY`, `GCP_HOST`, `GCP_USER`, `APP_DOMAIN`.
+- Required GitHub secrets: `GCP_SSH_KEY`, `GCP_HOST`, `GCP_USER`, `GCP_KNOWN_HOSTS`, `APP_DOMAIN`.
+- `GCP_KNOWN_HOSTS` pins the VM's SSH host key: one `known_hosts` line such as `104.196.14.53 ssh-ed25519 AAAA...`, whose host matches `GCP_HOST`. The deploy connects with `StrictHostKeyChecking=yes`, so it fails if this secret is missing or the key does not match.
 
 ## File Structure
 
