@@ -4,7 +4,7 @@
 
 This is a static Phaser 3 game built with Vite. Resume text becomes breakable bricks; browser storage holds the theme and high score. It is linked from the separately maintained portfolio in `../nathanzimmerman.com` and deployed at `resume.nathanzimmerman.com`.
 
-The portfolio, this repo, `../nerdle`, `../blackjack`, and `../sudoku` are independent Git repositories. Read each repo's guide before editing it. Check the working tree and preserve unrelated changes. See `docs/architecture.md` for design context; keep this guide aligned with executable configuration.
+The portfolio and this repo are independent Git repositories, alongside the other portfolio projects (`../wheelhouse`, `../know-ball`, `../rabbit-ears`). Read each repo's guide before editing it. Check the working tree and preserve unrelated changes. See `docs/architecture.md` for design context; keep this guide aligned with executable configuration.
 
 ## Where to work
 
@@ -14,12 +14,12 @@ The portfolio, this repo, `../nerdle`, `../blackjack`, and `../sudoku` are indep
 - `src/typeset.js`: the Paper (typeset) layout; `src/brickDom.js`: DOM rendering of bricks, ghosts, and page marks shared by the overlay and the game.
 - `src/ui.js`, `src/settings.js`, and `src/overlay.js`: DOM UI, settings, and overlays; `styles/*.css` are linked directly from `index.html` (`style.css` is only a placeholder). `styles/base.css` holds tokens and shared geometry, `styles/themes.css` the surfaces of each look, and `styles/fonts.css` the self-hosted Newsreader import.
 - `scripts/generate_resume_json.js`: CommonJS resume parser using Mammoth and JSDOM.
-- `public/assets/Nathan Zimmerman Resume.docx`: resume source; `public/assets/resume.json`: generated data. The README's older `assets/` paths omit `public/`.
+- `public/assets/Nathan Zimmerman Resume.docx`: resume source; `public/assets/resume.json`: generated data. The browser fetches them as `assets/...`, which Vite serves from `public/`.
 - `tests/`: Jest units, including `mockScene.js` and `setupTests.js`; `e2e/brick-breaker.spec.js`: real-browser gameplay checks.
 
 ## Commands and runtime caveat
 
-Run commands from the repository root. `.nvmrc` and CI select Node 22, but `package.json` declares Node 26. This unresolved mismatch may cause engine warnings or failures depending on npm configuration; record the runtime when diagnosing them.
+Run commands from the repository root. Node 22 everywhere: `.nvmrc` (which CI reads), `engines` in `package.json`, and the Dockerfile's build image. Change them together.
 
 - Install: `npm ci`.
 - Develop: `npm run dev` (port **8080**, automatically opens a browser).
@@ -51,4 +51,6 @@ Run checks appropriate to the change, using `npm run quality` for broad applicat
 
 Playwright hardcodes port **4173**, shared with the sibling repos, and reuses an existing server outside CI. Stop unrelated preview servers before testing and run sibling browser suites sequentially to avoid testing the wrong app.
 
-`.github/workflows/deploy.yml` runs CI on pull requests and pushes to `main`, then deploys the built `dist/` artifact to GCP only for successful pushes to `main`. Keep deployment within the requested scope and edit sources rather than generated build/test output.
+`.github/workflows/ci.yml` runs CI on pull requests and pushes to `main`, then deploys the built `dist/` artifact to GCP only for successful pushes to `main`. The deploy job refuses to run without the `GCP_KNOWN_HOSTS` secret and pins the VM's host key. Keep deployment within the requested scope and edit sources rather than generated build/test output.
+
+README images live in `docs/images/`. `docs/architecture.md` holds the Mermaid diagrams, using the classDef palette shared with the portfolio; the README embeds its containers diagram, so change both together.
