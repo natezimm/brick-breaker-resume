@@ -49,11 +49,18 @@ jobs:
           path: site
 
       - name: Setup SSH
+        env:
+          GCP_KNOWN_HOSTS: ${{ secrets.GCP_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.GCP_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+          if [ -z "$GCP_KNOWN_HOSTS" ]; then
+            echo "GCP_KNOWN_HOSTS secret is not set; refusing to connect without a pinned host key"
+            exit 1
+          fi
+          printf '%s\n' "$GCP_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
           cat <<SSHCONFIG > ~/.ssh/config
@@ -61,7 +68,7 @@ jobs:
             HostName ${{ secrets.GCP_HOST }}
             User ${{ secrets.GCP_USER }}
             IdentityFile ~/.ssh/id_rsa
-            StrictHostKeyChecking=yes
+            StrictHostKeyChecking yes
           SSHCONFIG
 
       - name: Deploy to GCP

@@ -1,7 +1,7 @@
 {
   "name": "brick-breaker-resume",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Phaser 3 Brick Breaker game whose level is built from a Word résumé, one brick per word.",
   "main": "main.js",
   "scripts": {
     "generate:resume": "node scripts/generate_resume_json.js",
@@ -23,7 +23,7 @@
   },
   "private": true,
   "engines": {
-    "node": "26.x"
+    "node": "22.x"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
