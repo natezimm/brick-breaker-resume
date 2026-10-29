@@ -6,9 +6,11 @@ on:
   push:
     branches: ['main']
 
+# Pinned to Ubuntu 24.04 rather than ubuntu-latest: Playwright 1.60 cannot install Chromium
+# on the newer 26.04 image. Move the pin once it can.
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repo
@@ -39,7 +41,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: ci
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Download build artifact
