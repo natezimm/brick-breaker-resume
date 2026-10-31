@@ -6,7 +6,7 @@ A Phaser 3 browser game that turns a Word résumé into a Brick Breaker level: e
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-resume.nathanzimmerman.com-0369a1)](https://resume.nathanzimmerman.com)
 
-![The start screen shows the résumé in both looks, split down the middle; choosing Glass sweeps it across and the game begins](docs/images/demo.gif)
+![The start screen shows the résumé in both looks; choosing Paper starts the game, the ball breaks a few words, then the settings switch the same level to the Glass look](docs/images/demo.gif)
 
 **Play it at [resume.nathanzimmerman.com](https://resume.nathanzimmerman.com).**
 
