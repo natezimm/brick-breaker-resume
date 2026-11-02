@@ -37,23 +37,23 @@
   },
   {
     "tag": "li",
-    "text": "Built core features within a greenfield Payment Plans & Billing domain for a multi-tenant SaaS platform serving educational institutions, spanning C#/.NET microservices, Angular, MongoDB, and shared service integrations."
+    "text": "Built core features within a greenfield Payment Plans & Billing domain for a multi-tenant SaaS platform serving educational institutions, spanning C#/.NET microservices, Angular, MongoDB, and Redis."
   },
   {
     "tag": "li",
-    "text": "Designed payment plan offering and enrollment workflows across admin and payer-facing apps, supporting plan setup, payment rules, schedule scenarios, disclosures, and final enrollment."
+    "text": "Designed payment plan offering and enrollment workflows across admin and payer BFF apps, supporting plan setup, payment rules, deterministic UTC runtime status derivation, and automated payment rollbacks."
   },
   {
     "tag": "li",
-    "text": "Developed a reusable payment schedule calculator packaged as a shared Angular/npm component, generating installment scenarios from rules around down payments, cadence, fees, and completion dates."
+    "text": "Developed a shared Angular/npm payment schedule calculator with a stateless BFF admin preview, generating installment scenarios from rules around down payments, cadence, fees, and completion dates."
   },
   {
     "tag": "li",
-    "text": "Integrated payment, banking, disclosure, pricing, and messaging services to support payment method selection, disclosure rendering, enrollment confirmations, and payment plan lifecycle updates."
+    "text": "Integrated payment, banking, disclosure, pricing, and messaging services, using MongoDB multi-document transactions, a transactional outbox, and API key roles to provision multi-tenant RBAC permissions at signup."
   },
   {
     "tag": "li",
-    "text": "Built event-driven returned-payment handling that applied return policy actions including installment rescheduling, failed-payment handling, plan cancellation, and runtime status derivation."
+    "text": "Built two-step installment charging and event-driven returned-payment handling that applied tenant return policies including installment rescheduling, fee assessment, grace-period holds, and plan cancellation."
   },
   {
     "tag": "p",
@@ -97,19 +97,19 @@
   },
   {
     "tag": "li",
-    "text": "Sudoku - Built a full-stack Sudoku app with a .NET Web API puzzle generator and Angular gameplay UI. Added validation, rate limiting, and CI-backed tests to keep gameplay reliable. | sudoku.nathanzimmerman.com"
+    "text": "Wheelhouse - Built a family calendar for a wall touch screen and phones with ASP.NET Core, Angular and PostgreSQL. Syncs with Google Calendar and pushes live updates over SignalR. | calendar.nathanzimmerman.com"
   },
   {
     "tag": "li",
-    "text": "Blackjack - Built a session-backed Blackjack game with Spring Boot + Spring Security and a React UI. Implemented rules (splits, insurance) plus validation and security hardening. | blackjack.nathanzimmerman.com"
+    "text": "Rabbit Ears - Built a 90s-style TV that plays folders of old shows as channels, using .NET, Angular, SignalR and WebGL CRT shaders, with a phone as the remote. | rabbitears.nathanzimmerman.com"
   },
   {
     "tag": "li",
-    "text": "Nerdle - Built a Wordle-style game with a Node/Express backend that validates guesses server-side. Added rate limiting, theming, and stats tracking. | nerdle.nathanzimmerman.com"
+    "text": "Know Ball - Built daily sports trivia games, mostly NBA, with an ASP.NET Core API, Angular and PostgreSQL. A nightly import loads every NBA player since 1947. | knowball.nathanzimmerman.com"
   },
   {
     "tag": "li",
-    "text": "Brick Breaker Resume - Built a Phaser game that parses a live .docx resume to generate levels from text. Implemented mapping logic, responsive scaling, and score persistence. | resume.nathanzimmerman.com"
+    "text": "Brick Breaker Resume - Built a Phaser game that turns a Word résumé into a playable level, where every word is a brick, with responsive scaling and saved high scores. | resume.nathanzimmerman.com"
   },
   {
     "tag": "p",
@@ -117,7 +117,7 @@
   },
   {
     "tag": "p",
-    "text": "C#, .NET, Azure, AWS, REST APIs, Microservices, MongoDB, JavaScript, Node.js, Angular, React, Java, CI/CD, Git"
+    "text": "C#, .NET, Azure, AWS, REST APIs, Microservices, MongoDB, SQL, Redis, TypeScript, Angular, React, Java, CI/CD"
   },
   {
     "tag": "p",
