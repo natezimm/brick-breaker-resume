@@ -10,6 +10,7 @@ module.exports = [
       'node_modules/**',
       'public/assets/**',
       '.idea/**',
+      '.ua/**',
     ],
   },
   js.configs.recommended,

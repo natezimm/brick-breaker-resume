@@ -1,6 +1,6 @@
 # Architecture
 
-Brick Breaker Resume is a static Vite site. A build step turns the résumé `.docx` into `public/assets/resume.json`; in the browser, `main.js` draws the start screen from that data and loads Phaser 3 only once a player picks a look. There is no server-side code: nginx on a GCP VM serves the built `dist/` folder.
+Brick Breaker Resume is a static Vite site. A build step turns the résumé `.docx` into `public/assets/resume.json`; in the browser, `main.js` draws the start screen from that data and loads Phaser 4 only once a player picks a look. There is no server-side code: nginx on a GCP VM serves the built `dist/` folder.
 
 The diagrams use the shared palette from the portfolio's [workspace architecture](https://github.com/natezimm/nathanzimmerman.com/blob/main/docs/architecture.md), which also shows how this game fits among the other projects.
 
@@ -29,7 +29,7 @@ Everything runs in the player's browser. The page owns the DOM (start screen, HU
 ```mermaid
 flowchart LR
   Player["Player<br/>mouse, touch, keyboard"] --> Page["index.html + main.js<br/>start screen, HUD, settings"]
-  Page -->|"dynamic import on Play"| Phaser["Phaser 3 scene<br/>src/game.js"]
+  Page -->|"dynamic import on Play"| Phaser["Phaser 4 scene<br/>src/game.js"]
   Phaser --> Physics["Arcade physics<br/>ball, paddle, brick bodies"]
   Page --> Layout["Brick layout<br/>wall or typeset"]
   Phaser --> Layout

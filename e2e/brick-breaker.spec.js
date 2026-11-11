@@ -132,4 +132,31 @@ test.describe('brick breaker resume', () => {
       page.getByRole('button', { name: /Pause game|Resume game/ })
     ).toBeVisible();
   });
+
+  test('runs collisions and pauses and resumes from the keyboard', async ({
+    page,
+  }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/');
+    await startGame(page);
+
+    await expect
+      .poll(
+        async () => Number(await page.locator('#hudScoreValue').textContent()),
+        {
+          timeout: 20_000,
+        }
+      )
+      .toBeGreaterThan(0);
+    await page.keyboard.press('p');
+    await expect(
+      page.getByRole('button', { name: 'Resume game' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('p');
+    await expect(
+      page.getByRole('button', { name: 'Pause game' })
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(errors).toEqual([]);
+  });
 });

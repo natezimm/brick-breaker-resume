@@ -2,7 +2,7 @@
 
 ## Scope and workspace
 
-This is a static Phaser 3 game built with Vite. Resume text becomes breakable bricks; browser storage holds the theme and high score. It is linked from the separately maintained portfolio in `../nathanzimmerman.com` and deployed at `resume.nathanzimmerman.com`.
+This is a static Phaser 4 game built with Vite. Resume text becomes breakable bricks; browser storage holds the theme and high score. It is linked from the separately maintained portfolio in `../nathanzimmerman.com` and deployed at `resume.nathanzimmerman.com`.
 
 The portfolio and this repo are independent Git repositories, alongside the other portfolio projects (`../wheelhouse`, `../know-ball`, `../rabbit-ears`). Read each repo's guide before editing it. Check the working tree and preserve unrelated changes. See `docs/architecture.md` for design context; keep this guide aligned with executable configuration.
 
@@ -19,7 +19,7 @@ The portfolio and this repo are independent Git repositories, alongside the othe
 
 ## Commands and runtime caveat
 
-Run commands from the repository root. Node 22 everywhere: `.nvmrc` (which CI reads), `engines` in `package.json`, and the Dockerfile's build image. Change them together.
+Run commands from the repository root. Node 26 LTS everywhere: `.nvmrc` (which CI reads), `engines` in `package.json`, and the Dockerfile's build image. Change them together.
 
 - Install: `npm ci`.
 - Develop: `npm run dev` (port **8080**, automatically opens a browser).
@@ -44,6 +44,7 @@ Run commands from the repository root. Node 22 everywhere: `.nvmrc` (which CI re
 - Access active scene state through the helpers in `src/state.js`; the exported `gameState` singleton is a fallback, while gameplay attaches its own state to the scene.
 - Render resume text with `textContent` and retain validation of stored theme, high score, and asset paths. Other gameplay settings are currently session-only.
 - Browser modules use ES imports. The resume parser and ESLint config use CommonJS; Jest transforms application imports with Babel (`jest.config.cjs`, `babel.config.cjs`). Changing package module type affects these boundaries.
+- Vite 8's chunk configuration uses `rolldownOptions`; keep Phaser in its lazy chunk so the start screen stays light.
 
 ## Verification and delivery
 
