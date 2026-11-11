@@ -6,10 +6,10 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          phaser: ['phaser'],
+        manualChunks(id) {
+          if (id.includes('/node_modules/phaser/')) return 'phaser';
         },
       },
     },

@@ -1,6 +1,6 @@
 # Brick Breaker Resume
 
-A Phaser 3 browser game that turns a Word résumé into a Brick Breaker level: every word is a brick, and you play through a career one bounce at a time.
+A Phaser 4 browser game that turns a Word résumé into a Brick Breaker level: every word is a brick, and you play through a career one bounce at a time.
 
 [![CI](https://github.com/natezimm/brick-breaker-resume/actions/workflows/ci.yml/badge.svg)](https://github.com/natezimm/brick-breaker-resume/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -36,7 +36,7 @@ A Phaser 3 browser game that turns a Word résumé into a Brick Breaker level: e
 ```mermaid
 flowchart LR
   Player["Player<br/>mouse, touch, keyboard"] --> Page["index.html + main.js<br/>start screen, HUD, settings"]
-  Page -->|"dynamic import on Play"| Phaser["Phaser 3 scene<br/>src/game.js"]
+  Page -->|"dynamic import on Play"| Phaser["Phaser 4 scene<br/>src/game.js"]
   Phaser --> Physics["Arcade physics<br/>ball, paddle, brick bodies"]
   Page --> Layout["Brick layout<br/>wall or typeset"]
   Phaser --> Layout
@@ -58,7 +58,7 @@ flowchart LR
 
 | Area     | Tools                                                     |
 | -------- | --------------------------------------------------------- |
-| Game     | Phaser 3 (Arcade physics), vanilla JavaScript modules     |
+| Game     | Phaser 4 (Arcade physics), vanilla JavaScript modules     |
 | Build    | Vite, Mammoth and JSDOM for the résumé parser             |
 | Styling  | Plain CSS with design tokens, self-hosted Newsreader      |
 | Tests    | Jest with jsdom, Playwright (desktop and mobile Chromium) |
@@ -67,7 +67,7 @@ flowchart LR
 
 ## Run it locally
 
-You need Node.js 22 (see `.nvmrc`).
+You need Node.js 26 LTS (see `.nvmrc`).
 
 ```bash
 git clone https://github.com/natezimm/brick-breaker-resume.git
