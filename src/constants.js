@@ -6,6 +6,22 @@ export const GAME_CONSTANTS = {
   BALL_SIZE: 20,
   BALL_RADIUS: 10,
   BALL_INITIAL_VELOCITY: { x: 200, y: -200 },
+  // Ball speed in px/s at the 1.0x setting: the length of the initial velocity.
+  BALL_SPEED: Math.hypot(200, 200),
+  // A launch leaves between these angles from vertical, to either side.
+  LAUNCH_MIN_ANGLE: 12,
+  LAUNCH_MAX_ANGLE: 35,
+  // Where the ball meets the paddle sets its angle: centre straight up, edges this far out.
+  PADDLE_MAX_BOUNCE_ANGLE: 60,
+  // Arrow keys and A/D move the paddle this fast, in px/s.
+  PADDLE_KEY_SPEED: 760,
+  // Clearance between the paddle and the HUD; touch screens leave room for a thumb.
+  PADDLE_GAP: 6,
+  PADDLE_GAP_TOUCH: 30,
+  // The ball rests this far above the paddle's centre before a launch.
+  BALL_REST_OFFSET: 25,
+  HUD_HEIGHT: 44,
+  RELAYOUT_DELAY: 150,
   LIFE_LOST_RESTART_DELAY: 2000,
   BRICK_HEIGHT: 24,
   BRICK_PADDING: 4,

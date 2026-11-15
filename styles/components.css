@@ -7,6 +7,9 @@
 /* ---------- HUD: lives, controls, score ---------- */
 
 #hud {
+  --hud-height: 44px;
+  --hud-group-height: 36px;
+  --hud-button-size: 28px;
   position: fixed;
   right: 0;
   bottom: 0;
@@ -16,8 +19,10 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 10px;
-  height: 44px;
-  padding: 0 12px 4px;
+  height: calc(var(--hud-height) + env(safe-area-inset-bottom, 0px));
+  padding: 0 max(12px, env(safe-area-inset-right, 0px))
+    calc(4px + env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
   /* The paddle follows the pointer right to the edges; only buttons catch it. */
   pointer-events: none;
@@ -27,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 36px;
+  height: var(--hud-group-height);
   box-sizing: border-box;
 }
 
@@ -112,9 +117,7 @@
   }
 }
 
-#pauseButton,
-#settingsButton,
-#highScoreButton {
+.hud-button {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -132,13 +135,34 @@
     transform 0.16s ease;
 }
 
-#pauseButton i,
-#settingsButton i,
-#highScoreButton i {
-  font-size: 14px;
+/* Icons are drawn with the button's text colour. */
+.hud-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   pointer-events: none;
 }
 
+.hud-icon-fill {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* The pause button holds both icons and shows the one that fits. */
+.hud-icon--play,
+.hud-button[aria-pressed='true'] .hud-icon--pause {
+  display: none;
+}
+
+.hud-button[aria-pressed='true'] .hud-icon--play {
+  display: block;
+}
+
+/* Each control lights in its own colour in Glass. */
 #pauseButton {
   --control-accent: 255 90 79;
 }
@@ -151,15 +175,30 @@
   --control-accent: 255 197 51;
 }
 
+/* Touch screens get finger-sized controls. */
+@media (pointer: coarse) {
+  #hud {
+    --hud-height: 58px;
+    --hud-group-height: 50px;
+    --hud-button-size: 44px;
+  }
+}
+
 @media (max-width: 560px) {
   #hud {
     gap: 6px;
-    padding: 0 8px 4px;
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
   }
 
+  /* The number speaks for itself on a phone; labels make room for it. */
   .hud-best,
-  .hud-lives .hud-label {
+  .hud-label {
     display: none;
+  }
+
+  :root[data-theme='light'] .hud-score .hud-value {
+    font-size: 22px;
   }
 
   .hud-lives {
@@ -220,36 +259,28 @@
   color: #ffc533;
 }
 
-:root[data-theme='dark'] #pauseButton,
-:root[data-theme='dark'] #settingsButton,
-:root[data-theme='dark'] #highScoreButton {
-  width: 28px;
-  height: 28px;
+:root[data-theme='dark'] .hud-button {
+  width: var(--hud-button-size);
+  height: var(--hud-button-size);
   color: rgba(255, 255, 255, 0.88);
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 50%;
 }
 
-:root[data-theme='dark'] #pauseButton:hover,
-:root[data-theme='dark'] #settingsButton:hover,
-:root[data-theme='dark'] #highScoreButton:hover,
-:root[data-theme='dark'] #pauseButton[aria-pressed='true'] {
+:root[data-theme='dark'] .hud-button:hover,
+:root[data-theme='dark'] .hud-button[aria-pressed='true'] {
   color: #ffffff;
   background: rgb(var(--control-accent) / 0.22);
   border-color: rgb(var(--control-accent) / 0.8);
   box-shadow: 0 0 16px rgb(var(--control-accent) / 0.55);
 }
 
-:root[data-theme='dark'] #pauseButton:hover,
-:root[data-theme='dark'] #settingsButton:hover,
-:root[data-theme='dark'] #highScoreButton:hover {
+:root[data-theme='dark'] .hud-button:hover {
   transform: translateY(-1px);
 }
 
-:root[data-theme='dark'] #pauseButton:focus-visible,
-:root[data-theme='dark'] #settingsButton:focus-visible,
-:root[data-theme='dark'] #highScoreButton:focus-visible {
+:root[data-theme='dark'] .hud-button:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
@@ -285,17 +316,15 @@
 
 :root[data-theme='light'] #controls {
   gap: 0;
-  height: 32px;
+  height: calc(var(--hud-button-size) + 4px);
   padding: 0;
   background: var(--page-bg);
   border: 1.5px solid var(--ink);
 }
 
-:root[data-theme='light'] #pauseButton,
-:root[data-theme='light'] #settingsButton,
-:root[data-theme='light'] #highScoreButton {
-  width: 38px;
-  height: 29px;
+:root[data-theme='light'] .hud-button {
+  width: calc(var(--hud-button-size) + 10px);
+  height: calc(var(--hud-button-size) + 1px);
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -307,40 +336,44 @@
   border-left: 1px solid rgba(22, 24, 29, 0.3);
 }
 
-:root[data-theme='light'] #pauseButton:hover,
-:root[data-theme='light'] #settingsButton:hover,
-:root[data-theme='light'] #highScoreButton:hover,
-:root[data-theme='light'] #pauseButton[aria-pressed='true'] {
+:root[data-theme='light'] .hud-button:hover,
+:root[data-theme='light'] .hud-button[aria-pressed='true'] {
   color: var(--page-bg);
   background: var(--ink);
 }
 
-:root[data-theme='light'] #pauseButton:focus-visible,
-:root[data-theme='light'] #settingsButton:focus-visible,
-:root[data-theme='light'] #highScoreButton:focus-visible {
+:root[data-theme='light'] .hud-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* ---------- Modals ---------- */
+/* ---------- Dialogs ---------- */
 
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  padding: 16px;
-  box-sizing: border-box;
+/*
+ * Native <dialog>s opened with showModal(): the browser centres them, traps
+ * focus, closes on Escape and paints ::backdrop behind them.
+ */
+.modal-content {
+  width: calc(100% - 32px);
+  max-width: 440px;
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: 0;
   overflow-y: auto;
-  background-color: var(--modal-overlay-bg);
-  backdrop-filter: blur(6px);
-  animation: fadeIn 0.25s ease;
+  box-sizing: border-box;
+  color: var(--modal-fg);
+  text-align: left;
+  border: 0;
 }
 
-.modal.active {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.modal-content[open] {
+  animation: slideIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+.modal-content::backdrop {
+  background-color: var(--modal-overlay-bg, rgba(2, 4, 12, 0.72));
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.25s ease;
 }
 
 @keyframes fadeIn {
@@ -351,17 +384,6 @@
   to {
     opacity: 1;
   }
-}
-
-.modal-content {
-  width: 100%;
-  max-width: 440px;
-  max-height: 100%;
-  overflow-y: auto;
-  box-sizing: border-box;
-  color: var(--modal-fg);
-  text-align: left;
-  animation: slideIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1);
 }
 
 @keyframes slideIn {
@@ -664,8 +686,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .preview-ball,
-  .modal,
-  .modal-content,
+  .modal-content[open],
+  .modal-content::backdrop,
   .hud-pip.is-lost,
   .hud-value.is-bumped {
     animation: none;
@@ -817,7 +839,13 @@ input[type='range']::-moz-range-track {
 }
 
 .high-score-icon {
-  font-size: 30px;
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 #highScoreValue {

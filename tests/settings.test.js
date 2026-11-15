@@ -39,7 +39,7 @@ describe('settings modal interactions', () => {
 
   beforeEach(() => {
     document.body.innerHTML = `
-      <div id="settingsModal" class="modal"></div>
+      <dialog id="settingsModal"></dialog>
       <button id="settingsButton"></button>
       <button id="closeModal"></button>
       <input id="soundToggle" type="checkbox" checked />
@@ -86,47 +86,6 @@ describe('settings modal interactions', () => {
       y: 0,
     };
     gameState.livesBalls = [new MockImage(0, 0)];
-  });
-
-  test('opening modal pauses game and stops countdown', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      value: 300,
-    });
-    gameState.countdownInterval = setInterval(() => {}, 1000);
-    gameState.paused = false;
-
-    setupSettings(game);
-    document.getElementById('settingsButton').click();
-
-    expect(
-      document.getElementById('settingsModal').classList.contains('active')
-    ).toBe(true);
-    expect(gameState.paused).toBe(true);
-    expect(scene.physics.world.isPaused).toBe(true);
-    expect(gameState.countdownInterval).toBeNull();
-    expect(gameState.wasInCountdown).toBe(true);
-    expect(document.getElementById('pauseButton').innerHTML).toContain(
-      'fa-play'
-    );
-
-    // Verify countdown overlay is hidden when opening settings during countdown
-    const overlay = document.getElementById('gameMessageOverlay');
-    expect(overlay.classList.contains('hidden')).toBe(true);
-    expect(overlay.textContent).toBe('');
-
-    document
-      .getElementById('settingsModal')
-      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(
-      document.getElementById('settingsModal').classList.contains('active')
-    ).toBe(false);
-
-    document.getElementById('settingsButton').click();
-    document.getElementById('closeModal').click();
-    expect(
-      document.getElementById('settingsModal').classList.contains('active')
-    ).toBe(false);
   });
 
   test('controls update visual settings and speeds', () => {
@@ -398,41 +357,6 @@ describe('settings modal interactions', () => {
     expect(document.documentElement.dataset.theme).toBe('light');
   });
 
-  test('setupSettings logs when physics scene is missing', () => {
-    const consoleError = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
-    const gameWithoutScene = { scene: { scenes: [null] } };
-
-    setupSettings(gameWithoutScene);
-    document.getElementById('settingsButton').click();
-
-    expect(consoleError).toHaveBeenCalledWith('Scene or physics not available');
-    consoleError.mockRestore();
-  });
-
-  test('setupSettings tolerates a missing pause button', () => {
-    document.getElementById('pauseButton').remove();
-
-    setupSettings(game);
-    document.getElementById('settingsButton').click();
-
-    expect(scene.physics.world.isPaused).toBe(true);
-    expect(document.getElementById('pauseButton')).toBeNull();
-  });
-
-  test('modal click from a child element does not close the settings', () => {
-    setupSettings(game);
-    document.getElementById('settingsButton').click();
-
-    const modal = document.getElementById('settingsModal');
-    const child = document.createElement('div');
-    modal.appendChild(child);
-
-    child.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(modal.classList.contains('active')).toBe(true);
-  });
-
   test('sound toggle ignores missing scene sound', () => {
     scene.sound = null;
 
@@ -515,6 +439,32 @@ describe('settings modal interactions', () => {
   test('updateBallSpeed short-circuits when there is no ball body', () => {
     gameState.ball = null;
     expect(() => updateBallSpeed(scene)).not.toThrow();
+  });
+
+  test('updateBallSpeed keeps direction and moves at the set speed', () => {
+    const ball = new MockPhysicsImage(0, 0);
+    ball.setVelocity(30, -40);
+    gameState.ball = ball;
+    settings.ballSpeed = 1.5;
+
+    updateBallSpeed(scene);
+
+    const { x, y } = ball.body.velocity;
+    expect(Math.hypot(x, y)).toBeCloseTo(Math.hypot(200, 200) * 1.5, 5);
+    expect(x / y).toBeCloseTo(30 / -40, 5);
+    settings.ballSpeed = 1;
+  });
+
+  test('the browser theme colour follows the look', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+
+    applyTheme('light');
+    expect(meta.getAttribute('content')).toBe('#f6f5f0');
+    applyTheme('dark');
+    expect(meta.getAttribute('content')).toBe('#060913');
+    meta.remove();
   });
 
   test('updateBallSpeed ignores zero velocity', () => {

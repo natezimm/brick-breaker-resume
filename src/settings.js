@@ -2,6 +2,7 @@ import { THEMES, THEME_LOOKS } from './constants.js';
 import { getGameState } from './state.js';
 import { rebuildBricks } from './bricks.js';
 import { refreshBallTexture, refreshPaddleTexture } from './textures.js';
+import { ballSpeed } from './ballPhysics.js';
 
 const THEME_STORAGE_KEY = 'brickBreakerTheme';
 // The look used until a visitor picks one on the start screen or in settings.
@@ -25,6 +26,10 @@ function updateDocumentTheme(theme) {
   }
 
   document.documentElement.dataset.theme = theme;
+  // Mobile browser chrome takes the look's page colour.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', getThemeColors(theme).background);
 }
 
 if (typeof document !== 'undefined') {
@@ -212,10 +217,11 @@ export function applyTheme(theme, game) {
   rebuildBricks(scene, state);
 }
 
+/**
+ * Wires the controls inside the settings dialog. Opening and closing the
+ * dialog (and pausing the game around it) is handled in ui.js.
+ */
 export function setupSettings(game) {
-  const modal = document.getElementById('settingsModal');
-  const settingsButton = document.getElementById('settingsButton');
-  const closeButton = document.getElementById('closeModal');
   const soundToggle = document.getElementById('soundToggle');
   const themeOptions = document.querySelectorAll('input[name="theme"]');
   const resetColorsButton = document.getElementById('resetColors');
@@ -225,7 +231,6 @@ export function setupSettings(game) {
   const paddleWidthValue = document.getElementById('paddleWidthValue');
   const ballSpeedSlider = document.getElementById('ballSpeedSlider');
   const ballSpeedValue = document.getElementById('ballSpeedValue');
-  const pauseButton = document.getElementById('pauseButton');
   const getScene = () => game.scene.scenes[0];
 
   applyLookColors(settings.theme);
@@ -247,57 +252,6 @@ export function setupSettings(game) {
       updatePaddleTexture(getScene());
     });
   }
-
-  settingsButton.addEventListener('click', () => {
-    modal.classList.add('active');
-
-    const scene = getScene();
-    const state = getGameState(scene);
-
-    if (scene && scene.physics) {
-      if (state.countdownInterval) {
-        clearInterval(state.countdownInterval);
-        state.countdownInterval = null;
-        state.wasInCountdown = true;
-
-        // Hide the countdown overlay when opening settings
-        const overlay = document.getElementById('gameMessageOverlay');
-        if (overlay) {
-          overlay.classList.add('hidden');
-          overlay.textContent = '';
-        }
-      }
-
-      state.setPaused(true);
-      scene.physics.world.isPaused = true;
-
-      if (pauseButton) {
-        pauseButton.textContent = '';
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-play';
-        icon.setAttribute('aria-hidden', 'true');
-        pauseButton.appendChild(icon);
-
-        pauseButton.setAttribute('aria-label', 'Resume game');
-        pauseButton.setAttribute('aria-pressed', 'true');
-        pauseButton.title = 'Resume';
-      }
-    } else {
-      console.error('Scene or physics not available');
-    }
-  });
-
-  const closeModal = () => {
-    modal.classList.remove('active');
-  };
-
-  closeButton.addEventListener('click', closeModal);
-
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      closeModal();
-    }
-  });
 
   soundToggle.addEventListener('change', (e) => {
     settings.soundEnabled = e.target.checked;
@@ -385,8 +339,7 @@ function updateBallSpeed(scene, state = getGameState(scene)) {
     const dirX = currentVelocity.x / speed;
     const dirY = currentVelocity.y / speed;
 
-    const baseSpeed = 200;
-    const newSpeed = baseSpeed * settings.ballSpeed;
+    const newSpeed = ballSpeed(settings.ballSpeed);
     state.ball.setVelocity(dirX * newSpeed, dirY * newSpeed);
   }
 }

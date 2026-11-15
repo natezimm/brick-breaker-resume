@@ -12,6 +12,7 @@ jest.mock('../src/settings.js', () => ({
 jest.mock('../src/overlay.js', () => ({
   renderOverlayBricks: jest.fn(),
   enableSeamDrag: jest.fn(),
+  relayoutOverlayOnResize: jest.fn(),
 }));
 
 describe('main entrypoint', () => {

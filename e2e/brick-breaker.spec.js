@@ -159,4 +159,98 @@ test.describe('brick breaker resume', () => {
     ).toHaveAttribute('aria-pressed', 'false');
     expect(errors).toEqual([]);
   });
+
+  test('settings closes with Escape and the game counts back in', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await startGame(page);
+
+    const settingsButton = page.getByRole('button', { name: 'Open settings' });
+    await settingsButton.click();
+    const dialog = page.getByRole('dialog', { name: 'Settings' });
+    await expect(dialog).toBeVisible();
+    await expect(page.locator('#closeModal')).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(settingsButton).toBeFocused();
+    await expect(page.locator('.gm-countdown')).toBeVisible();
+  });
+
+  test('the HUD draws its icons without any outside stylesheet', async ({
+    page,
+  }) => {
+    const external = [];
+    page.on('request', (request) => {
+      if (!request.url().startsWith('http://127.0.0.1')) {
+        external.push(request.url());
+      }
+    });
+    await page.goto('/');
+    await startGame(page);
+
+    const icon = page.locator('#settingsButton svg');
+    await expect(icon).toBeVisible();
+    expect((await icon.boundingBox()).width).toBeGreaterThan(10);
+    expect(external).toEqual([]);
+  });
+
+  test('rotating the screen keeps every brick on it', async ({ page }) => {
+    const rightmostBrick = () =>
+      page.evaluate(() =>
+        Math.max(
+          ...[
+            ...document.querySelectorAll('#gameBrickContainer .overlay-brick'),
+          ].map((brick) => brick.getBoundingClientRect().right)
+        )
+      );
+
+    await page.goto('/');
+    await startGame(page);
+    await expect(
+      page.locator('#gameBrickContainer .overlay-brick').first()
+    ).toBeVisible();
+
+    const { width, height } = page.viewportSize();
+    // Turn the screen, then turn it back.
+    for (const size of [
+      { width: height, height: width },
+      { width, height },
+    ]) {
+      await page.setViewportSize(size);
+      await expect
+        .poll(rightmostBrick, { timeout: 5_000 })
+        .toBeLessThanOrEqual(size.width);
+      await expect
+        .poll(rightmostBrick, { timeout: 5_000 })
+        .toBeGreaterThan(size.width * 0.8);
+    }
+  });
+
+  test('a lost game offers Play again, which starts a fresh game', async ({
+    page,
+  }) => {
+    test.slow();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await startGame(page);
+    await page.locator('.gm-countdown').waitFor({ state: 'detached' });
+
+    // Park the paddle in a corner so every ball is missed.
+    await page.mouse.move(1, 400);
+    const playAgain = page.getByRole('button', { name: 'Play again' });
+    await expect(playAgain).toBeVisible({ timeout: 150_000 });
+    await expect(playAgain).toBeFocused();
+    await expect(
+      page.getByRole('link', { name: 'Download résumé' }).last()
+    ).toHaveAttribute('href', /Resume\.docx$/);
+
+    await playAgain.click();
+    await expect(playAgain).not.toBeVisible();
+    await expect(page.locator('#hudLives .hud-pip:not(.is-lost)')).toHaveCount(
+      5
+    );
+    await expect(page.locator('#hudScoreValue')).toHaveText('0');
+  });
 });

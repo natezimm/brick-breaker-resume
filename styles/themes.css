@@ -170,6 +170,11 @@
   }
 }
 
+/* Laid out again after a resize: the résumé is already there. */
+#startOverlay[data-relayout] .overlay-brick {
+  animation: none;
+}
+
 @keyframes brickArrive {
   from {
     opacity: 0;
@@ -267,9 +272,23 @@
   background: var(--ink);
 }
 
+.look-pane--light .overlay-attribution {
+  color: var(--ink-soft);
+}
+
+.look-pane--light .brick-link:focus-visible,
 .look-pane--light .look-start:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* A 320px phone gives each card 140px; the buttons tighten to fit. */
+@media (max-width: 360px) {
+  .look-pane .look-start {
+    padding-right: 13px;
+    padding-left: 13px;
+    font-size: 13px;
+  }
 }
 
 /* ---------- Breaking a brick ---------- */

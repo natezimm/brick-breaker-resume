@@ -106,7 +106,7 @@ flowchart LR
 - `main.js` wires startup: theme, start screen, and the on-demand Phaser import.
 - `src/game.js` is the scene lifecycle and gameplay; `src/state.js` holds per-scene state; `src/config.js` and `src/constants.js` hold configuration and each look's defaults.
 - `src/brickLayout.js` (wall) and `src/typeset.js` (paper page) compute layouts; `src/brickDom.js` renders bricks for both the start screen and the game; `src/bricks.js` pairs them with physics bodies and handles hits.
-- `src/ui.js`, `src/settings.js` and `src/overlay.js` are the DOM UI, settings modal and start screen.
+- `src/ui.js`, `src/settings.js` and `src/overlay.js` are the DOM UI (HUD, messages, pause and dialogs), the settings controls and the start screen. `src/dialogs.js` opens the native dialogs, `src/ballPhysics.js` holds launch and paddle-aim maths, and `src/playfield.js` places the paddle above the HUD.
 - `scripts/` parses the résumé. It is CommonJS and runs only at build time.
 
 ## Quality gates

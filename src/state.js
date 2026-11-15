@@ -13,6 +13,7 @@ import { GAME_CONSTANTS } from './constants.js';
  * @property {number} currentCountdown
  * @property {boolean} gameEnded
  * @property {boolean} bricksCreated
+ * @property {boolean} bricksReady
  * @property {Set<number>} brokenWords
  * @property {number | null} lastHitColor
  */
@@ -47,6 +48,11 @@ class GameState {
     this.scoreText = null;
     this.totalRows = 0;
     this.paused = true;
+    // Paused by the player (or for them, by a dialog or a hidden tab), as
+    // opposed to the engine's own waits such as the countdown.
+    this.userPaused = false;
+    this.keys = null;
+    this.totalBricks = 0;
     this.countdownText = null;
     this.countdownInterval = null;
     this.wasInCountdown = false;
@@ -54,6 +60,9 @@ class GameState {
     this.winText = null;
     this.gameEnded = false;
     this.bricksCreated = false;
+    // The first résumé load has finished. Unlike bricksCreated, a theme
+    // switch's rebuild does not clear it.
+    this.bricksReady = false;
     this.ballTrailGraphics = null;
     this.ballTrailPoints = [];
     this.paddleTrailGraphics = null;

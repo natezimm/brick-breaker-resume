@@ -19,6 +19,13 @@ import {
 } from './ui.js';
 import { applyThemeToScene, settings } from './settings.js';
 import { registerGameTextures } from './textures.js';
+import { getBallRestY, getPaddleY } from './playfield.js';
+import {
+  ballSpeed,
+  isBallMoving,
+  launchBall,
+  paddleBounceVelocity,
+} from './ballPhysics.js';
 
 let audioLoaded = false;
 let audioLoadPromise = null;
@@ -58,7 +65,7 @@ export function preload() {}
 
 function createPaddle(scene, state) {
   state.paddle = scene.physics.add
-    .image(window.innerWidth / 2, window.innerHeight - 55, TEXTURE_KEYS.PADDLE)
+    .image(window.innerWidth / 2, getPaddleY(), TEXTURE_KEYS.PADDLE)
     .setDepth(2)
     .setImmovable(true)
     .setCollideWorldBounds(true);
@@ -66,7 +73,7 @@ function createPaddle(scene, state) {
 
 function createBall(scene, state) {
   state.ball = scene.physics.add
-    .image(window.innerWidth / 2, window.innerHeight - 80, TEXTURE_KEYS.BALL)
+    .image(window.innerWidth / 2, getBallRestY(), TEXTURE_KEYS.BALL)
     .setDisplaySize(GAME_CONSTANTS.BALL_SIZE, GAME_CONSTANTS.BALL_SIZE)
     .setDepth(3)
     .setVelocity(0, 0)
@@ -82,6 +89,7 @@ function createBall(scene, state) {
 function setupCollisions(scene, state) {
   scene.physics.add.collider(state.ball, state.paddle, () => {
     playSound(scene, AUDIO_KEYS.BALL_HIT);
+    aimOffPaddle(state);
   });
 
   scene.physics.add.collider(state.ball, state.bricksGroup, (ball, brick) => {
@@ -97,6 +105,41 @@ function setupCollisions(scene, state) {
   });
 }
 
+/** A ball landing on the paddle's top leaves at the angle the player aimed. */
+function aimOffPaddle(state) {
+  const { ball, paddle } = state;
+  if (!ball?.body || !paddle || ball.y >= paddle.y) return;
+
+  const { x, y } = paddleBounceVelocity(
+    ball,
+    paddle,
+    ballSpeed(settings.ballSpeed)
+  );
+  ball.setVelocity(x, y);
+}
+
+function clampPaddleX(state, x) {
+  const half = state.paddle.width / 2;
+  return Math.max(half, Math.min(x, window.innerWidth - half));
+}
+
+/** Arrow keys and A/D steer the paddle, so the game plays without a mouse. */
+function movePaddleWithKeys(state, delta = 16) {
+  const keys = state.keys;
+  if (!keys || !state.paddle || state.paused) return;
+
+  const direction =
+    (keys.RIGHT?.isDown || keys.D?.isDown ? 1 : 0) -
+    (keys.LEFT?.isDown || keys.A?.isDown ? 1 : 0);
+  if (direction === 0) return;
+
+  state.paddle.x = clampPaddleX(
+    state,
+    state.paddle.x +
+      (direction * GAME_CONSTANTS.PADDLE_KEY_SPEED * delta) / 1000
+  );
+}
+
 function setupControls(scene, state) {
   let audioTriggered = false;
   const triggerAudioLoad = () => {
@@ -109,16 +152,14 @@ function setupControls(scene, state) {
   scene.input.on('pointermove', (pointer) => {
     triggerAudioLoad();
     if (!state.paused) {
-      const paddleWidth = state.paddle.width;
-      state.paddle.x = Math.max(
-        paddleWidth / 2,
-        Math.min(pointer.x, window.innerWidth - paddleWidth / 2)
-      );
+      state.paddle.x = clampPaddleX(state, pointer.x);
     }
   });
 
-  scene.input.keyboard.on('keydown-P', () => {
-    triggerAudioLoad();
+  const keyboard = scene.input.keyboard;
+  state.keys = keyboard?.addKeys?.('LEFT,RIGHT,A,D') ?? null;
+  keyboard?.on('keydown', triggerAudioLoad);
+  keyboard?.on('keydown-P', () => {
     togglePause(scene, state);
   });
 }
@@ -127,18 +168,27 @@ function loseLife(scene, state) {
   state.decrementLives();
 
   if (state.lives > 0) {
-    state.ball.setPosition(window.innerWidth / 2, window.innerHeight - 80);
+    // The next ball waits over the paddle, wherever the player left it.
+    state.ball.setPosition(
+      state.paddle?.x ?? window.innerWidth / 2,
+      getBallRestY()
+    );
     state.ball.setVelocity(0, 0);
 
-    setTimeout(() => {
-      if (state.ball && state.lives > 0) {
-        state.ball.setVelocity(
-          GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed,
-          GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed
-        );
+    const relaunch = () => {
+      // A countdown that ended in the meantime has already launched it.
+      if (state.ball?.body && state.lives > 0 && !isBallMoving(state.ball)) {
+        launchBall(state.ball, settings.ballSpeed);
       }
-    }, GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY);
+    };
+    // The scene clock stops while the game is paused; a bare timer would not.
+    if (scene.time?.delayedCall) {
+      scene.time.delayedCall(GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY, relaunch);
+    } else {
+      setTimeout(relaunch, GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY);
+    }
   } else {
+    state.gameEnded = true;
     showGameOver(scene, state);
     state.ball.destroy();
     playSound(scene, AUDIO_KEYS.GAME_OVER);
@@ -305,6 +355,8 @@ export function create() {
 
   hideGameMessage();
   state.gameEnded = false;
+  // A restarted scene keeps its clock; make sure it runs.
+  if (scene.time) scene.time.paused = false;
 
   state.score = GAME_CONSTANTS.INITIAL_SCORE;
   state.lives = GAME_CONSTANTS.INITIAL_LIVES;
@@ -322,14 +374,22 @@ export function create() {
 
   (async () => {
     await createBricksFromResume(scene, state);
+    state.bricksReady = true;
+    // Paused while the résumé loaded: count in once the player resumes.
+    if (state.userPaused) {
+      state.wasInCountdown = true;
+      return;
+    }
     createCountdownText(scene, state);
     startCountdown(scene, state);
   })();
 }
 
-export function update() {
+export function update(time, delta) {
   const scene = this;
   const state = scene.gameState;
+
+  if (state) movePaddleWithKeys(state, delta);
 
   if (
     state?.bricksCreated &&

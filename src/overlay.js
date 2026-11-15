@@ -56,3 +56,25 @@ export function enableSeamDrag(
   overlay.addEventListener('pointerup', release);
   overlay.addEventListener('pointercancel', release);
 }
+
+const OVERLAY_RELAYOUT_DELAY = 150;
+
+/**
+ * Lays the start screen's résumé out again when the window settles at a new
+ * size, without replaying the entrance animation.
+ */
+export function relayoutOverlayOnResize(
+  overlay = document.getElementById('startOverlay')
+) {
+  if (!overlay) return;
+  let timer = null;
+
+  window.addEventListener('resize', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (overlay.classList.contains('hidden')) return;
+      overlay.dataset.relayout = 'true';
+      renderOverlayBricks();
+    }, OVERLAY_RELAYOUT_DELAY);
+  });
+}
