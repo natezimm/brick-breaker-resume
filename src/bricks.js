@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS, THEMES } from './constants.js';
 import { getGameState } from './state.js';
-import { calculateBrickLayout } from './brickLayout.js';
+import { layoutLevel, planResumeLevels } from './brickLayout.js';
 import { createBrickElement, createGhostElement } from './brickDom.js';
 
 const PARTICLE_COUNT = 12;
@@ -154,11 +154,62 @@ export function createBrick(
   return brick;
 }
 
+function viewportChanged(state) {
+  const size = state.levelsViewport;
+  return (
+    !size ||
+    size.width !== window.innerWidth ||
+    size.height !== window.innerHeight
+  );
+}
+
+/**
+ * Splits the résumé into levels for this screen. After a resize or rotation
+ * the level being played and those after it are split again for the new
+ * size, starting from the same line, so broken words keep their keys.
+ */
+async function ensureLevels(state) {
+  if (state.levels && !viewportChanged(state)) return;
+
+  if (!state.levels) {
+    const plan = await planResumeLevels();
+    state.resumeElements = plan.elements;
+    state.levels = plan.levels;
+  } else {
+    const current = state.levels[state.levelIndex] ?? state.levels[0];
+    const startAt = state.resumeElements.indexOf(current.elements[0]);
+    const plan = await planResumeLevels({
+      elements: state.resumeElements,
+      startAt: Math.max(0, startAt),
+    });
+    state.levels = [...state.levels.slice(0, state.levelIndex), ...plan.levels];
+  }
+  state.levelsViewport = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+}
+
+/** Shows which level is in play in the HUD, when there is more than one. */
+export function renderLevelProgress(state) {
+  const display = document.getElementById('hudLevel');
+  if (!display) return;
+
+  const count = state.levels?.length ?? 1;
+  const number = state.levelIndex + 1;
+  display.hidden = count <= 1;
+  display.setAttribute('aria-label', `Level ${number} of ${count}`);
+  const value = display.querySelector('.hud-level-value');
+  if (value) value.textContent = `${number}/${count}`;
+}
+
 export async function createBricksFromResume(
   scene,
   state = getGameState(scene)
 ) {
-  const { bricks, totalRows, mode } = await calculateBrickLayout();
+  await ensureLevels(state);
+  const level = state.levels[state.levelIndex] ?? state.levels[0];
+  const { bricks, totalRows, mode } = await layoutLevel(level.elements);
 
   const container = getBrickContainer();
   container.textContent = '';
@@ -190,6 +241,7 @@ export async function createBricksFromResume(
   });
 
   state.bricksCreated = true;
+  renderLevelProgress(state);
 }
 
 /**

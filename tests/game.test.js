@@ -12,6 +12,8 @@ import {
   showGameOver,
   showWinMessage,
   togglePause,
+  hasNextLevel,
+  finishLevel,
 } from '../src/ui.js';
 
 jest.mock('../src/bricks.js', () => ({
@@ -26,6 +28,8 @@ jest.mock('../src/ui.js', () => ({
   createCountdownText: jest.fn(),
   showGameOver: jest.fn(),
   showWinMessage: jest.fn(),
+  hasNextLevel: jest.fn(() => false),
+  finishLevel: jest.fn(),
   togglePause: jest.fn(),
   hideGameMessage: jest.fn(),
   setupUIButtons: jest.fn(),
@@ -274,6 +278,22 @@ describe('game scene', () => {
     expect(gameState.ball.setVelocity).toHaveBeenCalledWith(0, 0);
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.WIN_GAME);
     expect(gameState.paused).toBe(true);
+  });
+
+  test('update moves on to the next level instead of winning', () => {
+    const scene = createMockScene();
+    attachGameState(scene, gameState);
+    gameState.bricksCreated = true;
+    gameState.bricksGroup = { countActive: () => 0 };
+    gameState.lives = 2;
+    gameState.ball = { setVelocity: jest.fn(), setRotation: jest.fn() };
+    hasNextLevel.mockReturnValueOnce(true);
+
+    update.call(scene);
+
+    expect(finishLevel).toHaveBeenCalledWith(scene, gameState);
+    expect(showWinMessage).not.toHaveBeenCalled();
+    expect(scene.sound.play).not.toHaveBeenCalledWith(AUDIO_KEYS.WIN_GAME);
   });
 
   test('update draws ball and paddle trails while playing', () => {

@@ -228,6 +228,43 @@ test.describe('brick breaker resume', () => {
     }
   });
 
+  test('a phone plays the résumé in levels that each fit on screen', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await startGame(page);
+
+    const level = page.locator('#hudLevel');
+    await expect(level).toBeVisible();
+    await expect(level).toHaveAttribute('aria-label', /^Level 1 of \d+$/);
+
+    for (const look of ['Glass', 'Paper']) {
+      if (look === 'Paper') {
+        await page.getByRole('button', { name: 'Open settings' }).click();
+        await page.locator('.theme-option', { hasText: 'Light' }).click();
+        await page.keyboard.press('Escape');
+        await expect(page.locator('html')).toHaveAttribute(
+          'data-theme',
+          'light'
+        );
+      }
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const bricks = document.querySelectorAll(
+              '#gameBrickContainer .overlay-brick'
+            );
+            const bottom = Math.max(
+              ...[...bricks].map((b) => b.getBoundingClientRect().bottom)
+            );
+            return bricks.length > 0 && bottom <= window.innerHeight * 0.75;
+          })
+        )
+        .toBe(true);
+    }
+  });
+
   test('a lost game offers Play again, which starts a fresh game', async ({
     page,
   }) => {

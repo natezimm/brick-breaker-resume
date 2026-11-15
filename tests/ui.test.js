@@ -384,6 +384,115 @@ describe('ui helpers', () => {
     expect(gameState.paused).toBe(false);
   });
 
+  describe('levels', () => {
+    const level = (title, detail) => ({ elements: [], title, detail });
+
+    beforeEach(() => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `<span id="hudLevel" hidden>
+          <span class="hud-level-value"></span>
+        </span>`
+      );
+      gameState.levels = [
+        level('Work History'),
+        level('Work History, continued', 'Writer, Notes Ltd.'),
+        level('Projects'),
+      ];
+      gameState.ball = scene.physics.add.image(10, 10, 'ball');
+      gameState.paddle = { x: 140 };
+      gameState.bricksGroup = scene.physics.add.staticGroup();
+      gameState.score = 1200;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ text: 'one two three' }]),
+      });
+    });
+
+    test('a cleared wall shows a card for the next level', () => {
+      expect(ui.hasNextLevel(gameState)).toBe(true);
+      gameState.bricksCreated = true;
+
+      ui.finishLevel(scene, gameState);
+
+      expect(gameState.betweenLevels).toBe(true);
+      expect(gameState.bricksCreated).toBe(false);
+      expect(gameState.paused).toBe(true);
+      expect(gameState.ball.x).toBe(140);
+      const card = document.querySelector('.gm-card--level');
+      expect(card.querySelector('.gm-eyebrow').textContent).toBe(
+        'Level 1 of 3 cleared'
+      );
+      expect(card.querySelector('.gm-title').textContent).toBe(
+        'Work History, continued'
+      );
+      expect(card.textContent).toContain('Writer, Notes Ltd.');
+      expect(card.textContent).toContain('1,200 points so far');
+      expect(document.activeElement.textContent).toBe('Start level 2');
+
+      // Pausing waits for the next level to start.
+      expect(ui.pauseGame(scene, gameState)).toBe(false);
+    });
+
+    test('starting the next level lays it out and counts in', async () => {
+      jest.useFakeTimers();
+      ui.finishLevel(scene, gameState);
+      gameState.brokenWords = new Set([0, 1, 2]);
+      gameState.totalBricks = 3;
+      // Laid out for this screen already: no new split.
+      gameState.levelsViewport = { width: 800, height: 600 };
+
+      await ui.startNextLevel(scene, gameState);
+
+      expect(gameState.levelIndex).toBe(1);
+      expect(gameState.betweenLevels).toBe(false);
+      expect(gameState.brokenBefore).toBe(3);
+      expect(gameState.bricksBefore).toBe(3);
+      expect(gameState.brokenWords.size).toBe(0);
+      expect(gameState.bricksCreated).toBe(true);
+      expect(gameState.countdownInterval).not.toBeNull();
+      expect(document.querySelector('.hud-level-value').textContent).toBe(
+        '2/3'
+      );
+      expect(document.getElementById('hudLevel').hidden).toBe(false);
+
+      // A second press does nothing.
+      await ui.startNextLevel(scene, gameState);
+      expect(gameState.levelIndex).toBe(1);
+      jest.clearAllTimers();
+    });
+
+    test('a pause while the next level loads counts in on resume', async () => {
+      ui.finishLevel(scene, gameState);
+      gameState.levelsViewport = { width: 800, height: 600 };
+
+      const starting = ui.startNextLevel(scene, gameState);
+      ui.pauseGame(scene, gameState);
+      await starting;
+
+      expect(gameState.countdownInterval).toBeNull();
+      expect(gameState.wasInCountdown).toBe(true);
+    });
+
+    test('game over counts bricks across levels', () => {
+      gameState.levelIndex = 1;
+      gameState.brokenBefore = 40;
+      gameState.brokenWords = new Set([1, 2]);
+
+      ui.showGameOver(scene);
+
+      expect(document.querySelector('.gm-card').textContent).toContain(
+        '42 bricks broken, level 2 of 3'
+      );
+    });
+
+    test('the last level has no next one', () => {
+      gameState.levelIndex = 2;
+      expect(ui.hasNextLevel(gameState)).toBe(false);
+      expect(ui.hasNextLevel({ levels: null, levelIndex: 0 })).toBe(false);
+    });
+  });
+
   test('a dialog opened while paused leaves the game paused', () => {
     const game = { scene: { scenes: [scene] } };
     ui.setupUIButtons(game);
