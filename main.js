@@ -1,11 +1,16 @@
 import { createConfig } from './src/config.js';
 import { setupUIButtons, setupWindowResize } from './src/ui.js';
 import { applyTheme, initializeTheme, setupSettings } from './src/settings.js';
-import { enableSeamDrag, renderOverlayBricks } from './src/overlay.js';
+import {
+  enableSeamDrag,
+  relayoutOverlayOnResize,
+  renderOverlayBricks,
+} from './src/overlay.js';
 
 initializeTheme();
 renderOverlayBricks();
 enableSeamDrag();
+relayoutOverlayOnResize();
 
 async function initGame() {
   const { default: Phaser } = await import('phaser');

@@ -1,4 +1,8 @@
-import { enableSeamDrag, renderOverlayBricks } from '../src/overlay.js';
+import {
+  enableSeamDrag,
+  relayoutOverlayOnResize,
+  renderOverlayBricks,
+} from '../src/overlay.js';
 
 function mockResume(elements) {
   global.fetch = jest.fn().mockResolvedValue({
@@ -142,5 +146,33 @@ describe('start screen seam', () => {
 
     document.body.innerHTML = '';
     expect(() => enableSeamDrag()).not.toThrow();
+  });
+
+  test('lays the résumé out again after a resize, without the entrance', async () => {
+    jest.useFakeTimers();
+    mockResume([{ tag: 'h1', text: 'Nathan Zimmerman' }]);
+    document.body.innerHTML = `
+      <div id="startOverlay">
+        <div class="look-resume" data-mode="wall"></div>
+      </div>`;
+    const overlay = document.getElementById('startOverlay');
+    relayoutOverlayOnResize(overlay);
+
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
+    jest.advanceTimersByTime(149);
+    expect(overlay.dataset.relayout).toBeUndefined();
+    jest.advanceTimersByTime(1);
+    expect(overlay.dataset.relayout).toBe('true');
+
+    // Once a look is chosen the start screen is gone; nothing to lay out.
+    delete overlay.dataset.relayout;
+    overlay.classList.add('hidden');
+    window.dispatchEvent(new Event('resize'));
+    jest.advanceTimersByTime(150);
+    expect(overlay.dataset.relayout).toBeUndefined();
+
+    jest.useRealTimers();
+    expect(() => relayoutOverlayOnResize(null)).not.toThrow();
   });
 });

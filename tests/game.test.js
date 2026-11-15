@@ -137,53 +137,121 @@ describe('game scene', () => {
     keyboardHandler();
     expect(togglePause).toHaveBeenCalledWith(scene, state);
 
+    // A lost ball waits over the paddle, then launches at the set speed.
+    const realSetVelocity = state.ball.setVelocity.bind(state.ball);
     state.ball.setPosition = jest.fn();
-    state.ball.setVelocity = jest.fn();
+    state.ball.setVelocity = jest.fn(realSetVelocity);
     state.ball.setRotation = jest.fn();
+    state.paddle.x = 260;
     scene.physics.world.emit('worldbounds', state.ball.body, false, true);
-    const expectedX =
-      GAME_CONSTANTS.BALL_INITIAL_VELOCITY.x * settings.ballSpeed;
-    const expectedY =
-      GAME_CONSTANTS.BALL_INITIAL_VELOCITY.y * settings.ballSpeed;
-    expect(state.ball.setVelocity).not.toHaveBeenCalledWith(
-      expectedX,
-      expectedY
+    expect(state.ball.setPosition).toHaveBeenCalledWith(
+      260,
+      expect.any(Number)
     );
+    expect(state.ball.setVelocity).toHaveBeenLastCalledWith(0, 0);
+
+    const speed = () =>
+      Math.hypot(state.ball.body.velocity.x, state.ball.body.velocity.y);
     jest.advanceTimersByTime(GAME_CONSTANTS.LIFE_LOST_RESTART_DELAY - 1);
-    expect(state.ball.setVelocity).not.toHaveBeenCalledWith(
-      expectedX,
-      expectedY
-    );
+    expect(speed()).toBe(0);
     jest.advanceTimersByTime(1);
-    expect(state.ball.setVelocity).toHaveBeenCalledWith(expectedX, expectedY);
+    expect(speed()).toBeCloseTo(
+      GAME_CONSTANTS.BALL_SPEED * settings.ballSpeed,
+      5
+    );
+    expect(state.ball.body.velocity.y).toBeLessThan(0);
 
-    const expectedCallsBeforeFalseBranch =
-      state.ball.setVelocity.mock.calls.filter(
-        ([x, y]) => x === expectedX && y === expectedY
-      ).length;
-
+    // No relaunch once the last life has gone in the meantime.
     jest.clearAllTimers();
     state.lives = 3;
     scene.physics.world.emit('worldbounds', state.ball.body, false, true);
     state.lives = 0;
     jest.runOnlyPendingTimers();
-
-    const expectedCallsAfterFalseBranch =
-      state.ball.setVelocity.mock.calls.filter(
-        ([x, y]) => x === expectedX && y === expectedY
-      ).length;
-
-    expect(expectedCallsAfterFalseBranch).toBe(expectedCallsBeforeFalseBranch);
+    expect(speed()).toBe(0);
 
     state.lives = 1;
     state.ball.destroy = jest.fn();
     scene.sound.play.mockClear();
     scene.physics.world.emit('worldbounds', state.ball.body, false, true);
     expect(showGameOver).toHaveBeenCalledWith(scene, state);
+    expect(state.gameEnded).toBe(true);
     expect(state.ball.destroy).toHaveBeenCalled();
     expect(scene.sound.play).toHaveBeenCalledWith(AUDIO_KEYS.GAME_OVER);
 
     jest.useRealTimers();
+  });
+
+  test('the paddle aims the ball by where it lands', () => {
+    const scene = createMockScene();
+    create.call(scene);
+    const state = getGameState(scene);
+    state.paddle.x = 400;
+    state.paddle.y = 500;
+    state.paddle.displayWidth = 100;
+    const speed = GAME_CONSTANTS.BALL_SPEED * settings.ballSpeed;
+
+    state.ball.setPosition(400, 480);
+    scene.colliders[0]();
+    expect(state.ball.body.velocity.x).toBeCloseTo(0, 5);
+    expect(state.ball.body.velocity.y).toBeCloseTo(-speed, 5);
+
+    // The right end sends it out at the widest angle to the right.
+    state.ball.setPosition(460, 480);
+    scene.colliders[0]();
+    const angle = GAME_CONSTANTS.PADDLE_MAX_BOUNCE_ANGLE * (Math.PI / 180);
+    expect(state.ball.body.velocity.x).toBeCloseTo(speed * Math.sin(angle), 5);
+    expect(state.ball.body.velocity.y).toBeCloseTo(-speed * Math.cos(angle), 5);
+
+    // A ball clipping the paddle's side keeps the bounce physics gave it.
+    state.ball.setVelocity(120, 80);
+    state.ball.setPosition(455, 505);
+    scene.colliders[0]();
+    expect(state.ball.body.velocity).toEqual({ x: 120, y: 80 });
+  });
+
+  test('arrow keys and A/D steer the paddle while playing', () => {
+    const scene = createMockScene();
+    const keys = {
+      LEFT: { isDown: false },
+      RIGHT: { isDown: false },
+      A: { isDown: false },
+      D: { isDown: false },
+    };
+    scene.input.keyboard.addKeys = jest.fn(() => keys);
+    create.call(scene);
+    const state = getGameState(scene);
+    state.paused = false;
+    state.paddle.x = 400;
+
+    keys.RIGHT.isDown = true;
+    update.call(scene, 0, 100);
+    expect(state.paddle.x).toBeCloseTo(
+      400 + GAME_CONSTANTS.PADDLE_KEY_SPEED * 0.1,
+      5
+    );
+
+    keys.RIGHT.isDown = false;
+    keys.A.isDown = true;
+    update.call(scene, 0, 10_000);
+    expect(state.paddle.x).toBe(state.paddle.width / 2);
+
+    state.paused = true;
+    keys.A.isDown = false;
+    keys.D.isDown = true;
+    update.call(scene, 0, 100);
+    expect(state.paddle.x).toBe(state.paddle.width / 2);
+  });
+
+  test('a game paused while the résumé loads counts in on resume', async () => {
+    const scene = createMockScene();
+    create.call(scene);
+    const state = getGameState(scene);
+    state.userPaused = true;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(startCountdown).not.toHaveBeenCalled();
+    expect(state.wasInCountdown).toBe(true);
   });
 
   test('update triggers win flow when bricks are cleared', () => {

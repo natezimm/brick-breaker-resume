@@ -57,6 +57,22 @@
   --input-border-hover: rgba(22, 24, 29, 0.5);
 }
 
+/*
+ * The game fills the window and never scrolls. Clipping overflow also keeps
+ * a canvas sized for the old window from widening a phone's layout viewport
+ * when it rotates, which would stop the game seeing the new size.
+ */
+html,
+body {
+  overflow: hidden;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   background: var(--page-backdrop);
@@ -68,6 +84,14 @@ body {
 canvas {
   display: block;
   margin: 0 auto;
+}
+
+/* The game's bricks: DOM over the canvas, under the HUD and messages. */
+#gameBrickContainer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
 }
 
 /*
@@ -244,7 +268,7 @@ canvas {
   container-type: inline-size;
 }
 
-@container (max-width: 150px) {
+@container (max-width: 116px) {
   .look-name,
   .look-line,
   .look-start {
@@ -320,6 +344,12 @@ canvas {
   text-decoration-thickness: 2px;
 }
 
+/* Paper's corner holds the résumé itself, for a reader who would rather not play. */
+.overlay-attribution--start {
+  right: auto;
+  left: 18px;
+}
+
 @media (max-width: 700px), (max-height: 760px) {
   .look-line {
     display: none;
@@ -327,13 +357,18 @@ canvas {
 }
 
 @media (max-width: 700px) {
-  .overlay-attribution span {
+  .attribution-made {
     display: none;
   }
 
   .overlay-attribution {
     right: 12px;
     font-size: 12px;
+  }
+
+  .overlay-attribution--start {
+    right: auto;
+    left: 12px;
   }
 }
 

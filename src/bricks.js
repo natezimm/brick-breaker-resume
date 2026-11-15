@@ -97,18 +97,13 @@ function createBrickExplosion(domBrick, record, ball) {
   addTransient(word, WORD_LIFETIME);
 }
 
+/** The bricks' layer over the canvas; positioned in styles/base.css. */
 function getBrickContainer() {
   let container = document.getElementById('gameBrickContainer');
   if (!container) {
     container = document.createElement('div');
     container.id = 'gameBrickContainer';
-    container.style.position = 'absolute';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '100%';
-    container.style.height = '100%';
-    container.style.pointerEvents = 'none'; // Click through to canvas
-    container.style.zIndex = '5'; // Above canvas, below controls/modals if needed
+    container.setAttribute('aria-hidden', 'true');
     document.getElementById('app')?.appendChild(container) ||
       document.body.appendChild(container);
   }
@@ -170,6 +165,7 @@ export async function createBricksFromResume(
   container.dataset.layout = mode;
 
   state.totalRows = totalRows;
+  state.totalBricks = bricks.length;
 
   bricks.forEach((brickData) => {
     // Words broken before a theme switch stay broken in the new layout.

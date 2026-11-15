@@ -47,6 +47,11 @@ class GameState {
     this.scoreText = null;
     this.totalRows = 0;
     this.paused = true;
+    // Paused by the player (or for them, by a dialog or a hidden tab), as
+    // opposed to the engine's own waits such as the countdown.
+    this.userPaused = false;
+    this.keys = null;
+    this.totalBricks = 0;
     this.countdownText = null;
     this.countdownInterval = null;
     this.wasInCountdown = false;
