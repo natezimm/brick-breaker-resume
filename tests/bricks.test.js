@@ -153,6 +153,52 @@ describe('bricks', () => {
     ).toEqual(['three', 'four']);
   });
 
+  test('broken words moved into a later level by a new split stay broken', async () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    const elements = [
+      { kind: 'heading', text: 'WORK HISTORY' },
+      { kind: 'bullet', text: 'one two' },
+      { kind: 'bullet', text: 'three four' },
+    ];
+    gameState.resumeElements = elements;
+    gameState.levels = [{ elements, title: 'Work History' }];
+    gameState.levelsViewport = { width: 800, height: 800 };
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      value: 800,
+    });
+    // "four" (after WORK HISTORY one two three) and the second dot were
+    // broken on the big screen.
+    gameState.brokenWords = new Set([5, 'dot-1']);
+
+    // A small screen fits only the first bullet.
+    Object.defineProperty(window, 'innerHeight', { writable: true, value: 70 });
+    await createBricksFromResume(scene);
+
+    expect(gameState.levels.length).toBeGreaterThan(1);
+    expect(gameState.brokenWords.size).toBe(0);
+    expect([...gameState.brokenAhead].sort()).toEqual(['d:1', 'w:5']);
+
+    // The next level brings them back as its own keys.
+    const nextIndex = gameState.levels.findIndex((l) =>
+      l.elements.includes(elements[2])
+    );
+    gameState.levelIndex = nextIndex;
+    gameState.brokenWords = new Set();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    await createBricksFromResume(scene);
+
+    expect(gameState.brokenAhead.size).toBe(0);
+    expect([...gameState.brokenWords].sort()).toEqual([1, 'dot-0']);
+    const texts = gameState.bricksGroup.items.map(
+      (b) => b.getData('record').text
+    );
+    expect(texts).toContain('three');
+    expect(texts).not.toContain('four');
+  });
+
   test('handleBrickCollision awards points and cleans up visuals', () => {
     const domBrickRemove = jest.fn();
     const brickData = new Map([

@@ -83,6 +83,8 @@ class GameState {
     // Keys of the bricks already broken (a word's position in the résumé), so
     // a theme switch can lay the rest out again without restoring them.
     this.brokenWords = new Set();
+    // Broken bricks a new split moved into a later level (see bricks.js).
+    this.brokenAhead = new Set();
     this.rebuildingBricks = null;
     this.lastHitColor = null;
   }
