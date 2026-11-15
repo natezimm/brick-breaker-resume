@@ -95,6 +95,19 @@
   white-space: nowrap;
 }
 
+/* Shown only when the résumé is played over several levels. */
+.hud-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hud-level[hidden] {
+  display: none;
+}
+
 @keyframes pipLost {
   0% {
     transform: scale(1.7);
@@ -259,6 +272,13 @@
   color: #ffc533;
 }
 
+:root[data-theme='dark'] .hud-level {
+  padding-right: 11px;
+  font: 600 13px/1 var(--font-sans);
+  color: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+}
+
 :root[data-theme='dark'] .hud-button {
   width: var(--hud-button-size);
   height: var(--hud-button-size);
@@ -312,6 +332,13 @@
 
 :root[data-theme='light'] .hud-score.is-best .hud-best {
   color: var(--accent);
+}
+
+:root[data-theme='light'] .hud-level {
+  padding-right: 12px;
+  font: italic 400 16px/1 var(--font-serif);
+  color: var(--ink-body);
+  border-right: 1px solid rgba(22, 24, 29, 0.25);
 }
 
 :root[data-theme='light'] #controls {

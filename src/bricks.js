@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS, THEMES } from './constants.js';
 import { getGameState } from './state.js';
-import { calculateBrickLayout } from './brickLayout.js';
+import { layoutLevel, planResumeLevels } from './brickLayout.js';
 import { createBrickElement, createGhostElement } from './brickDom.js';
 
 const PARTICLE_COUNT = 12;
@@ -154,11 +154,122 @@ export function createBrick(
   return brick;
 }
 
+function viewportChanged(state) {
+  const size = state.levelsViewport;
+  return (
+    !size ||
+    size.width !== window.innerWidth ||
+    size.height !== window.innerHeight
+  );
+}
+
+/*
+ * Brick keys (`wordIndex`) count from the first line of their level: words
+ * as numbers, bullet dots as `dot-N`. A broken brick that a new split moves
+ * into a later level is kept in `state.brokenAhead` under its position in
+ * the whole résumé (`w:N` or `d:N`) until that level is laid out.
+ */
+function countKeys(elements) {
+  return elements.reduce(
+    (counts, element) => ({
+      words:
+        counts.words +
+        element.text.split(/\s+/).filter((word) => word.length > 0).length,
+      dots: counts.dots + (element.kind === 'bullet' ? 1 : 0),
+    }),
+    { words: 0, dots: 0 }
+  );
+}
+
+function levelSpan(state, level) {
+  const start = Math.max(0, state.resumeElements.indexOf(level.elements[0]));
+  return {
+    base: countKeys(state.resumeElements.slice(0, start)),
+    size: countKeys(level.elements),
+  };
+}
+
+/** Moves the current level's broken keys that no longer fit in it ahead. */
+function carryBrokenAhead(state, level) {
+  const { base, size } = levelSpan(state, level);
+  state.brokenWords.forEach((key) => {
+    let global = null;
+    if (typeof key === 'number' && key >= size.words) {
+      global = `w:${base.words + key}`;
+    } else if (String(key).startsWith('dot-')) {
+      const dot = Number(String(key).slice(4));
+      if (dot >= size.dots) global = `d:${base.dots + dot}`;
+    }
+    if (global) {
+      state.brokenWords.delete(key);
+      state.brokenAhead.add(global);
+    }
+  });
+}
+
+/** Brings broken keys that fall in the current level back into play. */
+function takeBrokenAhead(state, level) {
+  if (!state.brokenAhead?.size) return;
+  const { base, size } = levelSpan(state, level);
+  state.brokenAhead.forEach((global) => {
+    const [kind, value] = global.split(':');
+    const offset = Number(value) - (kind === 'w' ? base.words : base.dots);
+    const limit = kind === 'w' ? size.words : size.dots;
+    if (offset < 0 || offset >= limit) return;
+    state.brokenAhead.delete(global);
+    state.brokenWords.add(kind === 'w' ? offset : `dot-${offset}`);
+  });
+}
+
+/**
+ * Splits the résumé into levels for this screen. After a resize or rotation
+ * the level being played and those after it are split again for the new
+ * size, starting from the same line, so broken words keep their keys.
+ */
+async function ensureLevels(state) {
+  if (state.levels && !viewportChanged(state)) return;
+
+  if (!state.levels) {
+    const plan = await planResumeLevels();
+    state.resumeElements = plan.elements;
+    state.levels = plan.levels;
+  } else {
+    const current = state.levels[state.levelIndex] ?? state.levels[0];
+    const startAt = state.resumeElements.indexOf(current.elements[0]);
+    const plan = await planResumeLevels({
+      elements: state.resumeElements,
+      startAt: Math.max(0, startAt),
+    });
+    state.levels = [...state.levels.slice(0, state.levelIndex), ...plan.levels];
+    carryBrokenAhead(state, state.levels[state.levelIndex]);
+  }
+  state.levelsViewport = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+}
+
+/** Shows which level is in play in the HUD, when there is more than one. */
+export function renderLevelProgress(state) {
+  const display = document.getElementById('hudLevel');
+  if (!display) return;
+
+  const count = state.levels?.length ?? 1;
+  const number = state.levelIndex + 1;
+  display.hidden = count <= 1;
+  display.setAttribute('aria-label', `Level ${number} of ${count}`);
+  const value = display.querySelector('.hud-level-value');
+  if (value) value.textContent = `${number}/${count}`;
+}
+
 export async function createBricksFromResume(
   scene,
   state = getGameState(scene)
 ) {
-  const { bricks, totalRows, mode } = await calculateBrickLayout();
+  await ensureLevels(state);
+  const level = state.levels[state.levelIndex] ?? state.levels[0];
+  takeBrokenAhead(state, level);
+  const { bricks, totalRows, mode } = await layoutLevel(level.elements);
 
   const container = getBrickContainer();
   container.textContent = '';
@@ -190,6 +301,7 @@ export async function createBricksFromResume(
   });
 
   state.bricksCreated = true;
+  renderLevelProgress(state);
 }
 
 /**

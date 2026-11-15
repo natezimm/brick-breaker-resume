@@ -14,6 +14,8 @@ import { GAME_CONSTANTS } from './constants.js';
  * @property {boolean} gameEnded
  * @property {boolean} bricksCreated
  * @property {boolean} bricksReady
+ * @property {Object[] | null} levels
+ * @property {number} levelIndex
  * @property {Set<number>} brokenWords
  * @property {number | null} lastHitColor
  */
@@ -63,6 +65,17 @@ class GameState {
     // The first résumé load has finished. Unlike bricksCreated, a theme
     // switch's rebuild does not clear it.
     this.bricksReady = false;
+    // The résumé split into levels for this screen (see src/levels.js), the
+    // one being played, and the screen size the split was made for.
+    this.resumeElements = null;
+    this.levels = null;
+    this.levelIndex = 0;
+    this.levelsViewport = null;
+    // Between levels: the card for the next one is showing.
+    this.betweenLevels = false;
+    // Bricks broken, and laid, in the levels already cleared.
+    this.brokenBefore = 0;
+    this.bricksBefore = 0;
     this.ballTrailGraphics = null;
     this.ballTrailPoints = [];
     this.paddleTrailGraphics = null;
@@ -70,6 +83,8 @@ class GameState {
     // Keys of the bricks already broken (a word's position in the résumé), so
     // a theme switch can lay the rest out again without restoring them.
     this.brokenWords = new Set();
+    // Broken bricks a new split moved into a later level (see bricks.js).
+    this.brokenAhead = new Set();
     this.rebuildingBricks = null;
     this.lastHitColor = null;
   }

@@ -1,5 +1,6 @@
 import { GAME_CONSTANTS, COLORS, THEMES, THEME_LOOKS } from './constants.js';
 import { fitTypeset, getTypesetFontSpecs } from './typeset.js';
+import { planLevels } from './levels.js';
 
 const ALLOWED_ASSET_PATHS = Object.freeze([
   'assets/resume.json',
@@ -30,6 +31,7 @@ const MAX_HEADING_LENGTH = 40;
  * @property {BrickLayoutRecord[]} bricks
  * @property {number} totalRows
  * @property {'wall' | 'typeset'} mode
+ * @property {boolean} [truncated] some words did not fit on the screen
  */
 
 function isAllowedAssetPath(path) {
@@ -130,18 +132,21 @@ async function loadTypesetFonts() {
  * to fill the width.
  */
 function layoutWall(elements) {
-  const {
-    MARGIN_TOP,
-    BRICK_HEIGHT,
-    BRICK_PADDING,
-    BASE_BRICK_WIDTH,
-    MAX_BRICK_HEIGHT_RATIO,
-  } = GAME_CONSTANTS;
+  const { MARGIN_TOP, BRICK_PADDING, MAX_BRICK_HEIGHT_RATIO } = GAME_CONSTANTS;
+  const compact = window.innerWidth < GAME_CONSTANTS.COMPACT_WALL_WIDTH;
+  const BRICK_HEIGHT = compact
+    ? GAME_CONSTANTS.COMPACT_BRICK_HEIGHT
+    : GAME_CONSTANTS.BRICK_HEIGHT;
+  const charWidth = compact
+    ? GAME_CONSTANTS.COMPACT_BRICK_WIDTH
+    : GAME_CONSTANTS.BASE_BRICK_WIDTH;
+  const brickPadding = compact ? 8 : 10;
   const rightEdge = window.innerWidth - 10;
   let x = 10;
   let y = MARGIN_TOP;
   let totalRows = 0;
   let wordIndex = 0;
+  let truncated = false;
 
   const bricksByRow = new Map();
 
@@ -149,14 +154,16 @@ function layoutWall(elements) {
     const words = el.text.split(/\s+/).filter((w) => w.length > 0);
     words.forEach((word) => {
       const index = wordIndex++;
-      const brickWidth = word.length * BASE_BRICK_WIDTH + 10;
+      const brickWidth = word.length * charWidth + brickPadding;
 
       if (x + brickWidth > rightEdge) {
         x = 10;
         y += BRICK_HEIGHT + BRICK_PADDING;
       }
-      if (y + BRICK_HEIGHT > window.innerHeight * MAX_BRICK_HEIGHT_RATIO)
+      if (y + BRICK_HEIGHT > window.innerHeight * MAX_BRICK_HEIGHT_RATIO) {
+        truncated = true;
         return;
+      }
 
       const rowIndex = Math.floor(
         (y - MARGIN_TOP) / (BRICK_HEIGHT + BRICK_PADDING)
@@ -210,7 +217,7 @@ function layoutWall(elements) {
     });
   });
 
-  return { bricks: justifiedBricks, totalRows, mode: 'wall' };
+  return { bricks: justifiedBricks, totalRows, mode: 'wall', truncated };
 }
 
 async function loadResumeElements() {
@@ -232,12 +239,12 @@ async function loadResumeElements() {
 async function layoutElements(elements, mode) {
   if (mode === 'typeset') {
     await loadTypesetFonts();
-    const { bricks, totalRows } = fitTypeset(elements, {
+    const { bricks, totalRows, truncated } = fitTypeset(elements, {
       width: window.innerWidth,
       height: window.innerHeight,
       measure: createMeasurer(),
     });
-    return { bricks, totalRows, mode };
+    return { bricks, totalRows, mode, truncated };
   }
 
   return layoutWall(elements);
@@ -250,6 +257,42 @@ async function layoutElements(elements, mode) {
  */
 export async function calculateBrickLayout({ mode = getLayoutMode() } = {}) {
   return layoutElements(await loadResumeElements(), mode);
+}
+
+/**
+ * Splits the résumé into levels that each fit on this screen in both looks,
+ * so a theme switch mid-level never changes what the level holds. A screen
+ * that fits the whole résumé gets a single level.
+ * @param {{elements?: Object[], startAt?: number}} [options] pass the
+ *   elements of an earlier plan and where to start to split only the rest,
+ *   e.g. after the screen is rotated mid-game
+ * @returns {Promise<{elements: Object[], levels: import('./levels.js').ResumeLevel[]}>}
+ */
+export async function planResumeLevels({ elements, startAt = 0 } = {}) {
+  const all = elements ?? (await loadResumeElements());
+  await loadTypesetFonts();
+  const viewport = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    measure: createMeasurer(),
+  };
+  const levels = planLevels(
+    all,
+    (chunk) =>
+      !layoutWall(chunk).truncated && !fitTypeset(chunk, viewport).truncated,
+    { startAt }
+  );
+  return { elements: all, levels };
+}
+
+/**
+ * Lays one level's elements out for the active theme.
+ * @param {Object[]} elements
+ * @param {{mode?: 'wall' | 'typeset'}} [options]
+ * @returns {Promise<BrickLayout>}
+ */
+export function layoutLevel(elements, { mode = getLayoutMode() } = {}) {
+  return layoutElements(elements, mode);
 }
 
 /**

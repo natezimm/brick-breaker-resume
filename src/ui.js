@@ -1,7 +1,7 @@
 import { getGameState } from './state.js';
 import { settings } from './settings.js';
 import { GAME_CONSTANTS, COLORS, THEMES } from './constants.js';
-import { rebuildBricks } from './bricks.js';
+import { createBricksFromResume, rebuildBricks } from './bricks.js';
 import { hexToCss } from './brickLayout.js';
 import { isBallMoving, launchBall } from './ballPhysics.js';
 import { getBallRestY, getPaddleY, isCoarsePointer } from './playfield.js';
@@ -236,7 +236,12 @@ export function startCountdown(scene, state = getGameState(scene)) {
 }
 
 function bricksBrokenLine(state) {
-  const broken = state.brokenWords?.size ?? 0;
+  const broken = (state.brokenBefore ?? 0) + (state.brokenWords?.size ?? 0);
+  const levels = state.levels?.length ?? 1;
+  // Later levels aren't laid out yet, so there is no total to give.
+  if (levels > 1) {
+    return `${formatScore(broken)} bricks broken, level ${state.levelIndex + 1} of ${levels}`;
+  }
   const total = state.totalBricks || broken;
   return `${formatScore(broken)} of ${formatScore(total)} bricks broken`;
 }
@@ -308,6 +313,77 @@ export function showWinMessage(scene, state = getGameState(scene)) {
   focusPrimaryAction(card);
 }
 
+export function hasNextLevel(state) {
+  return Boolean(state?.levels) && state.levelIndex < state.levels.length - 1;
+}
+
+/**
+ * The wall is clear and more of the résumé is to come: the ball waits over
+ * the paddle while a card names the next level.
+ */
+export function finishLevel(scene, state = getGameState(scene)) {
+  state.betweenLevels = true;
+  // Keeps the clear check, rebuilds and pausing out until the next level.
+  state.bricksCreated = false;
+  state.setPaused(true);
+  if (state.ball?.body) {
+    state.ball.setVelocity(0, 0);
+    state.ball.setPosition(
+      state.paddle?.x ?? window.innerWidth / 2,
+      getBallRestY()
+    );
+  }
+  showLevelCard(scene, state);
+}
+
+function showLevelCard(scene, state) {
+  const overlay = showMessageOverlay();
+  if (!overlay) return;
+
+  const cleared = state.levelIndex + 1;
+  const next = state.levels[cleared];
+  const lines = next.detail ? [next.detail] : [];
+  lines.push(`${formatScore(state.score)} points so far`);
+
+  const card = createMessageCard({
+    variant: 'level',
+    eyebrow: `Level ${cleared} of ${state.levels.length} cleared`,
+    title: next.title,
+    lines,
+    actions: [
+      {
+        label: `Start level ${cleared + 1}`,
+        onClick: () => startNextLevel(scene, state),
+        primary: true,
+      },
+    ],
+  });
+  overlay.appendChild(card);
+  focusPrimaryAction(card);
+}
+
+/** Lays out the next level and counts the player in. */
+export async function startNextLevel(scene, state = getGameState(scene)) {
+  if (!state.betweenLevels) return;
+  state.betweenLevels = false;
+  hideGameMessage();
+
+  state.brokenBefore += state.brokenWords.size;
+  state.bricksBefore += state.totalBricks;
+  state.brokenWords = new Set();
+  state.levelIndex++;
+  state.bricksGroup?.clear?.(true, true);
+
+  await createBricksFromResume(scene, state);
+  // Paused while it was laid out: count in once the player resumes.
+  if (state.userPaused) {
+    state.wasInCountdown = true;
+    return;
+  }
+  createCountdownText(scene, state);
+  startCountdown(scene, state);
+}
+
 function showPausedMessage(scene, state) {
   const overlay = showMessageOverlay();
   if (!overlay) return;
@@ -361,7 +437,14 @@ export function pauseGame(
   state = getGameState(scene),
   { message = true } = {}
 ) {
-  if (!scene?.physics || state.gameEnded || state.userPaused) return false;
+  if (
+    !scene?.physics ||
+    state.gameEnded ||
+    state.betweenLevels ||
+    state.userPaused
+  ) {
+    return false;
+  }
 
   if (state.countdownInterval) {
     clearInterval(state.countdownInterval);

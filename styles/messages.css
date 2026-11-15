@@ -207,6 +207,10 @@
   color: #ffc533;
 }
 
+:root[data-theme='dark'] .gm-card--level .gm-eyebrow {
+  color: #8cc8ff;
+}
+
 :root[data-theme='dark'] .gm-title {
   font: 800 40px/1.05 var(--font-sans);
   letter-spacing: -0.02em;
@@ -215,6 +219,10 @@
 
 :root[data-theme='dark'] .gm-card--paused .gm-title {
   font-size: 28px;
+}
+
+:root[data-theme='dark'] .gm-card--level .gm-title {
+  font-size: 30px;
 }
 
 :root[data-theme='dark'] .gm-line {
@@ -291,6 +299,10 @@
   font-size: 30px;
   font-style: italic;
   font-weight: 400;
+}
+
+:root[data-theme='light'] .gm-card--level .gm-title {
+  font-size: 32px;
 }
 
 :root[data-theme='light'] .gm-line {

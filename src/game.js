@@ -14,6 +14,8 @@ import {
   createCountdownText,
   showGameOver,
   showWinMessage,
+  hasNextLevel,
+  finishLevel,
   togglePause,
   hideGameMessage,
 } from './ui.js';
@@ -397,10 +399,14 @@ export function update(time, delta) {
     state.lives > 0 &&
     !state.gameEnded
   ) {
-    showWinMessage(scene, state);
-    state.ball.setVelocity(0, 0);
-    playSound(scene, AUDIO_KEYS.WIN_GAME);
-    state.setPaused(true);
+    if (hasNextLevel(state)) {
+      finishLevel(scene, state);
+    } else {
+      showWinMessage(scene, state);
+      state.ball.setVelocity(0, 0);
+      playSound(scene, AUDIO_KEYS.WIN_GAME);
+      state.setPaused(true);
+    }
   }
 
   if (state?.ball) {

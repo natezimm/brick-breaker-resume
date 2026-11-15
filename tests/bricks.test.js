@@ -72,6 +72,133 @@ describe('bricks', () => {
     expect(lastBrick.getData('isLastInRow')).toBe(true);
   });
 
+  test('a résumé too long for the screen is split into levels', async () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    document.body.innerHTML = `<span id="hudLevel" hidden>
+      <span class="hud-level-value"></span>
+    </span>`;
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 300 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      value: 200,
+    });
+    const line = 'alpha beta gamma delta epsilon zeta eta theta';
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest
+        .fn()
+        .mockResolvedValue([
+          { text: 'Ada Lovelace' },
+          { text: 'WORK HISTORY' },
+          ...Array.from({ length: 6 }, () => ({ tag: 'li', text: line })),
+          { text: 'PROJECTS' },
+          ...Array.from({ length: 4 }, () => ({ tag: 'li', text: line })),
+        ]),
+    });
+
+    await createBricksFromResume(scene);
+
+    const count = gameState.levels.length;
+    expect(count).toBeGreaterThan(1);
+    expect(gameState.levels[0].elements[0].text).toBe('Ada Lovelace');
+    const hud = document.getElementById('hudLevel');
+    expect(hud.hidden).toBe(false);
+    expect(hud.querySelector('.hud-level-value').textContent).toBe(
+      `1/${count}`
+    );
+    expect(hud.getAttribute('aria-label')).toBe(`Level 1 of ${count}`);
+
+    // A taller screen splits the rest again from the same line.
+    const firstLine = gameState.levels[0].elements[0];
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      value: 2000,
+    });
+    await rebuildBricks(scene);
+
+    expect(gameState.levels).toHaveLength(1);
+    expect(gameState.levels[0].elements[0]).toBe(firstLine);
+    expect(hud.hidden).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('a later level splits again from its own first line', async () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    const elements = [
+      { kind: 'heading', text: 'WORK HISTORY' },
+      { kind: 'bullet', text: 'one two' },
+      { kind: 'bullet', text: 'three four' },
+    ];
+    gameState.resumeElements = elements;
+    gameState.levels = [
+      { elements: elements.slice(0, 2), title: 'Work History' },
+      { elements: elements.slice(2), title: 'Work History, continued' },
+    ];
+    gameState.levelIndex = 1;
+    gameState.levelsViewport = { width: 1, height: 1 };
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      value: 800,
+    });
+
+    await createBricksFromResume(scene);
+
+    expect(gameState.levels).toHaveLength(2);
+    expect(gameState.levels[1].elements).toEqual([elements[2]]);
+    expect(
+      gameState.bricksGroup.items.map((b) => b.getData('record').text)
+    ).toEqual(['three', 'four']);
+  });
+
+  test('broken words moved into a later level by a new split stay broken', async () => {
+    const scene = createMockScene();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    const elements = [
+      { kind: 'heading', text: 'WORK HISTORY' },
+      { kind: 'bullet', text: 'one two' },
+      { kind: 'bullet', text: 'three four' },
+    ];
+    gameState.resumeElements = elements;
+    gameState.levels = [{ elements, title: 'Work History' }];
+    gameState.levelsViewport = { width: 800, height: 800 };
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      value: 800,
+    });
+    // "four" (after WORK HISTORY one two three) and the second dot were
+    // broken on the big screen.
+    gameState.brokenWords = new Set([5, 'dot-1']);
+
+    // A small screen fits only the first bullet.
+    Object.defineProperty(window, 'innerHeight', { writable: true, value: 70 });
+    await createBricksFromResume(scene);
+
+    expect(gameState.levels.length).toBeGreaterThan(1);
+    expect(gameState.brokenWords.size).toBe(0);
+    expect([...gameState.brokenAhead].sort()).toEqual(['d:1', 'w:5']);
+
+    // The next level brings them back as its own keys.
+    const nextIndex = gameState.levels.findIndex((l) =>
+      l.elements.includes(elements[2])
+    );
+    gameState.levelIndex = nextIndex;
+    gameState.brokenWords = new Set();
+    gameState.bricksGroup = scene.physics.add.staticGroup();
+    await createBricksFromResume(scene);
+
+    expect(gameState.brokenAhead.size).toBe(0);
+    expect([...gameState.brokenWords].sort()).toEqual([1, 'dot-0']);
+    const texts = gameState.bricksGroup.items.map(
+      (b) => b.getData('record').text
+    );
+    expect(texts).toContain('three');
+    expect(texts).not.toContain('four');
+  });
+
   test('handleBrickCollision awards points and cleans up visuals', () => {
     const domBrickRemove = jest.fn();
     const brickData = new Map([
@@ -364,6 +491,8 @@ describe('bricks', () => {
 
     test('rebuildBricks warns when the résumé cannot be reloaded', async () => {
       await createBricksFromResume(scene);
+      // The split is kept, so drop it to make the rebuild fetch again.
+      gameState.levels = null;
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       global.fetch = jest.fn().mockRejectedValue(new Error('offline'));
 
