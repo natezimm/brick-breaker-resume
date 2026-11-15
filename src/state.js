@@ -13,6 +13,7 @@ import { GAME_CONSTANTS } from './constants.js';
  * @property {number} currentCountdown
  * @property {boolean} gameEnded
  * @property {boolean} bricksCreated
+ * @property {boolean} bricksReady
  * @property {Set<number>} brokenWords
  * @property {number | null} lastHitColor
  */
@@ -59,6 +60,9 @@ class GameState {
     this.winText = null;
     this.gameEnded = false;
     this.bricksCreated = false;
+    // The first résumé load has finished. Unlike bricksCreated, a theme
+    // switch's rebuild does not clear it.
+    this.bricksReady = false;
     this.ballTrailGraphics = null;
     this.ballTrailPoints = [];
     this.paddleTrailGraphics = null;

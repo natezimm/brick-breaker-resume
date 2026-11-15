@@ -46,6 +46,8 @@ describe('ui helpers', () => {
       <div id="gameMessageOverlay" class="hidden"></div>
     `;
     gameState.reset();
+    // Most tests play a game whose résumé has already loaded.
+    gameState.bricksReady = true;
     scene = createMockScene();
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
@@ -346,6 +348,40 @@ describe('ui helpers', () => {
 
     jest.runOnlyPendingTimers();
     jest.clearAllTimers();
+  });
+
+  test('a dialog closed while the résumé loads leaves the count-in to the load', () => {
+    jest.useFakeTimers();
+    gameState.bricksReady = false;
+    const game = { scene: { scenes: [scene] } };
+    ui.setupUIButtons(game);
+
+    document.getElementById('settingsButton').click();
+    expect(gameState.userPaused).toBe(true);
+    document.getElementById('closeModal').click();
+
+    expect(gameState.userPaused).toBe(false);
+    expect(gameState.wasInCountdown).toBe(false);
+    expect(gameState.countdownInterval).toBeNull();
+    // Still waiting for the load, which starts the countdown itself.
+    expect(gameState.paused).toBe(true);
+    jest.clearAllTimers();
+  });
+
+  test('starting a countdown again replaces the running one', () => {
+    jest.useFakeTimers();
+    gameState.ball = scene.physics.add.image(0, 0, 'ball');
+    ui.startCountdown(scene);
+    const first = gameState.countdownInterval;
+    ui.startCountdown(scene);
+    expect(gameState.countdownInterval).not.toBe(first);
+
+    jest.advanceTimersByTime(
+      GAME_CONSTANTS.COUNTDOWN_INTERVAL * GAME_CONSTANTS.COUNTDOWN_START
+    );
+    expect(gameState.countdownInterval).toBeNull();
+    expect(jest.getTimerCount()).toBe(0);
+    expect(gameState.paused).toBe(false);
   });
 
   test('a dialog opened while paused leaves the game paused', () => {

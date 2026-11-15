@@ -212,6 +212,9 @@ export function createCountdownText(scene, state = getGameState(scene)) {
 export function startCountdown(scene, state = getGameState(scene)) {
   let countdown = state.currentCountdown;
 
+  // Only one countdown may run: a second interval would overwrite the handle
+  // and leave the first one firing for ever.
+  if (state.countdownInterval) clearInterval(state.countdownInterval);
   state.countdownInterval = setInterval(() => {
     countdown--;
     state.currentCountdown = countdown;
@@ -390,6 +393,12 @@ export function resumeGame(
   state.userPaused = false;
   renderPauseButton(false);
   hideGameMessage();
+
+  // Still loading the résumé: the load starts the one countdown when it ends.
+  if (!state.bricksReady) {
+    state.wasInCountdown = false;
+    return;
+  }
 
   if (countdown || state.wasInCountdown) {
     state.wasInCountdown = false;

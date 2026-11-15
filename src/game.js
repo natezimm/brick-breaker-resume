@@ -374,6 +374,7 @@ export function create() {
 
   (async () => {
     await createBricksFromResume(scene, state);
+    state.bricksReady = true;
     // Paused while the résumé loaded: count in once the player resumes.
     if (state.userPaused) {
       state.wasInCountdown = true;
