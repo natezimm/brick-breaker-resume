@@ -27,6 +27,7 @@ import {
   isBallMoving,
   launchBall,
   paddleBounceVelocity,
+  restBall,
 } from './ballPhysics.js';
 
 let audioLoaded = false;
@@ -171,11 +172,11 @@ function loseLife(scene, state) {
 
   if (state.lives > 0) {
     // The next ball waits over the paddle, wherever the player left it.
-    state.ball.setPosition(
+    restBall(
+      state.ball,
       state.paddle?.x ?? window.innerWidth / 2,
       getBallRestY()
     );
-    state.ball.setVelocity(0, 0);
 
     const relaunch = () => {
       // A countdown that ended in the meantime has already launched it.
@@ -228,7 +229,12 @@ function getGlowColor(state) {
 }
 
 function drawBallTrail(scene, state) {
-  if (!state.ball || !state.ball.body) return;
+  if (!state.ball || !state.ball.body) {
+    // A lost last ball leaves no glow or smear behind on the game over card.
+    state.ballTrailGraphics?.clear?.();
+    state.ballTrailPoints = [];
+    return;
+  }
 
   const graphics = getOrCreateTrailGraphics(scene, state, 'ballTrailGraphics');
   if (!graphics.clear || !graphics.fillStyle || !graphics.fillCircle) return;
@@ -350,6 +356,12 @@ function updateTrails(scene, state) {
   drawPaddleTrail(scene, state);
 }
 
+/** Redraws the ball's glow where it now rests, without the old streak. */
+function settleBallTrail(scene, state) {
+  state.ballTrailPoints = [];
+  drawBallTrail(scene, state);
+}
+
 export function create() {
   const scene = this;
   const state = attachGameState(scene, createGameState());
@@ -403,10 +415,11 @@ export function update(time, delta) {
       finishLevel(scene, state);
     } else {
       showWinMessage(scene, state);
-      state.ball.setVelocity(0, 0);
+      restBall(state.ball, state.ball.x, state.ball.y);
       playSound(scene, AUDIO_KEYS.WIN_GAME);
       state.setPaused(true);
     }
+    settleBallTrail(scene, state);
   }
 
   if (state?.ball) {

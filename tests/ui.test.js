@@ -486,6 +486,26 @@ describe('ui helpers', () => {
       );
     });
 
+    test('game over says brick for a single one', () => {
+      gameState.levelIndex = 0;
+      gameState.brokenBefore = 0;
+      gameState.brokenWords = new Set([1]);
+
+      ui.showGameOver(scene);
+
+      expect(document.querySelector('.gm-card').textContent).toContain(
+        '1 brick broken, level 1 of 3'
+      );
+    });
+
+    test('a cleared level stops the engine behind its card', () => {
+      gameState.levelIndex = 0;
+      ui.finishLevel(scene, gameState);
+
+      expect(scene.physics.world.isPaused).toBe(true);
+      expect(gameState.betweenLevels).toBe(true);
+    });
+
     test('the last level has no next one', () => {
       gameState.levelIndex = 2;
       expect(ui.hasNextLevel(gameState)).toBe(false);
@@ -601,6 +621,30 @@ describe('ui helpers', () => {
     expect(gameState.paddle.x).toBe(100);
   });
 
+  test('setupWindowResize keeps a waiting ball over the moved paddle', () => {
+    const game = {
+      scale: { resize: jest.fn() },
+      scene: { scenes: [scene] },
+    };
+    gameState.paddle = scene.physics.add.image(300, 500, 'paddle');
+    gameState.paddle.width = 100;
+    gameState.ball = scene.physics.add.image(300, 475, 'ball');
+
+    const interceptor = captureResizeHandler();
+    ui.setupWindowResize(game);
+    const resizeHandler = interceptor.handler;
+    interceptor.restore();
+
+    window.innerWidth = 1000;
+    window.innerHeight = 1100;
+    resizeHandler();
+
+    expect(gameState.ball.x).toBe(gameState.paddle.x);
+    expect(gameState.ball.y).toBe(
+      gameState.paddle.y - GAME_CONSTANTS.BALL_REST_OFFSET
+    );
+  });
+
   test('setupWindowResize lays the bricks out again once resizing settles', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.useFakeTimers();
@@ -611,6 +655,7 @@ describe('ui helpers', () => {
     gameState.bricksGroup = { clear: jest.fn() };
     gameState.bricksCreated = true;
     gameState.ball = scene.physics.add.image(900, 700, 'ball');
+    gameState.ball.setVelocity(100, -100);
 
     const interceptor = captureResizeHandler();
     ui.setupWindowResize(game);
@@ -622,7 +667,7 @@ describe('ui helpers', () => {
     resizeHandler();
     resizeHandler();
 
-    // A ball left outside the window comes back over the paddle.
+    // A ball in flight left outside the window is brought back into play.
     expect(gameState.ball.x).toBe(500);
     expect(gameState.ball.y).toBeLessThan(400);
 

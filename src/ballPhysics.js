@@ -44,3 +44,18 @@ export function launchBall(ball, speedSetting, random) {
   const { x, y } = launchVelocity(ballSpeed(speedSetting), random);
   ball.setVelocity(x, y);
 }
+
+/**
+ * Stops the ball and parks it at (x, y). The body is reset along with the
+ * image: moving only the image leaves the body's last step to be applied on
+ * top, which can drop a resting ball onto the paddle and bounce it away.
+ */
+export function restBall(ball, x, y) {
+  if (!ball) return;
+  if (typeof ball.body?.reset === 'function') {
+    ball.body.reset(x, y);
+    return;
+  }
+  ball.setPosition?.(x, y);
+  ball.setVelocity?.(0, 0);
+}
