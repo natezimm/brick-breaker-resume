@@ -351,3 +351,48 @@
     display: none;
   }
 }
+
+/*
+ * A phone held sideways has little height to spare: the cards tighten up and
+ * keep their actions on one row so they clear the HUD.
+ */
+@media (max-height: 480px) and (orientation: landscape) {
+  /* Centred in the space above the HUD (touch height) rather than the screen. */
+  .game-message-overlay {
+    gap: 8px;
+    padding-top: 8px;
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .gm-card {
+    gap: 2px;
+    width: min(100%, 460px);
+    padding: 14px 20px;
+  }
+
+  .gm-actions {
+    margin-top: 10px;
+  }
+
+  .gm-action--primary {
+    flex-basis: auto;
+  }
+
+  .gm-countdown {
+    font-size: clamp(56px, 18vmin, 80px);
+  }
+
+  :root[data-theme] .gm-title {
+    font-size: 28px;
+  }
+
+  :root[data-theme] .gm-line {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  :root[data-theme] .gm-card--paused .gm-title,
+  :root[data-theme] .gm-card--level .gm-title {
+    font-size: 24px;
+  }
+}

@@ -3,7 +3,7 @@ import { settings } from './settings.js';
 import { GAME_CONSTANTS, COLORS, THEMES } from './constants.js';
 import { createBricksFromResume, rebuildBricks } from './bricks.js';
 import { hexToCss } from './brickLayout.js';
-import { isBallMoving, launchBall } from './ballPhysics.js';
+import { isBallMoving, launchBall, restBall } from './ballPhysics.js';
 import { getBallRestY, getPaddleY, isCoarsePointer } from './playfield.js';
 import { closeDialog, closeOnBackdropClick, openDialog } from './dialogs.js';
 
@@ -239,11 +239,12 @@ function bricksBrokenLine(state) {
   const broken = (state.brokenBefore ?? 0) + (state.brokenWords?.size ?? 0);
   const levels = state.levels?.length ?? 1;
   // Later levels aren't laid out yet, so there is no total to give.
+  const bricks = broken === 1 ? 'brick' : 'bricks';
   if (levels > 1) {
-    return `${formatScore(broken)} bricks broken, level ${state.levelIndex + 1} of ${levels}`;
+    return `${formatScore(broken)} ${bricks} broken, level ${state.levelIndex + 1} of ${levels}`;
   }
   const total = state.totalBricks || broken;
-  return `${formatScore(broken)} of ${formatScore(total)} bricks broken`;
+  return `${formatScore(broken)} of ${formatScore(total)} ${total === 1 ? 'brick' : 'bricks'} broken`;
 }
 
 function bestLine(state) {
@@ -326,9 +327,11 @@ export function finishLevel(scene, state = getGameState(scene)) {
   // Keeps the clear check, rebuilds and pausing out until the next level.
   state.bricksCreated = false;
   state.setPaused(true);
+  // Nothing moves behind the card; the next level's countdown starts it again.
+  setEnginePaused(scene, true);
   if (state.ball?.body) {
-    state.ball.setVelocity(0, 0);
-    state.ball.setPosition(
+    restBall(
+      state.ball,
       state.paddle?.x ?? window.innerWidth / 2,
       getBallRestY()
     );
@@ -598,8 +601,11 @@ export function setupWindowResize(game) {
       );
     }
 
-    // A ball left outside the new bounds is brought back into play.
-    if (state.ball && typeof state.ball.setPosition === 'function') {
+    if (state.ball?.body && !isBallMoving(state.ball)) {
+      // A waiting ball stays over the paddle, which has just moved.
+      restBall(state.ball, state.paddle?.x ?? width / 2, getBallRestY(height));
+    } else if (state.ball && typeof state.ball.setPosition === 'function') {
+      // A ball left outside the new bounds is brought back into play.
       const x = Math.min(Math.max(state.ball.x, 0), width);
       const y = state.ball.y > height ? getBallRestY(height) : state.ball.y;
       if (x !== state.ball.x || y !== state.ball.y)
