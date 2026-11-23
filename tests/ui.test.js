@@ -492,12 +492,16 @@ describe('ui helpers', () => {
       gameState.brokenWords = new Set([1, 2]);
       ui.showGameOver(scene);
 
+      // The smaller level carries one broken brick ahead to the next.
       gameState.levels = [...gameState.levels, { elements: [] }];
+      gameState.brokenWords = new Set([1]);
+      gameState.brokenAhead = new Set(['w:90']);
       ui.refreshGameOverProgress(gameState);
 
       expect(document.querySelector('.gm-card').textContent).toContain(
         '42 bricks broken, level 2 of 4'
       );
+      gameState.brokenAhead = new Set();
     });
 
     test('game over says brick for a single one', () => {

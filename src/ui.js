@@ -246,7 +246,11 @@ export function startCountdown(scene, state = getGameState(scene)) {
 }
 
 function bricksBrokenLine(state) {
-  const broken = (state.brokenBefore ?? 0) + (state.brokenWords?.size ?? 0);
+  // A resize can carry broken bricks ahead into a later level; they count.
+  const broken =
+    (state.brokenBefore ?? 0) +
+    (state.brokenWords?.size ?? 0) +
+    (state.brokenAhead?.size ?? 0);
   const levels = state.levels?.length ?? 1;
   // Later levels aren't laid out yet, so there is no total to give.
   const bricks = broken === 1 ? 'brick' : 'bricks';
