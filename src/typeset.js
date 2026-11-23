@@ -40,6 +40,10 @@ const STYLES = Object.freeze({
 const SCALE_STEP = 0.04;
 const MIN_SCALE_WIDE = 0.76;
 const WIDE_VIEWPORT = 900;
+// A phone on its side is wide enough for long lines but short, so the type
+// may shrink a little to keep about as many levels as it has upright.
+const MIN_SCALE_SHORT = 0.88;
+const SHORT_VIEWPORT = 500;
 const MAX_CONTENT_WIDTH = 1400;
 const RULE_SEGMENT = 110;
 const RULE_GAP = 2;
@@ -69,14 +73,18 @@ function splitWords(text) {
 /**
  * @param {Array<{text: string, kind: string}>} elements classified résumé entries
  * @param {{width: number, height: number, scale?: number,
- *   measure: (text: string, font: string) => number}} options
+ *   bottom?: number, measure: (text: string, font: string) => number}} options
+ *   `bottom` is the lowest a brick may reach; three quarters down by default
  */
-export function layoutTypeset(elements, { width, height, measure, scale = 1 }) {
+export function layoutTypeset(
+  elements,
+  { width, height, bottom, measure, scale = 1 }
+) {
   const side = clamp(width * 0.06, 16, 96);
   const contentWidth = Math.min(width - side * 2, MAX_CONTENT_WIDTH);
   const left = (width - contentWidth) / 2;
   const right = left + contentWidth;
-  const maxY = height * GAME_CONSTANTS.MAX_BRICK_HEIGHT_RATIO;
+  const maxY = bottom ?? height * GAME_CONSTANTS.MAX_BRICK_HEIGHT_RATIO;
   const padX = 2;
 
   const bricks = [];
@@ -296,12 +304,18 @@ export function layoutTypeset(elements, { width, height, measure, scale = 1 }) {
   return { bricks, totalRows, truncated, scale };
 }
 
+function minScaleFor({ width, height }) {
+  if (width >= WIDE_VIEWPORT) return MIN_SCALE_WIDE;
+  if (height < SHORT_VIEWPORT && width > height) return MIN_SCALE_SHORT;
+  return 1;
+}
+
 /**
  * Picks the largest type scale at which the whole résumé fits above the play
  * area. Narrow screens never shrink the type; they show as much as fits.
  */
 export function fitTypeset(elements, viewport) {
-  const minScale = viewport.width >= WIDE_VIEWPORT ? MIN_SCALE_WIDE : 1;
+  const minScale = minScaleFor(viewport);
   let layout;
 
   for (let scale = 1; scale >= minScale - 0.001; scale -= SCALE_STEP) {

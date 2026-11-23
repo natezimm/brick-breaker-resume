@@ -1,6 +1,7 @@
 import { GAME_CONSTANTS, COLORS, THEMES, THEME_LOOKS } from './constants.js';
 import { fitTypeset, getTypesetFontSpecs } from './typeset.js';
 import { planLevels } from './levels.js';
+import { getBrickZoneBottom } from './playfield.js';
 
 const ALLOWED_ASSET_PATHS = Object.freeze([
   'assets/resume.json',
@@ -132,8 +133,11 @@ async function loadTypesetFonts() {
  * to fill the width.
  */
 function layoutWall(elements) {
-  const { MARGIN_TOP, BRICK_PADDING, MAX_BRICK_HEIGHT_RATIO } = GAME_CONSTANTS;
-  const compact = window.innerWidth < GAME_CONSTANTS.COMPACT_WALL_WIDTH;
+  const { MARGIN_TOP, BRICK_PADDING } = GAME_CONSTANTS;
+  const bottom = getBrickZoneBottom(window.innerHeight);
+  const compact =
+    window.innerWidth < GAME_CONSTANTS.COMPACT_WALL_WIDTH ||
+    window.innerHeight < GAME_CONSTANTS.COMPACT_WALL_HEIGHT;
   const BRICK_HEIGHT = compact
     ? GAME_CONSTANTS.COMPACT_BRICK_HEIGHT
     : GAME_CONSTANTS.BRICK_HEIGHT;
@@ -160,7 +164,7 @@ function layoutWall(elements) {
         x = 10;
         y += BRICK_HEIGHT + BRICK_PADDING;
       }
-      if (y + BRICK_HEIGHT > window.innerHeight * MAX_BRICK_HEIGHT_RATIO) {
+      if (y + BRICK_HEIGHT > bottom) {
         truncated = true;
         return;
       }
@@ -242,6 +246,7 @@ async function layoutElements(elements, mode) {
     const { bricks, totalRows, truncated } = fitTypeset(elements, {
       width: window.innerWidth,
       height: window.innerHeight,
+      bottom: getBrickZoneBottom(window.innerHeight),
       measure: createMeasurer(),
     });
     return { bricks, totalRows, mode, truncated };
@@ -274,6 +279,7 @@ export async function planResumeLevels({ elements, startAt = 0 } = {}) {
   const viewport = {
     width: window.innerWidth,
     height: window.innerHeight,
+    bottom: getBrickZoneBottom(window.innerHeight),
     measure: createMeasurer(),
   };
   const levels = planLevels(

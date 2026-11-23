@@ -103,6 +103,18 @@ The `deploy` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs 
 
 It needs these repository secrets: `GCP_SSH_KEY`, `GCP_HOST`, `GCP_USER`, `GCP_KNOWN_HOSTS` and `APP_DOMAIN`. `GCP_KNOWN_HOSTS` pins the VM's SSH host key as one `known_hosts` line (for example `203.0.113.10 ssh-ed25519 AAAA...`) whose host matches `GCP_HOST`. The job refuses to connect when it is empty and uses `StrictHostKeyChecking yes`, so a missing or changed key stops the deploy.
 
+### Response headers
+
+A few protections only work as HTTP headers: browsers ignore `frame-ancestors` and `X-Content-Type-Options` in a `<meta>` tag. The VM's nginx config is not in this repository, so add these lines to the `server` block for resume.nathanzimmerman.com and reload nginx (`sudo nginx -t && sudo systemctl reload nginx`). The [`Dockerfile`](Dockerfile) sets the same ones.
+
+```nginx
+add_header Content-Security-Policy "frame-ancestors 'none'" always;
+add_header X-Frame-Options DENY always;
+add_header X-Content-Type-Options nosniff always;
+```
+
+nginx sends both CSP headers and the browser enforces each, so this one adds framing protection to the policy in `index.html` without replacing it. Check with `curl -sI https://resume.nathanzimmerman.com/`.
+
 Each deploy also signs a provenance attestation for every file it ships, and CI keeps an SPDX SBOM of the npm packages with the run's artifacts. To check that a file on the live site came from this repository's workflow, download it and run `gh attestation verify <file> --owner natezimm`.
 
 ## Project layout

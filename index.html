@@ -39,7 +39,11 @@
     />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Security: Content Security Policy -->
+    <!--
+      Security: Content Security Policy. Browsers ignore frame-ancestors and
+      X-Content-Type-Options in a meta tag, so those are response headers set by
+      nginx (see "Response headers" in README.md).
+    -->
     <meta
       http-equiv="Content-Security-Policy"
       content="
@@ -51,13 +55,10 @@
     media-src 'self';
     connect-src 'self';
     object-src 'none';
-    frame-ancestors 'none';
     base-uri 'self';
     form-action 'self';
   "
     />
-    <!-- Security: Prevent MIME type sniffing -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <!-- Security: Referrer Policy -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 

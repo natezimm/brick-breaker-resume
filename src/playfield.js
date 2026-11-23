@@ -26,3 +26,17 @@ export function getPaddleY(height = window.innerHeight) {
 export function getBallRestY(height = window.innerHeight) {
   return getPaddleY(height) - GAME_CONSTANTS.BALL_REST_OFFSET;
 }
+
+/**
+ * The lowest the bricks may reach: three quarters of the way down, but on a
+ * short screen (a phone on its side) not so close to the paddle that the
+ * ball has no room to travel. The bricks always keep the top half.
+ */
+export function getBrickZoneBottom(height = window.innerHeight) {
+  const paddleTop = getPaddleY(height) - GAME_CONSTANTS.PADDLE_HEIGHT / 2;
+  const clear = paddleTop - GAME_CONSTANTS.BRICK_PADDLE_CLEARANCE;
+  return Math.min(
+    height * GAME_CONSTANTS.MAX_BRICK_HEIGHT_RATIO,
+    Math.max(height / 2, clear)
+  );
+}

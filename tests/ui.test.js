@@ -486,6 +486,20 @@ describe('ui helpers', () => {
       );
     });
 
+    test('game over follows a resize that splits the résumé again', () => {
+      gameState.levelIndex = 1;
+      gameState.brokenBefore = 40;
+      gameState.brokenWords = new Set([1, 2]);
+      ui.showGameOver(scene);
+
+      gameState.levels = [...gameState.levels, { elements: [] }];
+      ui.refreshGameOverProgress(gameState);
+
+      expect(document.querySelector('.gm-card').textContent).toContain(
+        '42 bricks broken, level 2 of 4'
+      );
+    });
+
     test('game over says brick for a single one', () => {
       gameState.levelIndex = 0;
       gameState.brokenBefore = 0;

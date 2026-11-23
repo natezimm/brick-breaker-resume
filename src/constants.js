@@ -26,15 +26,18 @@ export const GAME_CONSTANTS = {
   BRICK_HEIGHT: 24,
   BRICK_PADDING: 4,
   BASE_BRICK_WIDTH: 10,
-  // Narrow screens set the wall tighter, at the same type size, so more of
-  // the résumé fits on each level.
+  // Narrow or short screens (a phone either way up) set the wall tighter, at
+  // the same type size, so more of the résumé fits on each level.
   COMPACT_WALL_WIDTH: 600,
+  COMPACT_WALL_HEIGHT: 500,
   COMPACT_BRICK_HEIGHT: 20,
   COMPACT_BRICK_WIDTH: 8,
   MARGIN_TOP: 10,
   COUNTDOWN_START: 3,
   COUNTDOWN_INTERVAL: 1000,
   MAX_BRICK_HEIGHT_RATIO: 0.75,
+  // The least room left between the lowest brick and the paddle.
+  BRICK_PADDLE_CLEARANCE: 44,
   TRAIL_LENGTH: 7,
 };
 
