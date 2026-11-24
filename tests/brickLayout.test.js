@@ -5,6 +5,7 @@ import {
   hexToCss,
 } from '../src/brickLayout.js';
 import { COLORS } from '../src/constants.js';
+import { getBrickZoneBottom } from '../src/playfield.js';
 
 const resume = [
   { tag: 'p', text: 'Nathan Zimmerman' },
@@ -90,6 +91,28 @@ describe('brick layout', () => {
     const last = bricks[bricks.length - 1];
     expect(last.isLastInRow).toBe(true);
     expect(last.x + last.width).toBeCloseTo(1200 - 10, 5);
+  });
+
+  test('a short screen sets the wall tighter, like a narrow one', async () => {
+    setViewport(844, 390);
+
+    const { bricks } = await calculateBrickLayout({ mode: 'wall' });
+
+    expect(bricks[0].height).toBe(20);
+  });
+
+  test('wall bricks stay clear of the paddle on a short screen', async () => {
+    mockResume(
+      Array.from({ length: 30 }, () => ({ tag: 'p', text: 'word '.repeat(9) }))
+    );
+    setViewport(667, 375);
+
+    const { bricks, truncated } = await calculateBrickLayout({ mode: 'wall' });
+    const lowest = Math.max(...bricks.map((brick) => brick.y + brick.height));
+
+    expect(truncated).toBe(true);
+    expect(lowest).toBeLessThanOrEqual(getBrickZoneBottom(375));
+    expect(lowest).toBeLessThan(375 * 0.75);
   });
 
   test('wall layout numbers words it has no room to show', async () => {

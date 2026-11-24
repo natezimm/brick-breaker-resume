@@ -15,6 +15,7 @@ import { closeDialog, closeOnBackdropClick, openDialog } from './dialogs.js';
 
 const SCORE_BUMP_CLASS = 'is-bumped';
 const CONFETTI_COUNT = 60;
+const PROGRESS_LINE_CLASS = 'gm-progress';
 
 export const RESUME_DOWNLOAD_URL = 'assets/Nathan%20Zimmerman%20Resume.docx';
 export const PORTFOLIO_URL = 'https://nathanzimmerman.com';
@@ -152,7 +153,13 @@ function createMessageCard({ variant, eyebrow, title, lines = [], actions }) {
   heading.id = `gmTitle-${variant}`;
   card.setAttribute('aria-labelledby', heading.id);
   card.appendChild(heading);
-  lines.forEach((line) => card.appendChild(element('p', 'gm-line', line)));
+  lines.forEach((line) => {
+    const { text, className } =
+      typeof line === 'string' ? { text: line } : line;
+    const paragraph = element('p', 'gm-line', text);
+    if (className) paragraph.classList.add(className);
+    card.appendChild(paragraph);
+  });
 
   const row = element('div', 'gm-actions');
   actions.forEach(({ label, onClick, href, download, primary }) => {
@@ -194,11 +201,14 @@ function updateCountdownDisplay(value) {
   const overlay = showMessageOverlay();
   if (!overlay) return;
 
+  // One group, so a short screen can set the two side by side on a pane.
+  const group = element('div', 'gm-countdown-group');
   const messageDiv = element('div', 'game-message gm-countdown');
   messageDiv.textContent =
     Number.isInteger(value) && value > 0 && value <= 9 ? value : '';
-  overlay.appendChild(messageDiv);
-  overlay.appendChild(element('p', 'gm-hint', steeringHint()));
+  group.appendChild(messageDiv);
+  group.appendChild(element('p', 'gm-hint', steeringHint()));
+  overlay.appendChild(group);
 }
 
 export function createCountdownText(scene, state = getGameState(scene)) {
@@ -236,7 +246,11 @@ export function startCountdown(scene, state = getGameState(scene)) {
 }
 
 function bricksBrokenLine(state) {
-  const broken = (state.brokenBefore ?? 0) + (state.brokenWords?.size ?? 0);
+  // A resize can carry broken bricks ahead into a later level; they count.
+  const broken =
+    (state.brokenBefore ?? 0) +
+    (state.brokenWords?.size ?? 0) +
+    (state.brokenAhead?.size ?? 0);
   const levels = state.levels?.length ?? 1;
   // Later levels aren't laid out yet, so there is no total to give.
   const bricks = broken === 1 ? 'brick' : 'bricks';
@@ -269,11 +283,25 @@ export function showGameOver(scene, state = getGameState(scene)) {
     variant: 'gameover',
     eyebrow: 'Game over',
     title: `${formatScore(state.score)} points`,
-    lines: [bestLine(state), bricksBrokenLine(state)],
+    lines: [
+      bestLine(state),
+      { text: bricksBrokenLine(state), className: PROGRESS_LINE_CLASS },
+    ],
     actions: endActions(scene),
   });
   overlay.appendChild(card);
   focusPrimaryAction(card);
+}
+
+/**
+ * A resize after game over splits the résumé again, which can change the
+ * number of levels; the card's progress line follows the HUD.
+ */
+export function refreshGameOverProgress(state) {
+  const line = getMessageOverlay()?.querySelector(
+    `.gm-card--gameover .${PROGRESS_LINE_CLASS}`
+  );
+  if (line) line.textContent = bricksBrokenLine(state);
 }
 
 /** Glass celebrates in the wall's own colours; Paper keeps to its ink. */
@@ -615,7 +643,11 @@ export function setupWindowResize(game) {
     clearTimeout(relayoutTimer);
     relayoutTimer = setTimeout(() => {
       const current = game.scene.scenes[0];
-      if (current) rebuildBricks(current, getGameState(current));
+      if (!current) return;
+      const currentState = getGameState(current);
+      Promise.resolve(rebuildBricks(current, currentState)).then(() => {
+        if (currentState.gameEnded) refreshGameOverProgress(currentState);
+      });
     }, GAME_CONSTANTS.RELAYOUT_DELAY);
   });
 }

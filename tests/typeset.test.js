@@ -216,10 +216,30 @@ describe('typeset layout', () => {
   });
 
   test('fitTypeset never shrinks the type on a narrow screen', () => {
-    const fitted = fitTypeset(resume, { width: 360, height: 240, measure });
+    const fitted = fitTypeset(resume, { width: 240, height: 300, measure });
 
     expect(fitted.scale).toBe(1);
     expect(fitted.truncated).toBe(true);
+  });
+
+  test('fitTypeset shrinks the type a little on a phone held sideways', () => {
+    const fitted = fitTypeset(resume, { width: 360, height: 240, measure });
+
+    expect(fitted.scale).toBeLessThan(1);
+    expect(fitted.scale).toBeGreaterThanOrEqual(0.88 - 0.001);
+  });
+
+  test('a given bottom keeps the page above it', () => {
+    const page = layoutTypeset(resume, {
+      ...wide,
+      height: 2000,
+      bottom: 120,
+    });
+
+    expect(page.truncated).toBe(true);
+    page.bricks.forEach((brick) => {
+      expect(brick.y + brick.height).toBeLessThanOrEqual(120);
+    });
   });
 
   test('lists the font faces to load before measuring', () => {

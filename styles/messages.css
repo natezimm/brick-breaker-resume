@@ -25,6 +25,13 @@
 
 /* ---------- Countdown ---------- */
 
+.gm-countdown-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
 .gm-countdown {
   font: 800 clamp(80px, 16vmin, 132px) / 1 var(--font-sans);
   font-variant-numeric: tabular-nums;
@@ -378,8 +385,44 @@
     flex-basis: auto;
   }
 
-  .gm-countdown {
-    font-size: clamp(56px, 18vmin, 80px);
+  /*
+   * The wall reaches most of the way down, so the digit and hint sit side by
+   * side on a pane that keeps them legible over the bricks and well above
+   * the paddle.
+   */
+  .gm-countdown-group {
+    flex-direction: row;
+    gap: 16px;
+    padding: 8px 22px 8px 18px;
+  }
+
+  :root[data-theme] .gm-countdown {
+    min-width: 0.6em;
+    font-size: 56px;
+    text-align: center;
+  }
+
+  :root[data-theme] .gm-hint {
+    padding: 0;
+    font-size: 14px;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+  }
+
+  :root[data-theme='dark'] .gm-countdown-group {
+    background: rgba(8, 12, 26, 0.78);
+    border: 1px solid rgba(160, 210, 255, 0.22);
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+  }
+
+  :root[data-theme='light'] .gm-countdown-group {
+    background: var(--page-backdrop);
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    box-shadow: 0 16px 40px rgba(22, 24, 29, 0.2);
   }
 
   :root[data-theme] .gm-title {
